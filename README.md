@@ -133,6 +133,10 @@ https://192.168.5.158:50443 {
 
 Step types: `flag`, `go` (reach a map), `talk` (say hello to them: a short scene), `jobs`, `friends`, `say` (a new word for the dog, in the right area), `boss`. Bosses use a trust meter (shown at the top): exact answers +30, other replies +10, not understood −15 (もう一回 is free). Finish with enough trust and the required skill used, or they say また あした and you try again the next day.
 
+## Camera (new)
+
+Open カメラ on the phone and a viewfinder cone appears in front of the hero on the TV. Turn with ↺ ↻ (or walk on the controller), then press the shutter. Everything inside the cone (up to six things, people and animals, nearest first, plus the ground) gets a numbered tag in the photo; the phone lists each one with its Japanese, reading, English, a picture and a play button, and NEW on first sight. Words go into 日記 → 言葉 with their pictures; the last 24 photos are kept in the album. Names live in the `PHOTO` table in `js/words.js` (sprite → written, reading, English, category).
+
 ## Known gaps
 
 - Voices use the browser's Japanese text-to-speech; VOICEVOX recordings come later.

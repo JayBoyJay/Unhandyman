@@ -118,6 +118,14 @@ def collect_lines():
             if 'wish' in c:
                 said += [c['wish']['ask'], c['wish']['deliver'], c['wish']['scrap']['jp']]
             lines += [(who, s) for s in said if s]
+    # camera words (the PHOTO table in js/words.js), read in the default voice as the phone plays them
+    p = os.path.join(ROOT, 'js', 'words.js')
+    if os.path.exists(p):
+        with open(p, encoding='utf-8') as f:
+            src = f.read()
+        block = src[src.index('const PHOTO = {'):src.index('function photoWord')]
+        for jp, kana in re.findall(r"\[\s*'([^']*)',\s*'([^']*)',\s*'[^']*',\s*'[^']*'\s*\]", block):
+            lines.append(('default', kana or jp))
     # the main story's scenes and bosses (js/quests.js)
     p = os.path.join(ROOT, 'js', 'quests.js')
     if os.path.exists(p):

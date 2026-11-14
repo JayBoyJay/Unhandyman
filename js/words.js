@@ -330,10 +330,71 @@
     'phrase:greet': ['おはよう', '', 'good morning / hello'], 'phrase:thanks': ['ありがとう', '', 'thank you'], 'phrase:repeat': ['もう一回', 'もういっかい', 'one more time'],
     'phrase:slow': ['ゆっくり', '', 'slowly'], 'phrase:yes': ['はい', '', 'yes'], 'phrase:no': ['いいえ', '', 'no'], 'phrase:sleep': ['お休み', 'おやすみ', 'good night']
   };
+  // Names for things the camera can photograph: sprite -> [written, reading, English, category].
+  // Categories: しぜん nature, たてもの buildings, もの things, いきもの animals, ひと people, ばしょ ground.
+  const PHOTO = {
+    cherry: ['桜', 'さくら', 'cherry tree', 'しぜん'], cherry_young: ['桜', 'さくら', 'cherry tree', 'しぜん'], bush: ['茂み', 'しげみ', 'bush', 'しぜん'],
+    willow: ['柳', 'やなぎ', 'willow', 'しぜん'], cedar_tree: ['杉', 'すぎ', 'cedar', 'しぜん'], young_cedar: ['杉', 'すぎ', 'cedar', 'しぜん'],
+    bamboo: ['竹', 'たけ', 'bamboo', 'しぜん'], bamboo_thicket: ['竹', 'たけ', 'bamboo', 'しぜん'], mushrooms: ['きのこ', '', 'mushrooms', 'しぜん'],
+    reeds: ['葦', 'あし', 'reeds', 'しぜん'], straw: ['わら', '', 'straw', 'しぜん'], stone: ['石', 'いし', 'stone', 'しぜん'], rocks: ['岩', 'いわ', 'rocks', 'しぜん'],
+    tree_stump: ['切り株', 'きりかぶ', 'tree stump', 'しぜん'], fallen_log: ['丸太', 'まるた', 'log', 'しぜん'], waterfall_cliff: ['滝', 'たき', 'waterfall', 'しぜん'],
+    stepping_stone: ['飛び石', 'とびいし', 'stepping stones', 'しぜん'],
+    landlord_house: ['家', 'いえ', 'house', 'たてもの'], workshop: ['家', 'いえ', 'house', 'たてもの'], tool_shed: ['物置', 'ものおき', 'shed', 'たてもの'],
+    the_old_hut: ['小屋', 'こや', 'hut', 'たてもの'], watch_hut: ['小屋', 'こや', 'hut', 'たてもの'], cafe: ['喫茶店', 'きっさてん', 'café', 'たてもの'],
+    small_bar: ['バー', '', 'bar', 'たてもの'], hardware: ['金物屋', 'かなものや', 'hardware store', 'たてもの'], grocer_shop: ['八百屋', 'やおや', 'greengrocer', 'たてもの'],
+    bakery: ['パン屋', 'パンや', 'bakery', 'たてもの'], florist_shop: ['花屋', 'はなや', 'florist', 'たてもの'], police_box: ['交番', 'こうばん', 'police box', 'たてもの'],
+    old_school: ['学校', 'がっこう', 'school', 'たてもの'], fox_shrine: ['神社', 'じんじゃ', 'shrine', 'たてもの'], wayside_shrine: ['祠', 'ほこら', 'little shrine', 'たてもの'],
+    torii_gate: ['鳥居', 'とりい', 'torii gate', 'たてもの'], back_gate: ['門', 'もん', 'gate', 'たてもの'], high_wall: ['壁', 'かべ', 'wall', 'たてもの'],
+    red_bridge_railing: ['橋', 'はし', 'bridge', 'たてもの'], well: ['井戸', 'いど', 'well', 'たてもの'], fountain: ['噴水', 'ふんすい', 'fountain', 'たてもの'],
+    station_sign: ['駅', 'えき', 'station', 'たてもの'], level_crossing_gate: ['踏切', 'ふみきり', 'level crossing', 'たてもの'], bus_stop: ['バス停', 'バスてい', 'bus stop', 'たてもの'],
+    karaoke_stage: ['舞台', 'ぶたい', 'stage', 'たてもの'], ramen_stall: ['屋台', 'やたい', 'food stall', 'たてもの'], festival_food_stall: ['屋台', 'やたい', 'food stall', 'たてもの'],
+    honesty_stall: ['無人販売', 'むじんはんばい', 'honesty stall', 'たてもの'],
+    stone_lantern: ['灯籠', 'とうろう', 'stone lantern', 'もの'], lamp: ['街灯', 'がいとう', 'street lamp', 'もの'], power_pole: ['電柱', 'でんちゅう', 'power pole', 'もの'],
+    bench: ['ベンチ', '', 'bench', 'もの'], veg_crate: ['箱', 'はこ', 'box', 'もの'], vending_machine: ['自動販売機', 'じどうはんばいき', 'vending machine', 'もの'],
+    an_old_dial_phone: ['電話', 'でんわ', 'telephone', 'もの'], trail_signpost: ['看板', 'かんばん', 'sign', 'もの'], scarecrow: ['かかし', '', 'scarecrow', 'もの'],
+    paper_lantern: ['提灯', 'ちょうちん', 'paper lantern', 'もの'], festival_lanterns: ['提灯', 'ちょうちん', 'paper lantern', 'もの'], a_lantern_that_never_goes_out: ['提灯', 'ちょうちん', 'paper lantern', 'もの'],
+    noticeboard: ['掲示板', 'けいじばん', 'noticeboard', 'もの'], wish_board: ['絵馬', 'えま', 'wish plaques', 'もの'], jizo_statue: ['お地蔵さん', 'おじぞうさん', 'Jizo statue', 'もの'],
+    fox_statue: ['狐の像', 'きつねのぞう', 'fox statue', 'もの'], her_old_sewing_table: ['ミシン', '', 'sewing machine', 'もの'], dog_bed: ['ベッド', '', 'bed', 'もの'],
+    cafe_table: ['テーブル', '', 'table', 'もの'], a_kotatsu: ['こたつ', '', 'kotatsu', 'もの'], a_cafe_counter: ['カウンター', '', 'counter', 'もの'],
+    a_noodle_bar_counter: ['カウンター', '', 'counter', 'もの'], a_fruit_stand: ['果物', 'くだもの', 'fruit', 'もの'], a_flower_shelf: ['花', 'はな', 'flowers', 'しぜん'],
+    a_goldfish_tank: ['金魚', 'きんぎょ', 'goldfish', 'いきもの'], washing_line: ['洗濯物', 'せんたくもの', 'laundry', 'もの'], the_fluffiest_futon_in_town: ['布団', 'ふとん', 'futon', 'もの'],
+    a_tool_wall: ['道具', 'どうぐ', 'tools', 'もの'], a_reading_chair_and_newspaper_rack: ['新聞', 'しんぶん', 'newspaper', 'もの'], a_police_box_lamp: ['ランプ', '', 'lamp', 'もの'],
+    a_jukebox: ['ジュークボックス', '', 'jukebox', 'もの'], a_bread_oven: ['オーブン', '', 'oven', 'もの'], a_takoyaki_grill: ['たこ焼き', 'たこやき', 'takoyaki', 'もの'],
+    a_town_banner: ['旗', 'はた', 'flag', 'もの'], a_camping_tent_for_the_yard: ['テント', '', 'tent', 'もの'], a_carved_bear: ['熊', 'くま', 'bear (carving)', 'もの'],
+    a_carved_wooden_fox: ['狐', 'きつね', 'fox (carving)', 'もの'], a_brass_ship_s_bell: ['鐘', 'かね', 'bell', 'もの'], a_giant_curry_pot: ['鍋', 'なべ', 'pot', 'もの'],
+    a_rope_hammock: ['ハンモック', '', 'hammock', 'もの'], a_skateboard_wall_rack: ['スケボー', '', 'skateboard', 'もの'], fishing_rod: ['釣り竿', 'つりざお', 'fishing rod', 'もの'],
+    ferry_boat: ['舟', 'ふね', 'boat', 'もの'], postbox: ['ポスト', '', 'postbox', 'もの'], police_bicycle: ['自転車', 'じてんしゃ', 'bicycle', 'もの'],
+    mini_truck: ['トラック', '', 'truck', 'もの'], local_train: ['電車', 'でんしゃ', 'train', 'もの'], firework: ['花火', 'はなび', 'fireworks', 'もの'],
+    bucket: ['バケツ', '', 'bucket', 'もの'], key: ['鍵', 'かぎ', 'key', 'もの'], persimmon: ['柿', 'かき', 'persimmon', 'もの'], ball: ['ボール', '', 'ball', 'もの'], shoe: ['靴', 'くつ', 'shoe', 'もの'],
+    dog: ['犬', 'いぬ', 'dog', 'いきもの'], sneaking_cat: ['猫', 'ねこ', 'cat', 'いきもの'], crow: ['烏', 'からす', 'crow', 'いきもの'], frog: ['蛙', 'かえる', 'frog', 'いきもの'],
+    tanuki: ['狸', 'たぬき', 'tanuki', 'いきもの'],
+    // people: what they do
+    landlord: ['大家さん', 'おおやさん', 'landlady', 'ひと'], mayor: ['町長', 'ちょうちょう', 'mayor', 'ひと'], hardware_store_owner: ['店長', 'てんちょう', 'shopkeeper', 'ひと'],
+    baker: ['パン屋さん', 'パンやさん', 'baker', 'ひと'], grocer: ['八百屋さん', 'やおやさん', 'greengrocer', 'ひと'], plumber: ['水道屋さん', 'すいどうやさん', 'plumber', 'ひと'],
+    ferryman: ['船頭', 'せんどう', 'ferryman', 'ひと'], student: ['学生', 'がくせい', 'student', 'ひと'], florist: ['花屋さん', 'はなやさん', 'florist', 'ひと'],
+    ramen_stall_owner: ['ラーメン屋さん', 'ラーメンやさん', 'ramen cook', 'ひと'], bar_owner: ['ママ', '', 'bar owner', 'ひと'], cafe_regular: ['おじさん', '', 'older man', 'ひと'],
+    cafe_owner: ['店長', 'てんちょう', 'café owner', 'ひと'], girl: ['女の子', 'おんなのこ', 'girl', 'ひと'], police_officer: ['お巡りさん', 'おまわりさん', 'police officer', 'ひと'],
+    night_guard: ['警備員', 'けいびいん', 'guard', 'ひと'], fox_spirit: ['狐', 'きつね', 'fox spirit', 'ひと'], festival_stallholder: ['おばさん', '', 'auntie', 'ひと'],
+    forest_ranger: ['おじいさん', '', 'old man', 'ひと'], hiker: ['ハイカー', '', 'hiker', 'ひと'],
+    // ground
+    't:g': ['草', 'くさ', 'grass', 'ばしょ'], 't:p': ['花びら', 'はなびら', 'petals', 'ばしょ'], 't:d': ['土', 'つち', 'dirt', 'ばしょ'], 't:s': ['畑', 'はたけ', 'field', 'ばしょ'],
+    't:v': ['野菜', 'やさい', 'vegetables', 'ばしょ'], 't:r': ['道', 'みち', 'road', 'ばしょ'], 't:P': ['石畳', 'いしだたみ', 'paving', 'ばしょ'], 't:w': ['川', 'かわ', 'river', 'ばしょ'],
+    't:k': ['桟橋', 'さんばし', 'pier', 'ばしょ'], 't:f': ['森', 'もり', 'forest', 'ばしょ'], 't:R': ['田んぼ', 'たんぼ', 'rice paddy', 'ばしょ'], 't:T': ['茶畑', 'ちゃばたけ', 'tea field', 'ばしょ'],
+    't:b': ['竹林', 'ちくりん', 'bamboo grove', 'ばしょ'], 't:t': ['線路', 'せんろ', 'railway', 'ばしょ'], 't:u': ['線路', 'せんろ', 'railway', 'ばしょ'], 't:S': ['階段', 'かいだん', 'steps', 'ばしょ'],
+    't:o': ['床', 'ゆか', 'floor', 'ばしょ'], 't:m': ['畳', 'たたみ', 'tatami', 'ばしょ'], 't:q': ['床', 'ゆか', 'floor', 'ばしょ'], 't:c': ['床', 'ゆか', 'floor', 'ばしょ']
+  };
+  // word id for a photographed thing: "thing:<reading>", so cedars young and old are one word
+  function photoWord(key) {
+    const p = PHOTO[key]; if (!p) return null;
+    return { id: 'thing:' + (p[1] || p[0]), jp: p[0], kana: p[1], en: p[2], cat: p[3], sprite: key.startsWith('t:') ? null : key };
+  }
+  const PHOTO_BY_ID = {};
+  Object.keys(PHOTO).forEach((k) => { const w = photoWord(k); if (!PHOTO_BY_ID[w.id] || (w.sprite && !PHOTO_BY_ID[w.id].sprite)) PHOTO_BY_ID[w.id] = w; });
   const NUM_JP = ['', '一つ', '二つ', '三つ', '四つ', '五つ', '六つ', '七つ', '八つ', '九つ', '十'];
   const NUM_KANA = ['', 'ひとつ', 'ふたつ', 'みっつ', 'よっつ', 'いつつ', 'むっつ', 'ななつ', 'やっつ', 'ここのつ', 'とお'];
   const CAT = { item: 'もの', verb: 'うごき', color: 'いろ', part: 'もの', size: 'ようす', number: 'かず', word: 'かず', name: 'ひと', phrase: 'あいさつ' };
   function gloss(id) {
+    if (PHOTO_BY_ID[id]) return Object.assign({}, PHOTO_BY_ID[id]);
     const kind = id.split(':')[0], cat = CAT[kind] || 'ほか';
     if (kind === 'number') {
       const n = +id.split(':')[1];
@@ -343,7 +404,7 @@
     return g ? { id, jp: g[0], kana: g[1], en: g[2], cat } : { id, jp: id.split(':')[1] || id, kana: '', en: '', cat };
   }
 
-  const api = { gloss, LEX, norm, parse, parseOne, parseDescription, zombieMatches, grammarWords, wordsIn, findNumber, findYen, findTime, kanaNumber };
+  const api = { gloss, photoWord, PHOTO, LEX, norm, parse, parseOne, parseDescription, zombieMatches, grammarWords, wordsIn, findNumber, findYen, findTime, kanaNumber };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Words = api;
 })(typeof window !== 'undefined' ? window : globalThis);

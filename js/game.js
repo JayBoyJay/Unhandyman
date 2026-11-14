@@ -636,6 +636,104 @@
     Save.save();
   }
 
+  // ---------- camera ----------
+  // The phone's カメラ app shows a viewfinder cone in front of the hero. Taking a picture finds
+  // what's inside the cone (things, people, animals, the ground), tags them with numbers, and sends
+  // the photo and their Japanese names to the phone. New words go into the dictionary.
+  const CAM_RANGE = 4.6, CAM_HALF = 36 * Math.PI / 180;
+  function facing() {
+    const h = S.hero; let fx = h.fx, fy = h.fy;
+    if (fx === undefined) { const v = { up: [-1, -1], down: [1, 1], left: [-1, 1], right: [1, -1] }[h.dir] || [1, 1]; fx = v[0]; fy = v[1]; }
+    const l = Math.hypot(fx, fy) || 1; return { x: fx / l, y: fy / l };
+  }
+  function turnHero(d) {
+    const f = facing(), a = Math.atan2(f.y, f.x) + d * Math.PI / 4;
+    S.hero.fx = Math.cos(a); S.hero.fy = Math.sin(a);
+    // pick the sprite direction closest on screen: screen x ~ fx - fy, screen y ~ fx + fy
+    const sx = S.hero.fx - S.hero.fy, sy = S.hero.fx + S.hero.fy;
+    S.hero.dir = Math.abs(sx) > Math.abs(sy) ? (sx > 0 ? 'right' : 'left') : (sy > 0 ? 'down' : 'up');
+  }
+  function inCone(x, y) {
+    const f = facing(), dx = x - S.hero.x, dy = y - S.hero.y, d = Math.hypot(dx, dy);
+    if (d < 0.6) return d;
+    if (d > CAM_RANGE) return -1;
+    const cos = (dx * f.x + dy * f.y) / d;
+    return cos >= Math.cos(CAM_HALF) ? d : -1;
+  }
+  function drawCameraCone() {
+    if (!S.camera) return;
+    const f = facing(), a0 = Math.atan2(f.y, f.x), pts = [scr(S.hero.x, S.hero.y)];
+    for (let i = 0; i <= 8; i++) { const a = a0 - CAM_HALF + (2 * CAM_HALF * i) / 8; pts.push(scr(S.hero.x + Math.cos(a) * CAM_RANGE, S.hero.y + Math.sin(a) * CAM_RANGE)); }
+    g.beginPath(); pts.forEach((p, i) => (i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y))); g.closePath();
+    g.fillStyle = 'rgba(255,255,255,0.16)'; g.fill();
+    g.setLineDash([3, 2]); g.strokeStyle = 'rgba(43,31,51,0.7)'; g.lineWidth = 1; g.stroke(); g.setLineDash([]);
+    const p = scr(S.hero.x, S.hero.y); bubble(p.x, p.y - 32, '📷');
+  }
+  function shoot() {
+    if (S.shot || !S.ready) return;
+    const seen = [], add = (key, x, y, extra) => {
+      const d = inCone(x, y); if (d < 0) return;
+      const w = Words.photoWord(key); if (!w) return;
+      seen.push(Object.assign({ d, x, y }, w, extra || {}));
+    };
+    for (const p of MAP.props || []) add(p.sprite, p.x, p.y);
+    for (const b of MAP.buildings || []) { const m = ATLAS[b.sprite]; if (m) add(b.sprite, b.x - (m[6] || 2) / 2, b.y - (m[7] || 2) / 2); }
+    for (const n of MAP.npcs || []) add(n.sprite, n.x, n.y, { who: n.name || (CH[n.id] && CH[n.id].name) || '' });
+    if (MAP.id === 'home') for (const it of S.items) if (!it.hidden && !it.held) add(it.id, it.x, it.y);
+    add('dog', dog.x, dog.y);
+    // nearest first, one of each word, at most six
+    seen.sort((a, b) => a.d - b.d);
+    const items = [], ids = new Set();
+    for (const s of seen) { if (ids.has(s.id) || items.length >= 6) continue; ids.add(s.id); items.push(s); }
+    // and the ground most of the picture shows
+    const counts = {}, f = facing(), a0 = Math.atan2(f.y, f.x);
+    for (let r = 1; r <= CAM_RANGE; r += 0.8) for (let k = -2; k <= 2; k++) {
+      const a = a0 + (k * CAM_HALF) / 2, x = Math.floor(S.hero.x + Math.cos(a) * r), y = Math.floor(S.hero.y + Math.sin(a) * r);
+      const ch = MAP.ground[y] && MAP.ground[y][x]; if (ch) counts[ch] = (counts[ch] || 0) + 1;
+    }
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    const ground = top && Words.photoWord('t:' + top[0]);
+    if (ground && !ids.has(ground.id)) items.push(Object.assign({ d: 99, ground: true }, ground));
+    items.forEach((it, i) => { it.n = i + 1; it.isNew = !SV().words[it.id]; });
+    S.shot = { items, at: S.t };
+  }
+  // draw the numbered tags on this frame, keep the picture, then flash
+  function capturePhoto() {
+    const shot = S.shot; S.shot = null;
+    g.font = '8px DotGothic16, monospace';
+    for (const it of shot.items) {
+      if (it.ground) continue;
+      const p = scr(it.x, it.y), y = p.y - 26;
+      g.fillStyle = '#d9533c'; g.beginPath(); g.arc(p.x, y, 5, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = '#fff8e7'; g.lineWidth = 1; g.stroke();
+      g.fillStyle = '#fff8e7'; g.fillText(String(it.n), p.x - 2, y + 3);
+    }
+    let img = '', thumb = '';
+    try {
+      img = cv.toDataURL('image/jpeg', 0.8);
+      const t = document.createElement('canvas'); t.width = 160; t.height = 90;
+      t.getContext('2d').drawImage(cv, 0, 0, 160, 90); thumb = t.toDataURL('image/jpeg', 0.6);
+    } catch (_) {}
+    S.flash = 1;
+    const items = shot.items.map((it) => ({ id: it.id, jp: it.jp, kana: it.kana, en: it.en, cat: it.cat, sprite: it.sprite, who: it.who || '', n: it.n, isNew: it.isNew, ground: !!it.ground }));
+    items.forEach((it) => Save.word(it.id, 'heard'));
+    Save.skill('camera');
+    const d = SV(); d.photos = d.photos || [];
+    d.photos.push({ day: d.day, clock: Math.floor(S.clock), map: MAP.name.split(' · ')[0], thumb, items });
+    if (d.photos.length > 24) d.photos.shift();
+    Save.save();
+    const fresh = items.filter((it) => it.isNew);
+    toast('📷 ' + (items.length ? items.map((it) => it.jp).join('、') : 'なにも ない… nothing in the picture') + (fresh.length ? '  · new: ' + fresh.length : ''));
+    const msg = { t: 'photo', img, items, map: MAP.name.split(' · ')[0], day: d.day, clock: clockText(S.clock) };
+    net.broadcast(msg); window.__lastPhoto = msg;
+    lastState = '';
+  }
+  function drawCameraFlash() {
+    if (!S.flash) return;
+    g.fillStyle = 'rgba(255,255,255,' + S.flash.toFixed(2) + ')'; g.fillRect(0, 0, W, H);
+    S.flash = Math.max(0, S.flash - 0.08);
+  }
+
   // ---------- the main story (js/quests.js) ----------
   // One quest at a time, one step at a time. Steps finish by themselves (a flag, reaching a map,
   // jobs or friendships) or through a scene: talking to someone, telling the dog a new word, or a
@@ -1175,6 +1273,7 @@
       // screen (ix, iy) -> world: dx-dy = ix*2, dx+dy = iy*4 (keeps on-screen speed even)
       let wx = ix / 2 + iy, wy = iy - ix / 2;
       const wl = Math.hypot(wx, wy) || 1, sp = 3.1 * Math.min(1, mag);
+      h.fx = wx / wl; h.fy = wy / wl;   // which way the hero faces (for the camera)
       wx = (wx / wl) * sp * dt; wy = (wy / wl) * sp * dt;
       const ex = exitAt(h.x + wx, h.y + wy);
       if (ex) tryExit(ex);
@@ -1647,6 +1746,7 @@
       g.fillStyle = 'rgba(255,220,140,' + (0.18 * S.night).toFixed(3) + ')';
       g.beginPath(); g.ellipse(wp.x, wp.y + 4, 22, 9, 0, 0, Math.PI * 2); g.fill();
     }
+    drawCameraCone();
     lateDraw.forEach((f) => f()); lateDraw = [];
   }
 
@@ -1655,6 +1755,8 @@
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     update(dt); updateCamera(dt); draw();
+    if (S.shot) capturePhoto();
+    drawCameraFlash();
     if ((S.hudT = (S.hudT || 0) + dt) > 0.25) { S.hudT = 0; updateHud(); }
     if ((S.stT = (S.stT || 0) + dt) > 1) { S.stT = 0; pushState(); }
     requestAnimationFrame(frame);
@@ -1750,6 +1852,7 @@
       job: S.cur ? { title: S.cur.title, goal: S.cur.goal } : null,
       dog: { busy: dogBusy(), carry: dog.carry || null },
       words: Object.entries(d.words || {}).map(([id, w]) => Object.assign(Words.gloss(id), { heard: w.heard, said: w.said, strength: Math.round(Save.fade(id)) })),
+      camera: !!S.camera, photoCount: (d.photos || []).length,
       friends: Object.entries(d.friends || {}).map(([id, f]) => ({ id, name: names[id] || id, role: (CH[id] && CH[id].role) || '', personality: (CH[id] && CH[id].personality) || '', quirk: (CH[id] && CH[id].quirk) || '', stars: f.stars, points: f.points, chatted: d.chatDay[id] === d.day })),
       furniture: (d.house.furniture || []).map((f) => ({ sprite: f.sprite, en: f.en, from: npcName(f.from), for: f.for ? npcName(f.for) : '', given: !!f.given })),
       tricks: (d.tricks || []).map((id) => { const c = Object.values(CH).find((x) => x.wish && x.wish.trick.id === id); return c ? { id, say: c.wish.scrap.jp, en: c.wish.trick.en } : { id }; }),
@@ -1791,6 +1894,10 @@
         handleSpeech(Array.isArray(d.alts) ? d.alts.slice(0, 6).map(String) : [String(d.text || '')]);
       }
       else if (d.t === 'replay') replay(!!d.slow);
+      else if (d.t === 'camera') { S.camera = !!d.on; if (!S.camera) S.shot = null; }
+      else if (d.t === 'turn') turnHero(+d.d || 0);
+      else if (d.t === 'shoot') shoot();
+      else if (d.t === 'album' && c) { try { c.send({ t: 'album', photos: SV().photos || [] }); } catch (_) {} }
       else if (d.t === 'job' && typeof d.id === 'string') { if (d.act === 'take') takeJob(d.id); else if (d.act === 'drop') dropJob(d.id); }
     },
     onError(e) { $('phones').textContent = 'Phone link: ' + e; },
@@ -1943,6 +2050,7 @@
     goto(id) { const m = MAPS[id]; if (m) changeMap(id, m.start); },
     setClock(min) { setClock(min); },
     gainFriend, talkToNearby, get chat() { return S.chat; }, questCheck, questInfo, qs,
+    camera(on) { S.camera = !!on; }, shoot, turnHero,
     get clock() { return S.clock; },
     hero: () => S.hero,
     // Draws a whole map to an image (for checking map layouts); returns a data URL.

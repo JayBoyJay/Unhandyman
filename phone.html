@@ -154,6 +154,12 @@
   .job .m { font-size: 13px; color: var(--ink2); }
   .job .now { font-size: 12px; font-weight: 800; color: #b5462e; }
   .hd { font-size: 14px; font-weight: 700; margin-top: 6px; }
+  .shotItem { display: flex; gap: 10px; align-items: center; background: #fff8e7; color: var(--ink); border: 2px solid var(--ink); border-radius: 16px; padding: 8px 10px; }
+  .shotItem .num { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--red); color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .shotItem .pic2 { flex: none; width: 48px; height: 40px; display: flex; align-items: center; justify-content: center; }
+  .shotItem b { font-size: 20px; }
+  .shotItem rt { font-size: 10px; }
+  .shotItem .new { font-size: 11px; font-weight: 800; color: #fff; background: var(--green); border-radius: 999px; padding: 1px 7px; margin-left: 4px; }
   .quest { background: #fff1c9; border: 3px solid var(--ink); border-radius: 20px; padding: 12px 14px; }
   .quest .ch { font-size: 12px; font-weight: 700; color: #7a3a14; }
   .quest .qt { font-size: 18px; font-weight: 800; margin: 2px 0; }
@@ -305,6 +311,25 @@
   <p class="sub">Say hello to people around town to get to know them. Calls come later.</p>
 </main>
 
+<!-- ============ カメラ ============ -->
+<main id="scrCamera" class="scr" hidden style="background:#2b2a33;color:#fff8e7">
+  <div class="appbar"><button class="back" data-go="home" aria-label="Back">‹</button><div class="grow"><p class="h1">カメラ</p><p class="sub" style="color:#d9d3e8">Aim the cone on the TV, then take a picture</p></div>
+    <button class="sm" id="albumBtn" type="button" style="display:inline-flex;align-items:center">アルバム</button></div>
+  <div id="camView" style="display:flex;flex-direction:column;gap:12px">
+    <div id="shot" style="border:3px solid #fff8e7;border-radius:16px;overflow:hidden;background:#3b3a46;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;font-size:14px;color:#d9d3e8;text-align:center;padding:0">TVの 画面を 見て ください<br>Look at the TV: the white cone is what the camera sees</div>
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <button class="sm" id="turnL" type="button" aria-label="Turn left" style="width:64px;height:64px;font-size:26px;border-radius:50%">↺</button>
+      <button id="shutter" type="button" aria-label="Take a picture" style="width:96px;height:96px;border-radius:50%;border:5px solid #fff8e7;background:#d9533c;box-shadow:inset 0 0 0 5px #2b2a33"></button>
+      <button class="sm" id="turnR" type="button" aria-label="Turn right" style="width:64px;height:64px;font-size:26px;border-radius:50%">↻</button>
+    </div>
+    <p class="sub" style="color:#d9d3e8;text-align:center">↺ ↻ turn · walk on the コントローラー to move</p>
+    <div id="shotItems" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+  <div id="albumView" hidden style="display:flex;flex-direction:column;gap:12px">
+    <div id="albumGrid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px"></div>
+  </div>
+</main>
+
 <!-- ============ おうち (furniture from friends) ============ -->
 <main id="scrHouse" class="scr" hidden style="background:#fbeee2">
   <div class="appbar"><button class="back" data-go="home" aria-label="Back">‹</button><div class="grow"><p class="h1">おうち</p><p class="sub">Furniture from friends · placing it in your room comes later</p></div></div>
@@ -320,10 +345,10 @@
 </main>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script src="assets/atlas.js?v=20261115i"></script>
-<script src="js/net.js?v=20261115i"></script>
-<script src="js/speech.js?v=20261115i"></script>
-<script src="js/voice.js?v=20261115i"></script>
+<script src="assets/atlas.js?v=20261115j"></script>
+<script src="js/net.js?v=20261115j"></script>
+<script src="js/speech.js?v=20261115j"></script>
+<script src="js/voice.js?v=20261115j"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -358,11 +383,14 @@
   }
 
   // ---------- screens ----------
-  const SCREENS = ['joinView', 'scrPad', 'scrHome', 'scrMsgs', 'scrMap', 'scrDiary', 'scrJobs', 'scrCall', 'scrHouse', 'scrSoon'];
-  const BG = { scrPad: '#dcebc4', scrHome: '#bfe0ec', scrMsgs: '#e6f2ec', scrMap: '#efe6cf', scrDiary: '#f3e9d6', scrJobs: '#efe6cf', scrCall: '#e8edf5', scrHouse: '#fbeee2', scrSoon: '#f3eef8', joinView: '#ffe0cc' };
+  const SCREENS = ['joinView', 'scrPad', 'scrHome', 'scrMsgs', 'scrMap', 'scrDiary', 'scrJobs', 'scrCall', 'scrHouse', 'scrCamera', 'scrSoon'];
+  const BG = { scrPad: '#dcebc4', scrHome: '#bfe0ec', scrMsgs: '#e6f2ec', scrMap: '#efe6cf', scrDiary: '#f3e9d6', scrJobs: '#efe6cf', scrCall: '#e8edf5', scrHouse: '#fbeee2', scrCamera: '#2b2a33', scrSoon: '#f3eef8', joinView: '#ffe0cc' };
   let screen = 'scrPad';
   function go(name, arg) {
-    const id = { pad: 'scrPad', home: 'scrHome', msgs: 'scrMsgs', map: 'scrMap', diary: 'scrDiary', jobs: 'scrJobs', call: 'scrCall', house: 'scrHouse', soon: 'scrSoon', join: 'joinView' }[name] || name;
+    const id = { pad: 'scrPad', home: 'scrHome', msgs: 'scrMsgs', map: 'scrMap', diary: 'scrDiary', jobs: 'scrJobs', call: 'scrCall', house: 'scrHouse', camera: 'scrCamera', soon: 'scrSoon', join: 'joinView' }[name] || name;
+    // the TV shows the camera's viewfinder only while the カメラ app is open
+    if (id === 'scrCamera' && screen !== 'scrCamera') send({ t: 'camera', on: true });
+    if (id !== 'scrCamera' && screen === 'scrCamera') send({ t: 'camera', on: false });
     screen = id;
     SCREENS.forEach((s) => ($(s).hidden = s !== id));
     document.body.style.background = id === 'scrHome' && $('scrHome').classList.contains('night') ? '#2f3a52' : BG[id];
@@ -374,6 +402,7 @@
     if (id === 'scrJobs') { if (D.board) D.seenBoardDay = D.board.day; renderJobs(); }
     if (id === 'scrCall') renderContacts();
     if (id === 'scrHouse') renderHouse();
+    if (id === 'scrCamera') { setCamTab('cam'); renderShot(); }
     if (id === 'scrSoon') renderSoon(arg);
     if (id !== 'scrPad') link && link.send({ t: 'move', x: 0, y: 0 }, { drop: true });
     updateBadges();
@@ -403,7 +432,7 @@
     { k: 'diary', go: 'diary', jp: '日記', bg: '#fbe3b8' },
     { k: 'jobs', go: 'jobs', jp: '依頼', bg: '#f7c9a8' },
     { k: 'call', go: 'call', jp: '電話', bg: '#cbd6e8' },
-    { k: 'camera', go: 'soon', arg: 'camera', jp: 'カメラ', bg: '#d9d3e8', soon: true },
+    { k: 'camera', go: 'camera', jp: 'カメラ', bg: '#d9d3e8' },
     { k: 'house', go: 'house', jp: 'おうち', bg: '#ffe0cc' }
   ];
   function appBtn(a, badge, small) {
@@ -547,7 +576,7 @@
 
   // ---------- diary: scraps and words ----------
   let seg = 'words', cat = 'すべて';
-  const CATS = ['すべて', 'もの', 'うごき', 'いろ', 'ようす', 'かず', 'ひと', 'あいさつ'];
+  const CATS = ['すべて', 'もの', 'しぜん', 'たてもの', 'いきもの', 'ばしょ', 'うごき', 'いろ', 'ようす', 'かず', 'ひと', 'あいさつ'];
   const PIC = { 'item:bucket': 'bucket', 'item:persimmon': 'persimmon', 'item:key': 'key', 'item:dog': 'dog' };
   let atlasImg = null;
   if (window.ATLAS) { atlasImg = new Image(); atlasImg.src = 'assets/atlas.png'; atlasImg.onload = () => { if (screen === 'scrDiary') renderDiary(); if (screen === 'scrHouse') renderHouse(); }; }
@@ -577,9 +606,10 @@
     if (!list.length) { $('words').innerHTML = '<p class="empty" style="grid-column:1/-1">No words yet. Words you hear and say in the game collect here.</p>'; return; }
     $('words').innerHTML = list.map((w) => {
       const jp = w.kana && w.kana !== w.jp ? '<ruby>' + esc(w.jp) + '<rt>' + esc(w.kana) + '</rt></ruby>' : esc(w.jp);
-      return '<div class="wc"><div class="pic" data-pic="' + (PIC[w.id] || '') + '">' + (PIC[w.id] ? '' : esc(w.en)) + '</div>' +
+      const pic = PIC[w.id] || w.sprite || '';
+      return '<div class="wc"><div class="pic" data-pic="' + pic + '">' + (pic ? '' : esc(w.en)) + '</div>' +
         '<div class="w"><b>' + jp + '</b><button class="play s" type="button" data-word="' + esc(w.kana || w.jp) + '" aria-label="Play ' + esc(w.jp) + '">' + PLAY + '</button></div>' +
-        '<p class="en">' + (PIC[w.id] ? esc(w.en) + '<br>' : '') + '聞いた ' + w.heard + ' · 言った ' + w.said + '</p><div class="meter" title="' + w.strength + '"><i style="width:' + w.strength + '%"></i></div></div>';
+        '<p class="en">' + (pic ? esc(w.en) + '<br>' : '') + '聞いた ' + w.heard + ' · 言った ' + w.said + '</p><div class="meter" title="' + w.strength + '"><i style="width:' + w.strength + '%"></i></div></div>';
     }).join('');
     if (atlasImg && atlasImg.complete && atlasImg.naturalWidth) document.querySelectorAll('#words [data-pic]').forEach((el) => {
       const a = window.ATLAS[el.dataset.pic]; if (!a) return;
@@ -629,6 +659,44 @@
       '<span style="flex:1;min-width:0"><span class="nm">' + esc(f.name) + '</span><span class="pv"><span class="stars">' + '★'.repeat(f.stars) + '☆'.repeat(3 - f.stars) + '</span>' + (f.role ? ' · ' + esc(f.role) : '') + (f.chatted ? ' · talked today ✓' : '') + '</span>' + (f.personality ? '<span class="pv" style="white-space:normal;font-size:12px">' + esc(f.personality) + (f.quirk && f.stars >= 1 ? '. <i>' + esc(f.quirk) + '</i>' : '') + '</span>' : '') + '</span></button>').join('')
       : '<p class="empty">No contacts yet.</p>';
   }
+
+  // ---------- カメラ ----------
+  let lastShot = null, album = [];
+  function ruby(jp, kana) { return kana && kana !== jp ? '<ruby>' + esc(jp) + '<rt>' + esc(kana) + '</rt></ruby>' : esc(jp); }
+  function itemRow(it) {
+    return '<div class="shotItem">' + (it.ground ? '<span class="num" style="background:#7a6e5a">◇</span>' : '<span class="num">' + it.n + '</span>') +
+      '<span class="pic2">' + (it.sprite ? spriteCanvas(it.sprite, 40) : '') + '</span>' +
+      '<span style="flex:1;min-width:0"><b>' + ruby(it.jp, it.kana) + '</b>' + (it.isNew ? '<span class="new">NEW</span>' : '') +
+      '<span class="sub" style="display:block">' + esc(it.en) + (it.who ? ' · ' + esc(it.who) : '') + '</span></span>' +
+      '<button class="play s" type="button" data-word="' + esc(it.kana || it.jp) + '" aria-label="Play ' + esc(it.jp) + '">' + PLAY + '</button></div>';
+  }
+  function renderShot() {
+    if (!lastShot) return;
+    $('shot').innerHTML = lastShot.img ? '<img alt="Your photo" src="' + lastShot.img + '" style="width:100%;height:100%;object-fit:cover;image-rendering:pixelated">' : '';
+    $('shotItems').innerHTML = lastShot.items.length ? lastShot.items.map(itemRow).join('') : '<p class="empty" style="color:#d9d3e8;border-color:#7a6e8a">なにも ない… Nothing in the picture. Turn towards something.</p>';
+  }
+  function setCamTab(t) {
+    $('camView').hidden = t !== 'cam'; $('albumView').hidden = t !== 'album';
+    $('albumBtn').textContent = t === 'album' ? 'カメラ' : 'アルバム';
+  }
+  $('albumBtn').addEventListener('click', () => {
+    if ($('albumView').hidden) { setCamTab('album'); send({ t: 'album' }); $('albumGrid').innerHTML = '<p class="sub" style="color:#d9d3e8">…</p>'; }
+    else setCamTab('cam');
+  });
+  function renderAlbum() {
+    $('albumGrid').innerHTML = album.length ? album.slice().reverse().map((p, i) => '<button type="button" data-ph="' + (album.length - 1 - i) + '" style="padding:0;border:2px solid #fff8e7;border-radius:12px;overflow:hidden;background:#3b3a46;color:#fff8e7;text-align:left">' +
+      (p.thumb ? '<img alt="" src="' + p.thumb + '" style="width:100%;display:block;image-rendering:pixelated">' : '') +
+      '<span style="display:block;padding:4px 8px;font-size:12px">' + p.day + '日目 · ' + esc(p.map) + '<br>' + p.items.map((x) => esc(x.jp)).join('、') + '</span></button>').join('')
+      : '<p class="empty" style="grid-column:1/-1;color:#d9d3e8;border-color:#7a6e8a">No photos yet.</p>';
+  }
+  $('albumGrid').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-ph]'); if (!b) return;
+    const p = album[+b.dataset.ph]; lastShot = { img: p.thumb, items: p.items }; setCamTab('cam'); renderShot();
+  });
+  $('shutter').addEventListener('click', () => { buzz(25); send({ t: 'shoot' }); $('shutter').style.transform = 'scale(.92)'; setTimeout(() => ($('shutter').style.transform = ''), 150); });
+  $('turnL').addEventListener('click', () => { buzz(8); send({ t: 'turn', d: -1 }); });
+  $('turnR').addEventListener('click', () => { buzz(8); send({ t: 'turn', d: 1 }); });
+  $('shotItems').addEventListener('click', (e) => { const b = e.target.closest('[data-word]'); if (b) speak(b.dataset.word, false); });
 
   // ---------- おうち ----------
   function spriteCanvas(name, h) {
@@ -683,6 +751,8 @@
         $('you').className = d.ok ? 'ok' : 'no';
         break;
       case 'dog': setDog(d.busy, d.carry); break;
+      case 'photo': lastShot = d; if (screen === 'scrCamera') { setCamTab('cam'); renderShot(); } buzz([20, 40, 20]); break;
+      case 'album': album = Array.isArray(d.photos) ? d.photos : []; if (screen === 'scrCamera') renderAlbum(); break;
       case 'board': D.board = d; if (screen === 'scrJobs') { D.seenBoardDay = d.day; renderJobs(); } break;
       case 'state':
         D.state = d; renderPad();
