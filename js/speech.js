@@ -22,9 +22,16 @@
       r.continuous = !ANDROID && !IOS;   // continuous mode is unreliable on phones
       const mine = () => this.sess === sess && sess.rec === r;
       r.onaudiostart = () => { if (mine()) this.log('mic on'); };
+      r.onsoundstart = () => { if (mine()) this.log('sound'); };
+      r.onspeechstart = () => { if (mine()) this.log('speech'); };
+      r.onspeechend = () => { if (mine()) this.log('speech end'); };
+      r.onaudioend = () => { if (mine()) this.log('mic off'); };
+      r.onnomatch = () => { if (mine()) this.log('no match'); };
       r.onresult = (e) => {
         if (!mine()) return;
         sess.results = Array.from(e.results);
+        const last = sess.results[sess.results.length - 1];
+        this.log('result' + (last && last.isFinal ? ' (final)' : '') + ': ' + sess.results.map((x) => x[0].transcript).join(''));
         sess.opts && sess.opts.onInterim && sess.opts.onInterim(sess.results.map((x) => x[0].transcript).join(''));
       };
       r.onerror = (e) => { if (mine()) { this.log('error: ' + e.error); sess.error = e.error; } };
