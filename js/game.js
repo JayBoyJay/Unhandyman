@@ -1284,10 +1284,13 @@
       if (S.phase === 'title') startGame();
     },
     onLeave() { $('phones').textContent = net.count() + ' phone connected'; },
-    onMsg(d) {
+    onMsg(d, c) {
       if (!d || typeof d !== 'object') return;
       if (d.t === 'move') { S.input.x = clamp(+d.x || 0, -1, 1); S.input.y = clamp(+d.y || 0, -1, 1); }
-      else if (d.t === 'speech') handleSpeech(Array.isArray(d.alts) ? d.alts.slice(0, 6).map(String) : [String(d.text || '')]);
+      else if (d.t === 'speech') {
+        if (d.id && c) { try { c.send({ t: 'ack', id: d.id }); } catch (_) {} }
+        handleSpeech(Array.isArray(d.alts) ? d.alts.slice(0, 6).map(String) : [String(d.text || '')]);
+      }
       else if (d.t === 'replay') replay(!!d.slow);
       else if (d.t === 'job' && typeof d.id === 'string') { if (d.act === 'take') takeJob(d.id); else if (d.act === 'drop') dropJob(d.id); }
     },

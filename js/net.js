@@ -194,7 +194,8 @@
         if (!(opts && opts.drop)) { queue.push(msg); if (queue.length > 20) queue.shift(); }
         return false;
       },
-      ready: () => up
+      ready: () => up,
+      reset: (why) => { if (up) down(why || 'reset'); }
     };
   }
 

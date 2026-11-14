@@ -594,6 +594,7 @@
   function onMsg(d) {
     if (!d || typeof d !== 'object') return;
     switch (d.t) {
+      case 'ack': gotAck(d.id); break;
       case 'hello': grammar = Array.isArray(d.grammar) ? d.grammar : []; break;
       case 'log':
         D.log = Array.isArray(d.lines) ? d.lines.slice() : [];
@@ -687,16 +688,35 @@
     try {
       if ((await starting) === 'failed') { setPtt(''); return; }
       const alts = await engine().stop();
-      if (alts.length) {
-        if (!link || !link.ready()) { $('you').textContent = '「' + alts[0] + '」 · waiting for the TV link, will send when it reconnects'; $('you').className = ''; }
-        send({ t: 'speech', alts, source: engine().name });
-      }
+      if (alts.length) sendSpeech(alts, engine().name);
       else { $('you').textContent = '聞こえなかった · didn\'t catch that, try again'; $('you').className = 'no'; if (engine().lastError) status(engine().lastError); }
     } catch (_) { /* status already shown */ }
     setPtt('');
   }
   ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((ev) => ptt.addEventListener(ev, release));
   ptt.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  // Speech goes out with an id; the TV answers with a receipt. No receipt in 4s means the
+  // link is stale, so we rejoin (the line waits in the queue and is sent again).
+  let sid0 = 0; const pending = {};
+  function sendSpeech(alts, source) {
+    const id = Date.now().toString(36) + (++sid0);
+    if (!link || !link.ready()) { $('you').textContent = '「' + alts[0] + '」 · waiting for the TV link…'; $('you').className = ''; }
+    else status('送信中 · sending…');
+    const live = link && link.ready();
+    send({ t: 'speech', id, alts, source });
+    if (live) pending[id] = setTimeout(() => {
+      delete pending[id];
+      status('TV didn\'t answer · rejoining…');
+      link && link.reset('no receipt');
+      send({ t: 'speech', id: id + 'r', alts, source });
+    }, 4000);
+  }
+  function gotAck(id) {
+    const k = String(id).replace(/r$/, '');
+    if (pending[k]) { clearTimeout(pending[k]); delete pending[k]; }
+    status('');
+  }
 
   // replay buttons and typing
   $('again').addEventListener('click', () => send({ t: 'replay', slow: false }));
@@ -705,7 +725,7 @@
     e.preventDefault();
     const v = $('typeInput').value.trim();
     if (!v) return;
-    send({ t: 'speech', alts: [v], source: 'typed' });
+    sendSpeech([v], 'typed');
     $('typeInput').value = '';
   });
 
