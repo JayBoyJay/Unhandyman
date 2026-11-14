@@ -77,7 +77,9 @@ Click **AI** on the TV screen.
 - **Claude, OpenAI or Gemini:** paste your own API key. It stays in that browser only and is never part of the repo.
 
 
-**Townsfolk answer anything** (設定 → AI, needs AI on): anything the game doesn't understand goes to whoever you're standing next to. The AI is told who they are (role, personality, quirk, a few of their own lines so it copies how they talk), how well they know you (friendship stars), the time and place, and that they may not care to answer. They reply in their own voice, in simple Japanese, or brush you off or ignore you (「…」). A real answer counts towards friendship, at most twice a day per person. Each person remembers the last few things you said to them this session. With nobody nearby, Hana answers as before.
+**Townsfolk answer anything** (設定 → AI, needs AI on): anything the game doesn't understand goes to whoever you're standing next to. The AI is told who they are (role, personality, quirk, a few of their own lines so it copies how they talk), how well they know you (friendship stars), the time and place, and that they may not care to answer. They reply in their own voice, in simple Japanese, or brush you off or ignore you (「…」). A real answer counts towards friendship, at most twice a day per person. Each person remembers the last few things you said to them this session. With nobody nearby, Hana answers if she's there.
+
+AI replies always show in a speech bubble over the speaker, never in the caption box, and are only heard if VOICEVOX (the live engine in 設定 → Voices) can voice them; they never use the browser's voice. Your line and their reply go into that person's thread in メッセージ.
 
 ## Voices (VOICEVOX)
 

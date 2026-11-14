@@ -244,6 +244,7 @@
     $('heard').className = ok ? 'ok' : 'no';
     net.broadcast({ t: 'heard', text, label, ok });
     // understood lines go into the message thread of whoever spoke last (or the dog's)
+    if (S.aiSaid === text) { S.aiSaid = null; return; }   // already logged before the AI's reply
     if (ok && text) {
       const th = !TO_DOG[type] && S.lastTh && S.t - S.lastTh.t < 20 ? S.lastTh.th : NAMES.dog;
       const m = { th, who: NAMES.you, me: true, text, day: SV().day };
@@ -1444,7 +1445,11 @@
       dogMood('?'); say('landlord', 'ん？', { noRepeat: true, quiet: true });
       return false;
     }
-    say('landlord', 'うーん…', { noRepeat: true });
+    // Hana answers in a bubble over her head, so only when she's here
+    const hana = (MAP.npcs || []).find((n) => n.id === 'hana');
+    if (!hana) { dogMood('?'); return false; }
+    hana.talk = { text: 'うーん…', until: S.t + 8 };
+    logYou(NAMES.landlord, text);
     S.chatLog.push({ role: 'user', content: text });
     S.chatLog = S.chatLog.slice(-8);
     try {
@@ -1452,15 +1457,30 @@
       const clean = String(reply || '').replace(/\s*\n\s*/g, ' ').trim().slice(0, 60);
       if (!clean) throw new Error('empty');
       S.chatLog.push({ role: 'assistant', content: clean });
-      say('landlord', clean);
+      aiBubble(hana, 'landlord', NAMES.landlord, clean);
       return true;
     } catch (e) {
       console.warn('AI failed', e);
-      say('landlord', 'ん？ もう一回？', { noRepeat: true });
+      hana.talk = { text: 'ん？ もう一回？', until: S.t + 3 };
       return false;
     }
   }
 
+  // AI replies go in a speech bubble over the speaker (not the caption box), and are only heard
+  // if VOICEVOX can voice them: no browser voice for AI lines.
+  function aiBubble(n, who, name, text) {
+    n.talk = { text, until: S.t + 4 + text.length * 0.18 };
+    if (window.Voice) Voice.speak(who, text, { noBrowser: true });
+    Words.wordsIn(text).forEach((w) => Save.word(w, 'heard'));
+    logLine({ th: name, who: name, text, day: SV().day });
+    S.lastTh = { th: name, t: S.t };
+    net.broadcast({ t: 'line', who: name, th: name, text, day: SV().day, ai: true });
+  }
+  // your line goes into their message thread before their reply
+  function logYou(th, text) {
+    const m = { th, who: NAMES.you, me: true, text, day: SV().day };
+    logLine(m); net.broadcast(Object.assign({ t: 'said' }, m)); S.aiSaid = text;
+  }
   function nearestPerson(range) {
     let best = null, bd = range;
     for (const n of MAP.npcs || []) { if (!n.id || !CH[n.id]) continue; const d = Math.hypot(n.x - S.hero.x, n.y - S.hero.y); if (d < bd) { bd = d; best = n; } }
@@ -1485,7 +1505,8 @@
   }
   async function personAI(cfg, n, text) {
     const c = CH[n.id], who = n.id === 'hana' ? 'landlord' : c.name;
-    n.bubble = '…'; n.bubbleT = S.t + 8;
+    n.talk = { text: '…', until: S.t + 8 };
+    logYou(c.name, text);
     S.aiLog = S.aiLog || {};
     const log = (S.aiLog[n.id] = (S.aiLog[n.id] || []).concat({ role: 'user', content: text }).slice(-8));
     try {
@@ -1495,8 +1516,7 @@
       catch (_) { reply = String(raw || ''); }
       reply = reply.replace(/\s*\n\s*/g, ' ').trim().slice(0, 70) || '…';
       log.push({ role: 'assistant', content: JSON.stringify({ reply, interested }) });
-      n.bubble = interested ? '♪' : '…'; n.bubbleT = S.t + 2;
-      say(who, reply);
+      aiBubble(n, who, c.name, reply);
       // a real answer counts towards friendship, at most twice a day each
       const d = SV(); d.aiTalk = d.aiTalk || {};
       const k = n.id + ':' + d.day;
@@ -1504,8 +1524,7 @@
       return interested;
     } catch (e) {
       console.warn('AI failed', e);
-      n.bubble = '？'; n.bubbleT = S.t + 2;
-      say(who, '…ん？', { noRepeat: true });
+      n.talk = { text: '…ん？', until: S.t + 2.5 };
       return false;
     }
   }

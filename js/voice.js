@@ -135,6 +135,7 @@
       catch (e) { Voice.lastError = e.message; }
     }
     if (my !== token) return;
+    if (opts.noBrowser) return 'silent';   // AI replies: VOICEVOX or nothing
     await browser(text, slow, opts.rate);
     return 'browser';
   }
