@@ -665,7 +665,7 @@
   const fmtDate = (ms) => (ms ? new Date(ms).toLocaleDateString() : '—');
   function renderTablet() {
     const el = $('tablet');
-    if (!tabletOpen()) { el.hidden = true; return; }
+    if (!tabletOpen() || !$('settings').hidden) { el.hidden = true; return; }   // settings comes first
     el.hidden = false;
     const v = S.view, sel = v.sel || {};
     $('tablet-app').textContent = TABLET_APPS[v.screen] || '';
@@ -2260,8 +2260,13 @@
     if (prev !== 'ollama' && prev === c.provider) c.keys[c.provider] = $('ai-key').value.trim();
     return c;
   }
-  $('gear').addEventListener('click', () => { fillSettings(); $('settings').hidden = false; fitBox($('settings'), 0.9); });
-  $('ai-close').addEventListener('click', () => { AI.save(readSettings()); $('settings').hidden = true; });
+  // settings open and close from the 設定 button (it toggles), ✕, Done or Esc; closing saves
+  function openSettings() { fillSettings(); $('settings').hidden = false; fitBox($('settings'), 0.9); renderTablet(); }
+  function closeSettings() { if ($('settings').hidden) return; AI.save(readSettings()); $('settings').hidden = true; renderTablet(); }
+  $('gear').addEventListener('click', () => ($('settings').hidden ? openSettings() : closeSettings()));
+  $('ai-close').addEventListener('click', closeSettings);
+  $('settings-x').addEventListener('click', closeSettings);
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSettings(); });
   $('ai-provider').addEventListener('change', () => {
     const c = AI.load(); const prov = $('ai-provider').value;
     AI.save({ ...readSettings(), provider: prov, model: prov === c.provider ? c.model : '' });

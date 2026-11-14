@@ -46,6 +46,9 @@
   /* settings: one wide panel in three columns, so nothing is cut off or needs scrolling */
   #settings { position: absolute; left: 3%; right: 3%; top: 7%; padding: 1em 1.2em; z-index: 4; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1.6em; font-size: 0.9em; overflow: hidden; max-height: 80%; }
   #settings .set-col { display: flex; flex-direction: column; gap: 0.6em; min-width: 0; }
+  #settings { padding-top: 2.6em; z-index: 95 !important; }
+  #settings-x { position: absolute; top: .5em; right: .6em; z-index: 1; font-size: .9em; padding: .25em .8em; }
+  #gear { z-index: 96 !important; }
   #settings input[type=text], #settings input[type=password], #settings select { max-width: 100%; box-sizing: border-box; }
   #settings[hidden], [hidden] { display: none !important; }
   #settings label { display: flex; flex-direction: column; gap: 0.2em; }
@@ -158,6 +161,7 @@
   <button id="jobsBtn" class="btn" type="button">しごと</button>
   <button id="gear" class="btn" type="button" aria-label="Settings">設定</button>
   <div id="settings" class="box" hidden>
+   <button id="settings-x" class="btn" type="button" aria-label="Close settings">✕ 閉じる · Close</button>
    <section class="set-col">
     <strong>Save</strong>
     <div class="row">
@@ -225,17 +229,17 @@
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="js/words.js?v=20261115t"></script>
-<script src="js/net.js?v=20261115t"></script>
-<script src="js/ai.js?v=20261115t"></script>
-<script src="js/voice.js?v=20261115t"></script>
-<script src="assets/atlas.js?v=20261115t"></script>
-<script src="js/save.js?v=20261115t"></script>
-<script src="js/jobs.js?v=20261115t"></script>
-<script src="js/maps.js?v=20261115t"></script>
-<script src="js/rooms.js?v=20261115t"></script>
-<script src="js/characters.js?v=20261115t"></script>
-<script src="js/quests.js?v=20261115t"></script>
-<script src="js/game.js?v=20261115t"></script>
+<script src="js/words.js?v=20261115u"></script>
+<script src="js/net.js?v=20261115u"></script>
+<script src="js/ai.js?v=20261115u"></script>
+<script src="js/voice.js?v=20261115u"></script>
+<script src="assets/atlas.js?v=20261115u"></script>
+<script src="js/save.js?v=20261115u"></script>
+<script src="js/jobs.js?v=20261115u"></script>
+<script src="js/maps.js?v=20261115u"></script>
+<script src="js/rooms.js?v=20261115u"></script>
+<script src="js/characters.js?v=20261115u"></script>
+<script src="js/quests.js?v=20261115u"></script>
+<script src="js/game.js?v=20261115u"></script>
 </body>
 </html>
