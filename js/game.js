@@ -645,7 +645,7 @@
   // ---------- the tablet: a bigger, more detailed copy of the phone app you have open ----------
   // The phone tells the TV which app is open and what's selected ({t:'view'}); the TV draws a
   // tablet-sized page with everything it knows about it. The controller and camera show none.
-  const TABLET_APPS = { scrHome: 'スマホ · Overview', scrMsgs: 'メッセージ · Messages', scrMap: '地図 · Map', scrDiary: '日記 · Diary', scrJobs: '依頼 · Story and jobs', scrCall: '電話 · People', scrHouse: 'おうち · Home', scrSoon: '' };
+  const TABLET_APPS = { scrZukan: 'ゾンビ図鑑 · Zombie deck', scrHome: 'スマホ · Overview', scrMsgs: 'メッセージ · Messages', scrMap: '地図 · Map', scrDiary: '日記 · Diary', scrJobs: '依頼 · Story and jobs', scrCall: '電話 · People', scrHouse: 'おうち · Home', scrSoon: '' };
   function tabletOpen() { return !!(S.view && TABLET_APPS[S.view.screen] && S.ready); }
   const tesc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const truby = (jp, kana) => (kana && kana !== jp ? '<ruby>' + tesc(jp) + '<rt>' + tesc(kana) + '</rt></ruby>' : tesc(jp));
@@ -671,7 +671,7 @@
     $('tablet-app').textContent = TABLET_APPS[v.screen] || '';
     let html = '';
     try {
-      html = ({ scrHome: tHome, scrMsgs: tMsgs, scrMap: tMap, scrDiary: tDiary, scrJobs: tJobs, scrCall: tPeople, scrHouse: tHouse }[v.screen] || (() => '<p>…</p>'))(sel);
+      html = ({ scrZukan: tZukan, scrHome: tHome, scrMsgs: tMsgs, scrMap: tMap, scrDiary: tDiary, scrJobs: tJobs, scrCall: tPeople, scrHouse: tHouse }[v.screen] || (() => '<p>…</p>'))(sel);
     } catch (e) { html = '<p>…</p>'; console.warn('tablet', e); }
     if ($('tablet-body').dataset.html !== html) {
       $('tablet-body').innerHTML = html; $('tablet-body').dataset.html = html;
@@ -690,10 +690,13 @@
     const el = $('tablet'), body = $('tablet-body');
     if (el.hidden) return;
     const fits = () => body.scrollHeight <= body.clientHeight + 1 && body.scrollWidth <= body.clientWidth + 1;
+    // pages laid out as their own grid of cards (the zombie deck) only widen, never flow into columns
+    const grid = !!body.querySelector('.tfill');
     for (const scale of [1, 0.92, 0.85, 0.78, 0.72]) {
       for (const sz of TAB_SIZES) {
         el.style.width = sz.w + '%'; el.style.fontSize = (0.95 * scale) + 'em';
-        body.classList.toggle('cols', sz.cols > 1); body.style.columnCount = sz.cols > 1 ? sz.cols : '';
+        const cols = grid ? 1 : sz.cols;
+        body.classList.toggle('cols', cols > 1); body.style.columnCount = cols > 1 ? cols : '';
         if (fits()) return;
       }
     }
@@ -847,6 +850,103 @@
       '<h3>いぬの とくぎ · Dog tricks (' + tricks.length + ')</h3>' + (tricks.length ? tricks.map((c) => '<div class="tcard"><p class="big" style="font-size:1.5em">' + (c.wish.scrap.html || tesc(c.wish.scrap.jp)) + '</p><p>' + tesc(c.wish.scrap.en) + ' · <span class="tsub">' + tesc(c.wish.scrap.note) + '</span></p><p>🐕 The dog ' + tesc(c.wish.trick.en) + '.</p></div>').join('') : '<p class="tsub">Deliver a friend\'s wish to learn a trick.</p>');
   }
 
+  // ---------- zombie deck (ゾンビ図鑑) ----------
+  // Photograph a zombie to add its kind to the deck. A card lists its size (おおきい or ふつう),
+  // what it's wearing (hat and colour, glasses, shirt colour), what it's holding (umbrella and
+  // colour), and ready-made ways to call it, marked if they pick out only this kind of zombie.
+  const ZCOL = { red: ['赤い', 'あかい', 'red'], blue: ['青い', 'あおい', 'blue'], yellow: ['黄色い', 'きいろい', 'yellow'], white: ['白い', 'しろい', 'white'], black: ['黒い', 'くろい', 'black'],
+    green: ['緑の', 'みどりの', 'green'], purple: ['紫の', 'むらさきの', 'purple'], pink: ['ピンクの', 'ピンクの', 'pink'] };
+  function zombieSig(z) {
+    return [z.size === 'big' ? 'big' : 'normal', z.hat ? 'hat-' + z.hat.color : '', z.glasses ? 'glasses' : '', z.umbrella ? 'umb-' + z.umbrella.color : '', z.shirt ? 'shirt-' + z.shirt.color : ''].filter(Boolean).join('.');
+  }
+  // what it's like, as words and as the phrases you can call it by
+  function zombieCard(z) {
+    const col = (c) => ZCOL[c] || [c, c, c];
+    const wearing = [], holding = [];
+    if (z.hat) wearing.push({ jp: col(z.hat.color)[0] + ' 帽子', kana: col(z.hat.color)[1] + ' ぼうし', en: col(z.hat.color)[2] + ' hat', color: z.hat.color, words: ['color:' + z.hat.color, 'part:hat'] });
+    if (z.glasses) wearing.push({ jp: '眼鏡', kana: 'めがね', en: 'glasses', words: ['part:glasses'] });
+    if (z.shirt) wearing.push({ jp: col(z.shirt.color)[0] + ' シャツ', kana: col(z.shirt.color)[1] + ' シャツ', en: col(z.shirt.color)[2] + ' shirt', color: z.shirt.color, words: ['color:' + z.shirt.color, 'item:shirt'] });
+    if (z.umbrella) holding.push({ jp: col(z.umbrella.color)[0] + ' 傘', kana: col(z.umbrella.color)[1] + ' かさ', en: col(z.umbrella.color)[2] + ' umbrella', color: z.umbrella.color, words: ['color:' + z.umbrella.color, 'part:umbrella'] });
+    const size = z.size === 'big' ? { jp: '大きい', kana: 'おおきい', en: 'big', words: ['size:big'] } : { jp: '普通', kana: 'ふつう', en: 'normal size', words: [] };
+    // phrases the dog understands, most specific first
+    const call = [];
+    const hatP = z.hat ? col(z.hat.color)[1] + ' ぼうしの' : '', umbP = z.umbrella ? col(z.umbrella.color)[1] + ' かさの' : '';
+    if (z.hat && z.glasses) call.push(hatP + ' めがねの ゾンビ');
+    if (z.size === 'big') call.push('おおきい ゾンビ');
+    if (z.hat && z.size === 'big') call.push('おおきい ' + hatP + ' ゾンビ');
+    if (z.hat) call.push(hatP + ' ゾンビ');
+    if (z.glasses) call.push('めがねの ゾンビ');
+    if (z.umbrella) call.push(umbP + ' ゾンビ');
+    if (z.shirt) call.push(col(z.shirt.color)[1].replace(/い$/, 'い') + ' ゾンビ');
+    return { sig: zombieSig(z), look: z.look, size, wearing, holding, call: [...new Set(call)], z: { size: z.size, hat: z.hat, glasses: z.glasses, umbrella: z.umbrella, shirt: z.shirt, look: z.look } };
+  }
+  // a small picture of the zombie, drawn the way it looks in the game
+  function zombiePortrait(z) {
+    const c = document.createElement('canvas'); c.width = 64; c.height = 80;
+    const keepG = g, keepCam = { x: S.cam.x, y: S.cam.y }, p = iso(z.x, z.y);
+    try {
+      g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+      S.cam.x = p.x - 32; S.cam.y = p.y - 70;
+      drawZombie(Object.assign({}, z, { state: 'walk', bob: 0, face: -1 }));
+    } catch (_) {}
+    g = keepG; S.cam.x = keepCam.x; S.cam.y = keepCam.y;
+    try {
+      // crop to the zombie so it fills the card picture
+      const px = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+      let x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
+      for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) if (px[(y * c.width + x) * 4 + 3] > 20) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+      if (x1 < 0) return c.toDataURL();
+      const w = x1 - x0 + 3, h = y1 - y0 + 3, o = document.createElement('canvas'); o.width = w; o.height = h;
+      o.getContext('2d').drawImage(c, x0 - 1, y0 - 1, w, h, 0, 0, w, h);
+      return o.toDataURL();
+    } catch (_) { return ''; }
+  }
+  function addZombieCard(z) {
+    const d = SV(); d.zdeck = d.zdeck || {};
+    const sig = zombieSig(z), isNew = !d.zdeck[sig];
+    if (isNew) d.zdeck[sig] = Object.assign(zombieCard(z), { img: zombiePortrait(z), firstDay: d.day, photos: 0 });
+    d.zdeck[sig].photos++;
+    // the card's words count as heard
+    const cd = d.zdeck[sig];
+    [cd.size, ...cd.wearing, ...cd.holding].forEach((a) => a.words.forEach((w) => Save.word(w, 'heard')));
+    if (isNew) after(0.8, () => toast('📖 ゾンビ図鑑に 追加！ · New zombie card: 「' + cd.call[0] + '」'));
+    return { card: cd, isNew };
+  }
+  // every kind of zombie the nights can send, for the "N still unknown" count
+  function allZombieKinds() {
+    const kinds = {};
+    WAVES.forEach((w) => w.forEach((dd) => { const z = { size: dd.size || 'small', hat: dd.hat || (dd.glasses ? { color: 'purple' } : null), glasses: dd.glasses || null, umbrella: dd.umbrella || null, shirt: { color: dd.glasses ? 'yellow' : dd.hat ? 'blue' : 'pink' } }; kinds[zombieSig(z)] = z; }));
+    return Object.values(kinds);
+  }
+  function allZombieSigs() { return allZombieKinds().map(zombieSig); }
+  // does this phrase pick out only this kind of zombie, among the cards you have?
+  function zombieDeck() {
+    // checked against every kind of zombie the nights can send, so "only this one" is always true
+    const d = SV(), cards = Object.values(d.zdeck || {}), kinds = allZombieKinds();
+    return cards.map((c) => Object.assign({}, c, {
+      callInfo: c.call.map((ph) => {
+        const desc = Words.parse([ph]).desc;
+        const fits = desc ? kinds.filter((o) => Words.zombieMatches(o, desc)).length : 0;
+        return { text: ph, unique: fits === 1 };
+      })
+    }));
+  }
+  function tZukan(sel) {
+    const deck = zombieDeck(), total = allZombieSigs().length, c = deck.find((x) => x.sig === sel.zombie) || null;
+    const attr = (a) => '<span class="chip2" style="font-size:1em">' + truby(a.jp, a.kana) + ' <span class="tsub">' + tesc(a.en) + '</span></span>';
+    // compact: labels sit on the same line as their chips, and call phrases are chips too
+    const row = (lab, chips) => '<div style="display:flex;gap:.4em;align-items:baseline;flex-wrap:wrap;margin-top:.15em"><span class="tsub" style="min-width:6.5em">' + lab + '</span>' + chips + '</div>';
+    const callChip = (ci) => '<span class="chip2" style="font-size:.9em;font-weight:700' + (ci.unique ? ';background:#c6e0a8' : '') + '">「' + tesc(ci.text) + '」' + (ci.unique ? ' ✓' : '') + '</span>';
+    const card = (x, big) => '<div class="tcard' + (c && x.sig === c.sig ? ' sel' : '') + '"><div class="row2"><img class="px" alt="" src="' + x.img + '" style="height:' + (big ? 5.5 : 4.2) + 'em;padding:.3em;background:#2f3a52;border-radius:.4em">' +
+      '<div style="flex:1;min-width:0">' + row('おおきさ · Size', attr(x.size)) + row('きている · Wearing', x.wearing.map(attr).join(' ') || '—') +
+      (x.holding.length ? row('もっている · Holding', x.holding.map(attr).join(' ')) : '') + '</div></div>' +
+      row('よびかた · Call', '<span class="chips">' + x.callInfo.map(callChip).join('') + '</span>') +
+      (big ? '<p class="tsub">First photographed on day ' + x.firstDay + ' · ' + x.photos + ' photo' + (x.photos > 1 ? 's' : '') + '</p>' : '') + '</div>';
+    return '<h3>ゾンビ図鑑 · Zombie deck <span class="tsub">' + deck.length + ' of ' + total + ' kinds</span></h3>' +
+      (deck.length ? '<div class="tfill" style="display:grid;grid-template-columns:repeat(' + Math.min(3, Math.max(1, deck.length)) + ',minmax(0,1fr));gap:.6em;align-items:start">' + (c ? card(c, true) : '') + deck.filter((x) => !c || x.sig !== c.sig).map((x) => card(x, false)).join('') + '</div>' : '<p>No cards yet. At night, open the カメラ (zombies slow down while it\'s open) and photograph a zombie.</p>') +
+      '<p class="tsub">Say 「いぬ、…！」 with one of these. ✓ means only this kind of zombie looks like that, so the dog knows who you mean.' + (total > deck.length ? ' · ？？？ ' + (total - deck.length) + ' kinds still to photograph' : '') + '</p>';
+  }
+
   // ---------- camera ----------
   // The phone's カメラ app shows a viewfinder cone in front of the hero. Taking a picture finds
   // what's inside the cone (things, people, animals, the ground), tags them with numbers, and sends
@@ -892,6 +992,10 @@
     for (const n of MAP.npcs || []) add(n.sprite, n.x, n.y, { who: n.name || (CH[n.id] && CH[n.id].name) || '' });
     if (MAP.id === 'home') for (const it of S.items) if (!it.hidden && !it.held) add(it.id, it.x, it.y);
     add('dog', dog.x, dog.y);
+    for (const z of S.zombies) if (z.onMap && z.state === 'walk') {
+      const dd = inCone(z.x, z.y); if (dd < 0) continue;
+      seen.push({ d: dd - 10, x: z.x, y: z.y, id: 'zombie:' + zombieSig(z), jp: 'ゾンビ', kana: '', en: 'zombie', cat: 'いきもの', zombie: z });   // zombies first
+    }
     // nearest first, one of each word, at most six
     seen.sort((a, b) => a.d - b.d);
     const items = [], ids = new Set();
@@ -926,8 +1030,12 @@
       t.getContext('2d').drawImage(cv, 0, 0, 160, 90); thumb = t.toDataURL('image/jpeg', 0.6);
     } catch (_) {}
     S.flash = 1;
-    const items = shot.items.map((it) => ({ id: it.id, jp: it.jp, kana: it.kana, en: it.en, cat: it.cat, sprite: it.sprite, who: it.who || '', n: it.n, isNew: it.isNew, ground: !!it.ground }));
-    items.forEach((it) => Save.word(it.id, 'heard'));
+    const items = shot.items.map((it) => {
+      const out = { id: it.id, jp: it.jp, kana: it.kana, en: it.en, cat: it.cat, sprite: it.sprite, who: it.who || '', n: it.n, isNew: it.isNew, ground: !!it.ground };
+      if (it.zombie) { const r = addZombieCard(it.zombie); out.zombie = { sig: r.card.sig, isNew: r.isNew, call: r.card.call[0] }; out.isNew = r.isNew; }
+      return out;
+    });
+    items.forEach((it) => { if (!it.zombie) Save.word(it.id, 'heard'); });
     Save.skill('camera');
     const d = SV(); d.photos = d.photos || [];
     d.photos.push({ day: d.day, clock: Math.floor(S.clock), map: MAP.name.split(' · ')[0], thumb, items });
@@ -1599,11 +1707,13 @@
     updateLaundry(dt);
 
     // zombies: walk the street to the gate, then up the path to the door
+    // with the camera open, zombies slow to a crawl so you can photograph them
+    const zdt = S.camera ? dt * 0.25 : dt;
     for (const z of S.zombies) {
-      z.bob += dt * 5;
+      z.bob += zdt * 5;
       if (z.state === 'walk') {
         const wp = z.path[0];
-        if (moveToward(z, wp.x, wp.y, z.speed, dt, 0.05)) z.path.shift();
+        if (moveToward(z, wp.x, wp.y, z.speed, zdt, 0.05)) z.path.shift();
         if (!z.path.length) {
           z.state = 'flee'; z.speed = 2.2; S.barricade = Math.max(0, S.barricade - 1);
           say('radio', 'いえに きた！', { noRepeat: true });
@@ -2159,6 +2269,7 @@
       dog: { busy: dogBusy(), carry: dog.carry || null },
       words: Object.entries(d.words || {}).map(([id, w]) => Object.assign(Words.gloss(id), { heard: w.heard, said: w.said, strength: Math.round(Save.fade(id)) })),
       camera: !!S.camera, photoCount: (d.photos || []).length,
+      zdeck: zombieDeck().map((c) => ({ sig: c.sig, img: c.img, size: c.size, wearing: c.wearing, holding: c.holding, callInfo: c.callInfo, firstDay: c.firstDay, photos: c.photos })), zTotal: allZombieSigs().length,
       unmetPeople: Object.keys(CH).filter((id) => !hasMet(id)).length,
       friends: Object.entries(d.friends || {}).filter(([id]) => hasMet(id)).map(([id, f]) => ({ id, name: names[id] || id, role: (CH[id] && CH[id].role) || '', personality: (CH[id] && CH[id].personality) || '', quirk: (CH[id] && CH[id].quirk) || '', stars: f.stars, points: f.points, chatted: d.chatDay[id] === d.day })),
       furniture: (d.house.furniture || []).map((f) => ({ sprite: f.sprite, en: f.en, from: npcName(f.from), for: f.for ? npcName(f.for) : '', given: !!f.given })),
@@ -2365,7 +2476,7 @@
     goto(id) { const m = MAPS[id]; if (m) changeMap(id, m.start); },
     setClock(min) { setClock(min); },
     gainFriend, talkToNearby, get chat() { return S.chat; }, questCheck, questInfo, qs,
-    camera(on) { S.camera = !!on; }, shoot, turnHero,
+    camera(on) { S.camera = !!on; }, shoot, turnHero, zombieDeck, startWave(w) { S.phase = 'night'; S.wave = w || 0; startWave(); }, allZombieKinds, addZombieCard,
     view(screen, sel) { S.view = { screen, sel: sel || {} }; renderTablet(); },
     get clock() { return S.clock; },
     hero: () => S.hero,

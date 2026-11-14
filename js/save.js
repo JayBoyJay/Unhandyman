@@ -27,7 +27,8 @@
       tricks: [],        // dog tricks learned from wish scraps
       wishes: {},        // core npc id -> true once their wish is delivered
       visited: { home: true },   // areas you've walked into (the map only shows these)
-      photos: [],        // camera album: { day, clock, map, thumb (small jpeg), items }
+      photos: [],
+      zdeck: {},         // zombie deck: one card per kind of zombie you've photographed        // camera album: { day, clock, map, thumb (small jpeg), items }
       quest: { i: 0, step: 0, base: {}, done: [], stepDone: false, bossLost: {} },   // main story progress (js/quests.js)
       clock: 420         // minutes after midnight (7:00)
     };

@@ -155,6 +155,16 @@
   .job .now { font-size: 12px; font-weight: 800; color: #b5462e; }
   .hd { font-size: 14px; font-weight: 700; margin-top: 6px; }
   .picked { outline: 4px solid var(--red); outline-offset: 1px; }
+  .zcard { background: #fff8e7; color: var(--ink); border: 3px solid var(--ink); border-radius: 18px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+  .zcard .top { display: flex; gap: 12px; align-items: flex-start; }
+  .zcard img { height: 84px; padding: 6px; image-rendering: pixelated; background: #2f3a52; border-radius: 10px; flex: none; }
+  .zcard .lab { font-size: 11px; color: var(--ink2); margin-top: 2px; }
+  .zcard .att { display: inline-flex; gap: 4px; align-items: baseline; background: #fff1c9; border: 2px solid var(--ink); border-radius: 999px; padding: 1px 8px; margin: 2px 4px 0 0; font-weight: 700; }
+  .zcard .att small { font-weight: 400; font-size: 11px; color: var(--ink2); }
+  .zcard .att .sw { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--ink); display: inline-block; }
+  .zcard .call { display: flex; gap: 8px; align-items: center; font-weight: 800; }
+  .zcard .ok { font-size: 11px; font-weight: 800; background: #c6e0a8; border: 1px solid var(--ink); border-radius: 999px; padding: 0 6px; }
+  .zcard .meh { font-size: 11px; color: var(--ink2); font-weight: 400; }
   .shotItem { display: flex; gap: 10px; align-items: center; background: #fff8e7; color: var(--ink); border: 2px solid var(--ink); border-radius: 16px; padding: 8px 10px; }
   .shotItem .num { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--red); color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; }
   .shotItem .pic2 { flex: none; width: 48px; height: 40px; display: flex; align-items: center; justify-content: center; }
@@ -313,6 +323,13 @@
   <p class="sub">Say hello to people around town to get to know them. Calls come later.</p>
 </main>
 
+<!-- ============ ゾンビ図鑑 (zombie deck) ============ -->
+<main id="scrZukan" class="scr" hidden style="background:#2f3a52;color:#fff8e7">
+  <div class="appbar"><button class="back" data-go="home" aria-label="Back">‹</button><div class="grow"><p class="h1">ゾンビ図鑑</p><p class="sub" style="color:#d9d3e8" id="zukanSub">Zombie deck</p></div></div>
+  <div id="zukanList" style="display:flex;flex-direction:column;gap:12px"></div>
+  <p class="sub" style="color:#d9d3e8">At night, open the カメラ and photograph a zombie to add its card. Zombies slow down while the camera is open.</p>
+</main>
+
 <!-- ============ カメラ ============ -->
 <main id="scrCamera" class="scr" hidden style="background:#2b2a33;color:#fff8e7">
   <div class="appbar"><button class="back" data-go="home" aria-label="Back">‹</button><div class="grow"><p class="h1">カメラ</p><p class="sub" style="color:#d9d3e8">Aim the cone on the TV, then take a picture</p></div>
@@ -347,10 +364,10 @@
 </main>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script src="assets/atlas.js?v=20261115u"></script>
-<script src="js/net.js?v=20261115u"></script>
-<script src="js/speech.js?v=20261115u"></script>
-<script src="js/voice.js?v=20261115u"></script>
+<script src="assets/atlas.js?v=20261116a"></script>
+<script src="js/net.js?v=20261116a"></script>
+<script src="js/speech.js?v=20261116a"></script>
+<script src="js/voice.js?v=20261116a"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -389,11 +406,11 @@
   function sendView(sel) { viewSel = sel || {}; send({ t: 'view', screen, sel: viewSel }); }
 
   // ---------- screens ----------
-  const SCREENS = ['joinView', 'scrPad', 'scrHome', 'scrMsgs', 'scrMap', 'scrDiary', 'scrJobs', 'scrCall', 'scrHouse', 'scrCamera', 'scrSoon'];
-  const BG = { scrPad: '#dcebc4', scrHome: '#bfe0ec', scrMsgs: '#e6f2ec', scrMap: '#efe6cf', scrDiary: '#f3e9d6', scrJobs: '#efe6cf', scrCall: '#e8edf5', scrHouse: '#fbeee2', scrCamera: '#2b2a33', scrSoon: '#f3eef8', joinView: '#ffe0cc' };
+  const SCREENS = ['joinView', 'scrPad', 'scrHome', 'scrMsgs', 'scrMap', 'scrDiary', 'scrJobs', 'scrCall', 'scrHouse', 'scrCamera', 'scrZukan', 'scrSoon'];
+  const BG = { scrPad: '#dcebc4', scrHome: '#bfe0ec', scrMsgs: '#e6f2ec', scrMap: '#efe6cf', scrDiary: '#f3e9d6', scrJobs: '#efe6cf', scrCall: '#e8edf5', scrHouse: '#fbeee2', scrCamera: '#2b2a33', scrZukan: '#2f3a52', scrSoon: '#f3eef8', joinView: '#ffe0cc' };
   let screen = 'scrPad';
   function go(name, arg) {
-    const id = { pad: 'scrPad', home: 'scrHome', msgs: 'scrMsgs', map: 'scrMap', diary: 'scrDiary', jobs: 'scrJobs', call: 'scrCall', house: 'scrHouse', camera: 'scrCamera', soon: 'scrSoon', join: 'joinView' }[name] || name;
+    const id = { pad: 'scrPad', home: 'scrHome', msgs: 'scrMsgs', map: 'scrMap', diary: 'scrDiary', jobs: 'scrJobs', call: 'scrCall', house: 'scrHouse', camera: 'scrCamera', zukan: 'scrZukan', soon: 'scrSoon', join: 'joinView' }[name] || name;
     // the TV shows the camera's viewfinder only while the カメラ app is open
     if (id === 'scrCamera' && screen !== 'scrCamera') send({ t: 'camera', on: true });
     if (id !== 'scrCamera' && screen === 'scrCamera') send({ t: 'camera', on: false });
@@ -409,6 +426,7 @@
     if (id === 'scrCall') renderContacts();
     if (id === 'scrHouse') renderHouse();
     if (id === 'scrCamera') { setCamTab('cam'); renderShot(); }
+    if (id === 'scrZukan') renderZukan();
     if (id === 'scrSoon') renderSoon(arg);
     if (id !== 'scrPad') link && link.send({ t: 'move', x: 0, y: 0 }, { drop: true });
     if (id !== 'scrMsgs' || !arg) sendView(id === 'scrDiary' ? { seg } : {});
@@ -429,6 +447,7 @@
     call: '<path d="M6 3h4l2 5-3 2a11 11 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 4 5a2 2 0 0 1 2-2z"/>',
     camera: '<path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="4"/>',
     house: '<path d="M3 11l9-7 9 7v9H3zM10 20v-5h4v5"/>',
+    zukan: '<path d="M5 3h12a2 2 0 0 1 2 2v16H7a2 2 0 0 1-2-2zM5 17a2 2 0 0 1 2-2h12"/><circle cx="10" cy="8.5" r="1.2"/><circle cx="14" cy="8.5" r="1.2"/><path d="M9.5 12q2.5 1.5 5 0"/>',
     mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'
   };
   const svg = (k, n) => '<svg width="' + (n || 32) + '" height="' + (n || 32) + '" viewBox="0 0 24 24" fill="none" stroke="#3b3a36" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">' + ICON[k] + '</svg>';
@@ -440,6 +459,7 @@
     { k: 'jobs', go: 'jobs', jp: '依頼', bg: '#f7c9a8' },
     { k: 'call', go: 'call', jp: '電話', bg: '#cbd6e8' },
     { k: 'camera', go: 'camera', jp: 'カメラ', bg: '#d9d3e8' },
+    { k: 'zukan', go: 'zukan', jp: 'ゾンビ図鑑', bg: '#b8c7a3' },
     { k: 'house', go: 'house', jp: 'おうち', bg: '#ffe0cc' }
   ];
   function appBtn(a, badge, small) {
@@ -688,7 +708,7 @@
     return '<div class="shotItem">' + (it.ground ? '<span class="num" style="background:#7a6e5a">◇</span>' : '<span class="num">' + it.n + '</span>') +
       '<span class="pic2">' + (it.sprite ? spriteCanvas(it.sprite, 40) : '') + '</span>' +
       '<span style="flex:1;min-width:0"><b>' + ruby(it.jp, it.kana) + '</b>' + (it.isNew ? '<span class="new">NEW</span>' : '') +
-      '<span class="sub" style="display:block">' + esc(it.en) + (it.who ? ' · ' + esc(it.who) : '') + '</span></span>' +
+      '<span class="sub" style="display:block">' + esc(it.en) + (it.who ? ' · ' + esc(it.who) : '') + (it.zombie ? ' · 📖 ' + (it.zombie.isNew ? 'new card!' : 'in your deck') + '<br>「いぬ、' + esc(it.zombie.call) + '！」' : '') + '</span></span>' +
       '<button class="play s" type="button" data-word="' + esc(it.kana || it.jp) + '" aria-label="Play ' + esc(it.jp) + '">' + PLAY + '</button></div>';
   }
   function renderShot() {
@@ -718,6 +738,26 @@
   $('turnL').addEventListener('click', () => { buzz(8); send({ t: 'turn', d: -1 }); });
   $('turnR').addEventListener('click', () => { buzz(8); send({ t: 'turn', d: 1 }); });
   $('shotItems').addEventListener('click', (e) => { const b = e.target.closest('[data-word]'); if (b) speak(b.dataset.word, false); });
+
+  // ---------- ゾンビ図鑑 ----------
+  const SW = { red: '#d9533c', blue: '#3b6fc4', yellow: '#f2c230', white: '#f6f3ea', black: '#2b2a27', green: '#4f9a3e', purple: '#8a5ac2', pink: '#f2a7c3' };
+  function zAtt(a) { return '<span class="att">' + (a.color ? '<span class="sw" style="background:' + (SW[a.color] || '#ccc') + '"></span>' : '') + ruby(a.jp, a.kana) + ' <small>' + esc(a.en) + '</small></span>'; }
+  function renderZukan() {
+    const s = D.state, deck = (s && s.zdeck) || [];
+    $('zukanSub').textContent = 'Zombie deck · ' + deck.length + ' of ' + ((s && s.zTotal) || '?') + ' kinds';
+    $('zukanList').innerHTML = deck.length ? deck.map((c) => '<div class="zcard' + (viewSel.zombie === c.sig ? ' picked' : '') + '" data-z="' + esc(c.sig) + '"><div class="top"><img alt="" src="' + c.img + '"><div style="flex:1;min-width:0">' +
+      '<div class="lab">おおきさ · Size</div>' + zAtt(c.size) +
+      '<div class="lab">みにつけている · Wearing</div><div>' + (c.wearing.map(zAtt).join('') || '—') + '</div>' +
+      (c.holding.length ? '<div class="lab">もっている · Holding</div><div>' + c.holding.map(zAtt).join('') + '</div>' : '') + '</div></div>' +
+      '<div class="lab">よびかた · Call it</div>' + c.callInfo.map((ci) => '<div class="call"><button class="play s" type="button" data-word="' + esc('いぬ、' + ci.text) + '" aria-label="Play">' + PLAY + '</button>「いぬ、' + esc(ci.text) + '！」' +
+        (ci.unique ? '<span class="ok">only this one</span>' : '<span class="meh">others too</span>') + '</div>').join('') + '</div>').join('')
+      + ((s && s.zTotal > deck.length) ? '<p class="empty" style="color:#d9d3e8;border-color:#7a6e8a">？？？ ' + (s.zTotal - deck.length) + ' kinds still to photograph</p>' : '')
+      : '<p class="empty" style="color:#d9d3e8;border-color:#7a6e8a">No zombies yet. Photograph one at night!</p>';
+  }
+  $('zukanList').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-word]'); if (b) { speak(b.dataset.word, false); return; }
+    const c = e.target.closest('[data-z]'); if (c) { buzz(8); sendView({ zombie: c.dataset.z }); renderZukan(); }
+  });
 
   // ---------- おうち ----------
   function spriteCanvas(name, h) {
@@ -787,6 +827,7 @@
         if (screen === 'scrCall') renderContacts();
         if (screen === 'scrHouse') renderHouse();
         if (screen === 'scrJobs') renderQuest();
+        if (screen === 'scrZukan') renderZukan();
         break;
       case 'buzz':
         buzz([120, 80, 120, 80, 120]); D.ringing = true;
