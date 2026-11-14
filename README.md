@@ -148,6 +148,10 @@ In the メッセージ app, every word in a message can be tapped. A card slides
 
 Small endings are explained under it (ふねは → ふね ＋ は, the topic marker). Words come from `js/dict.js` (every word in the game's lines) plus the camera's word list. Lines with no spaces, like AI replies, are split by the longest words the dictionary knows.
 
+## Going to bed
+
+At the end of the day Hana says おやすみ. Say おやすみ back (or wait about 25 seconds) and you go home to your room: you sleep in the futon with z's drifting up, the dog curls up on its bed, the clock runs through the night, the screen fades out, and you wake beside the futon at 7:00 on the next day.
+
 ## Nothing to click on the TV
 
 After the first setup (settings, scanning the QR code), everything is done from the phone or by voice: jobs are taken in the phone's しごと app (the TV just shows a hint), and the end-of-chapter card fades by itself. Speech bubbles are drawn on a separate full-resolution layer so kana and kanji stay sharp.

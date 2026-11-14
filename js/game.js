@@ -367,17 +367,42 @@
   function evening() {
     S.phase = 'evening'; S.nightTarget = 0.45; setClock(Math.max(S.clock, 18 * 60 + 30));
     say('landlord', 'おつかれさま！ きょうは おしまい。おやすみ！');
-    after(5, () => { if (S.phase === 'evening') hint('おやすみ'); });
+    after(5, () => { if (S.phase === 'evening') hint('おやすみ · say it to go to bed'); });
+    // if you don't say it, you head to bed on your own a little later
+    const today = SV().day;
+    after(24, () => { if (S.phase === 'evening' && SV().day === today) goToBed(); });
     syncBoard();
+  }
+  // ---------- going to bed ----------
+  // Home to your room, into the futon, the dog on its bed, the clock runs through the night,
+  // a fade to black, and you wake up beside the futon the next morning.
+  const FUTON = { x: 2.2, y: 2.6 }, WAKE_AT = { x: 3.3, y: 3.5 }, DOG_BED = { x: 6.6, y: 5.4 };
+  function goToBed() {
+    if (S.asleep || !(S.phase === 'evening' || S.phase === 'done')) return;
+    S.asleep = true; S.phase = 'sleeping'; hint(''); $('end').hidden = true;
+    if (S.chat) endChat(false);
+    if (S.camera) S.camera = false;
+    if (MAP.id !== 'room') changeMap('room', { x: WAKE_AT.x, y: WAKE_AT.y });
+    S.hero.x = FUTON.x; S.hero.y = FUTON.y;
+    dog.x = DOG_BED.x; dog.y = DOG_BED.y; dog.state = 'sit'; dog.then = null; dog.chase = null; dog.carry = null; dogMood('💤', 6);
+    S.nightTarget = 0.9; setClock(Math.max(S.clock, 21 * 60)); S.sleepT = S.t;
+    toast('💤 おやすみなさい · Good night');
+    // the clock runs through the night while you sleep
+    S.sleepClock = { from: S.clock, to: 24 * 60 + DAY_START, start: S.t, len: 6 };
+    after(6.5, nextDay);
   }
   function nextDay() {
     S.phase = 'sleeping'; hint(''); $('end').hidden = true;
-    S.nightTarget = 1; setClock(23 * 60);
+    S.nightTarget = 1;
+    if (!S.asleep) setClock(23 * 60);
     SV().day++; SV().freeTreats = 3; SV().board = Jobs.makeBoard(SV().day, { lane: SV().story.ch0done });
     S.items.forEach((i) => { i.hidden = false; i.held = false; i.x = ITEM_HOME[i.id].x; i.y = ITEM_HOME[i.id].y; });
     S.hole = 0; S.barricade = 3;
     Save.save(true);
-    after(2.2, () => {
+    after(S.asleep ? 1.2 : 2.2, () => {
+      // wake up next to the futon
+      if (S.asleep) { S.asleep = false; S.sleepClock = null; S.hero.x = WAKE_AT.x; S.hero.y = WAKE_AT.y; S.hero.fx = 1; S.hero.fy = 0.4; dog.state = 'follow'; S.night = 0; }
+      S.blackout = 0; S.fade = 1;
       S.nightTarget = 0; S.phase = 'day'; S.dayOver = false; setClock(DAY_START); Save.save();
       say('landlord', 'おはよう！ きょうの しごと だよ。');
       syncBoard(); jobsNudge();
@@ -1422,7 +1447,7 @@
     say('landlord', 'すごい！ 広場に 行ける ね。');
     after(3, () => { $('end').hidden = false; });
     // nothing to click: the card fades after a while and the evening carries on (say おやすみ to sleep)
-    after(11, () => { $('end').hidden = true; if (S.phase === 'done') evening(); });
+    after(11, () => { $('end').hidden = true; if (S.phase === 'done') evening(); });   // evening then heads to bed by itself
   }
 
   // ---------- understanding what was said ----------
@@ -1464,7 +1489,7 @@
         else { dogMood('?'); ok = false; }
         break;
       case 'sleep':
-        if (S.phase === 'evening') nextDay();
+        if (S.phase === 'evening' || S.phase === 'done') goToBed();
         else say('landlord', S.phase === 'day' ? 'まだ ひる だよ！' : 'ん？', { noRepeat: true });
         break;
       case 'come': dog.state = 'follow'; dogMood('!', 0.8); break;
@@ -1654,12 +1679,16 @@
     due.forEach((x) => x.fn());
 
     tickClock(dt);
+    // asleep: the clock runs through the night and the screen slowly goes dark
+    if (S.sleepClock) { const sc = S.sleepClock, k = Math.min(1, (S.t - sc.start) / sc.len); S.clock = (sc.from + (sc.to - sc.from) * k) % 1440; }
+    if (S.asleep && S.t - S.sleepT > 3.5) S.blackout = Math.min(1, (S.blackout || 0) + dt * 0.6);
     S.night += (S.nightTarget - S.night) * Math.min(1, dt * 0.8);
 
     // hero: the stick and arrow keys push in screen directions; convert to tile space
     const kx = (S.keys.ArrowRight || S.keys.d ? 1 : 0) - (S.keys.ArrowLeft || S.keys.a ? 1 : 0);
     const ky = (S.keys.ArrowDown || S.keys.s ? 1 : 0) - (S.keys.ArrowUp || S.keys.w ? 1 : 0);
     let ix = kx || S.input.x, iy = ky || S.input.y;
+    if (S.asleep) { ix = 0; iy = 0; }
     const h = S.hero, mag = Math.hypot(ix, iy);
     h.moving = mag > 0.15;
     if (h.moving) {
@@ -1945,6 +1974,27 @@
     shadow(h.x, h.y, 6);
     spr(s.name, h.x, h.y, { flip: s.flip, lift: bob });
   }
+  // asleep in the futon: a head on the pillow, the quilt rising and falling, and z's drifting up
+  function drawSleeper() {
+    const p = scr(FUTON.x, FUTON.y), breathe = Math.sin(S.t * 2) * 0.6;
+    // the hero's own head (top of the front sprite) on the pillow, eyes closed, under the quilt
+    const m = ATLAS.hero_front, hx = Math.round(p.x - 15), hy = Math.round(p.y - 30);
+    if (m) {
+      g.drawImage(atlas, m[0], m[1], m[2], 11, hx, hy, m[2], 11);
+      R(hx + 6, hy + 7, 2, 1, '#f6d2b0'); R(hx + 10, hy + 7, 2, 1, '#f6d2b0');    // cover open eyes…
+      R(hx + 6, hy + 8, 2, 1, C.ink); R(hx + 10, hy + 8, 2, 1, C.ink);            // …with closed ones
+    }
+    R(hx - 2, hy + 10 - breathe, m ? m[2] + 8 : 20, 5 + breathe, '#f2a7c3'); R(hx - 2, hy + 10 - breathe, m ? m[2] + 8 : 20, 1, C.ink);   // quilt pulled up
+    if (g === mainG && tg) textQ.push((c) => {
+      c.font = BFONT(6, 800); c.fillStyle = '#fff8e7'; c.strokeStyle = C.ink; c.lineWidth = 0.8;
+      for (let i = 0; i < 3; i++) {
+        const k = ((S.t * 0.45 + i / 3) % 1), x = p.x - 2 + k * 8 + Math.sin(k * 6 + i) * 1.5, y = p.y - 30 - k * 16;
+        c.globalAlpha = Math.sin(k * Math.PI); c.font = BFONT(4 + k * 4, 800);
+        c.strokeText(i % 2 ? 'Z' : 'z', x, y); c.fillText(i % 2 ? 'Z' : 'z', x, y);
+      }
+      c.globalAlpha = 1;
+    });
+  }
   function shadow(x, y, r) { const p = scr(x, y); g.fillStyle = 'rgba(40,30,50,0.22)'; g.fillRect(p.x - r, p.y - 1, r * 2, 2); g.fillRect(p.x - r + 2, p.y - 2, r * 2 - 4, 4); }
 
   function drawTrick(d) {
@@ -2199,9 +2249,11 @@
       S.zombies.forEach((z) => list.push({ k: z.x + z.y, d: () => drawZombie(z) }));
     }
     laneDraw(list);
-    list.push({ k: S.hero.x + S.hero.y, d: () => drawHero(S.hero) });
+    if (!S.asleep) list.push({ k: S.hero.x + S.hero.y, d: () => drawHero(S.hero) });
+    else list.push({ k: S.hero.x + S.hero.y + 0.1, d: drawSleeper });
     list.push({ k: dog.x + dog.y, d: () => drawDog(dog) });
     list.sort((a, b) => a.k - b.k).forEach((e) => e.d());
+    if (S.blackout > 0) { g.fillStyle = 'rgba(12,12,24,' + Math.min(1, S.blackout).toFixed(3) + ')'; g.fillRect(0, 0, W, H); }
     if (S.fade > 0) { g.fillStyle = 'rgba(29,28,26,' + S.fade.toFixed(3) + ')'; g.fillRect(0, 0, W, H); S.fade = Math.max(0, S.fade - 0.06); }
     // time-of-day colour: pink at dawn, gold in late afternoon, violet at dusk (softer indoors)
     const tint = dayTint(S.clock);
@@ -2283,7 +2335,7 @@
     $('board-list').innerHTML = b.jobs.map(jobRow).join('');
   }
   // the day's jobs are picked on the phone (しごと app); the TV only says so, nothing to click here
-  function jobsNudge() { syncBoard(); hint('📱 しごと: take a job on your phone'); }
+  function jobsNudge() { syncBoard(); if (S.phase === 'day') hint('📱 しごと: take a job on your phone'); }
   function showBoard(on) { $('board').hidden = !on; if (on) { renderBoard(); fitBox($('board'), 1); } }
   $('board').addEventListener('click', (e) => {
     const t = e.target.closest('button'); if (!t) return;
@@ -2557,7 +2609,7 @@
     goto(id) { const m = MAPS[id]; if (m) changeMap(id, m.start); },
     setClock(min) { setClock(min); },
     gainFriend, talkToNearby, get chat() { return S.chat; }, questCheck, questInfo, qs,
-    camera(on) { S.camera = !!on; }, shoot, turnHero, zombieDeck, startWave(w) { S.phase = 'night'; S.wave = w || 0; startWave(); }, allZombieKinds, addZombieCard,
+    camera(on) { S.camera = !!on; }, shoot, turnHero, zombieDeck, goToBed, evening, startWave(w) { S.phase = 'night'; S.wave = w || 0; startWave(); }, allZombieKinds, addZombieCard,
     view(screen, sel) { S.view = { screen, sel: sel || {} }; renderTablet(); },
     get clock() { return S.clock; },
     hero: () => S.hero,
