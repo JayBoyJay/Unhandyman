@@ -43,7 +43,10 @@
   #testform { position: absolute; left: 3%; bottom: 21%; display: flex; gap: 0.3em; opacity: 0.55; z-index: 3; }
   #testform:focus-within, #testform:hover { opacity: 1; }
   #testform input { width: 12em; padding: 0.3em 0.5em; border: 0.15em solid var(--ink); border-radius: 0.4em; }
-  #settings { position: absolute; right: 2%; bottom: 12%; width: 24em; padding: 1em; z-index: 4; display: flex; flex-direction: column; gap: 0.6em; font-size: 0.9em; }
+  /* settings: one wide panel in three columns, so nothing is cut off or needs scrolling */
+  #settings { position: absolute; left: 3%; right: 3%; top: 7%; padding: 1em 1.2em; z-index: 4; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1.6em; font-size: 0.9em; overflow: hidden; max-height: 80%; }
+  #settings .set-col { display: flex; flex-direction: column; gap: 0.6em; min-width: 0; }
+  #settings input[type=text], #settings input[type=password], #settings select { max-width: 100%; box-sizing: border-box; }
   #settings[hidden], [hidden] { display: none !important; }
   #settings label { display: flex; flex-direction: column; gap: 0.2em; }
   #settings input[type=text], #settings input[type=password], #settings select { padding: 0.35em; border: 0.15em solid var(--ink); border-radius: 0.4em; }
@@ -59,7 +62,10 @@
   #tablet.side { right: 2%; top: 4%; bottom: 4%; width: 38%; }
   #tablet-head { display: flex; justify-content: space-between; align-items: center; padding: .55em .9em; background: var(--ink); color: #fff8e7; font-weight: 800; }
   #tablet-paused { font-size: .75em; font-weight: 400; opacity: .85; }
-  #tablet-body { flex: 1; overflow: auto; padding: .9em 1em 1.2em; display: flex; flex-direction: column; gap: .8em; }
+  #tablet-body { flex: 1; overflow: hidden; padding: .9em 1em 1.2em; display: flex; flex-direction: column; gap: .8em; }
+  /* when a page has more on it, the tablet widens and flows into columns instead of scrolling */
+  #tablet-body.cols { display: block; column-gap: 1.2em; column-fill: auto; }
+  #tablet-body.cols > * { break-inside: avoid; margin: 0 0 .8em; }
   #tablet h3 { margin: .2em 0 0; font-size: 1.05em; }
   #tablet .tsub { font-size: .8em; opacity: .75; }
   #tablet .tcard { background: #fff; border: .12em solid var(--ink); border-radius: .8em; padding: .6em .8em; }
@@ -89,7 +95,7 @@
   #toast { position: absolute; left: 50%; top: 12%; transform: translateX(-50%); padding: 0.4em 1.1em; font-size: 1.25em; background: #fff1c9; border: 0.2em solid var(--ink); border-radius: 0.6em; white-space: nowrap; z-index: 2; }
   #toast[hidden] { display: none; }
   #jobsBtn { position: absolute; right: 7%; bottom: 1.5%; height: 2.6em; padding: 0 1em; z-index: 3; }
-  #board { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -58%); width: 62%; max-height: 74%; overflow: auto; padding: 0.8em 1em; z-index: 3; display: flex; flex-direction: column; gap: 0.5em; }
+  #board { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -58%); width: 62%; max-height: 80%; overflow: hidden; padding: 0.8em 1em; z-index: 3; display: flex; flex-direction: column; gap: 0.5em; }
   #board h2 { margin: 0; font-size: 1.4em; font-weight: 400; display: flex; justify-content: space-between; align-items: baseline; }
   #board h2 small { font-size: 0.6em; opacity: 0.75; }
   .job { display: grid; grid-template-columns: 1.6em 1fr auto; gap: 0.6em; align-items: center; padding: 0.45em 0.6em; border: 0.15em solid var(--ink); border-radius: 0.5em; background: #fff; }
@@ -152,6 +158,7 @@
   <button id="jobsBtn" class="btn" type="button">しごと</button>
   <button id="gear" class="btn" type="button" aria-label="Settings">設定</button>
   <div id="settings" class="box" hidden>
+   <section class="set-col">
     <strong>Save</strong>
     <div class="row">
       <button id="save-download" class="btn" type="button">Download save</button>
@@ -162,6 +169,8 @@
     <div id="save-status" role="status">Progress saves automatically in this browser.</div>
     <div class="row"><label for="clock-speed" style="flex-direction:row;gap:.5em">時計 · Clock speed <select id="clock-speed"><option value="0.5">ゆっくり · slow (22 min a day)</option><option value="1" selected>ふつう · normal (11 min a day)</option><option value="2">はやい · fast (5½ min a day)</option><option value="0">とめる · stopped</option></select></label></div>
     <div class="row"><input id="explore" type="checkbox"><label for="explore" style="flex-direction:row">Unlock all areas (for testing the maps)</label></div>
+   </section>
+   <section class="set-col">
     <strong>Voices</strong>
     <label>VOICEVOX engine on your Mac (for lines without a voice file; leave empty to skip) <input id="voice-url" type="text" placeholder="https://192.168.5.158:50443"></label>
     <div class="row"><input id="voice-files" type="checkbox" checked><label for="voice-files" style="flex-direction:row">Use the ready-made voice files</label></div>
@@ -173,6 +182,8 @@
       <button id="voice-missing" class="btn" type="button">Save missing lines</button>
     </div>
     <div id="voice-status" role="status"></div>
+   </section>
+   <section class="set-col">
     <strong>AI conversation (optional)</strong>
     <div class="row"><input id="ai-enabled" type="checkbox"><label for="ai-enabled" style="flex-direction:row">Use AI for free chat</label></div>
     <label>Provider
@@ -193,6 +204,7 @@
       <button id="ai-close" class="btn" type="button">Done</button>
     </div>
     <div id="ai-status" role="status"></div>
+   </section>
   </div>
 
   <div id="title" class="overlay">
@@ -212,17 +224,17 @@
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="js/words.js?v=20261115l"></script>
-<script src="js/net.js?v=20261115l"></script>
-<script src="js/ai.js?v=20261115l"></script>
-<script src="js/voice.js?v=20261115l"></script>
-<script src="assets/atlas.js?v=20261115l"></script>
-<script src="js/save.js?v=20261115l"></script>
-<script src="js/jobs.js?v=20261115l"></script>
-<script src="js/maps.js?v=20261115l"></script>
-<script src="js/rooms.js?v=20261115l"></script>
-<script src="js/characters.js?v=20261115l"></script>
-<script src="js/quests.js?v=20261115l"></script>
-<script src="js/game.js?v=20261115l"></script>
+<script src="js/words.js?v=20261115n"></script>
+<script src="js/net.js?v=20261115n"></script>
+<script src="js/ai.js?v=20261115n"></script>
+<script src="js/voice.js?v=20261115n"></script>
+<script src="assets/atlas.js?v=20261115n"></script>
+<script src="js/save.js?v=20261115n"></script>
+<script src="js/jobs.js?v=20261115n"></script>
+<script src="js/maps.js?v=20261115n"></script>
+<script src="js/rooms.js?v=20261115n"></script>
+<script src="js/characters.js?v=20261115n"></script>
+<script src="js/quests.js?v=20261115n"></script>
+<script src="js/game.js?v=20261115n"></script>
 </body>
 </html>

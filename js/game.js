@@ -667,7 +667,38 @@
     try {
       html = ({ scrHome: tHome, scrMsgs: tMsgs, scrMap: tMap, scrDiary: tDiary, scrJobs: tJobs, scrCall: tPeople, scrHouse: tHouse }[v.screen] || (() => '<p>…</p>'))(sel);
     } catch (e) { html = '<p>…</p>'; console.warn('tablet', e); }
-    if ($('tablet-body').dataset.html !== html) { $('tablet-body').innerHTML = html; $('tablet-body').dataset.html = html; }
+    if ($('tablet-body').dataset.html !== html) {
+      $('tablet-body').innerHTML = html; $('tablet-body').dataset.html = html;
+      fitTablet();
+      $('tablet-body').querySelectorAll('img').forEach((im) => { if (!im.complete) im.addEventListener('load', fitTablet, { once: true }); });
+      setTimeout(fitTablet, 250);
+    } else if (tabletOverflows()) fitTablet();
+  }
+  // Make the page fit with no scrolling: widen the tablet and use columns first, and only then
+  // make the text a little smaller.
+  // narrowest first; at each width try one column (good for grids of cards) before splitting into columns
+  const TAB_SIZES = [{ w: 38, cols: 1 }, { w: 50, cols: 1 }, { w: 50, cols: 2 }, { w: 64, cols: 1 }, { w: 64, cols: 2 }, { w: 76, cols: 1 }, { w: 76, cols: 3 }, { w: 94, cols: 1 }, { w: 94, cols: 3 }];
+  try { document.fonts && document.fonts.ready.then(() => fitTablet()); } catch (_) {}
+  function tabletOverflows() { const b = $('tablet-body'); return b.scrollHeight > b.clientHeight + 1 || b.scrollWidth > b.clientWidth + 1; }
+  function fitTablet() {
+    const el = $('tablet'), body = $('tablet-body');
+    if (el.hidden) return;
+    const fits = () => body.scrollHeight <= body.clientHeight + 1 && body.scrollWidth <= body.clientWidth + 1;
+    for (const scale of [1, 0.92, 0.85, 0.78, 0.72]) {
+      for (const sz of TAB_SIZES) {
+        el.style.width = sz.w + '%'; el.style.fontSize = (0.95 * scale) + 'em';
+        body.classList.toggle('cols', sz.cols > 1); body.style.columnCount = sz.cols > 1 ? sz.cols : '';
+        if (fits()) return;
+      }
+    }
+  }
+  // the job board and settings shrink their text a little if they ever get too tall
+  function fitBox(el, base) {
+    if (!el || el.hidden) return;
+    for (const scale of [1, 0.92, 0.85, 0.78, 0.7]) {
+      el.style.fontSize = (base * scale) + 'em';
+      if (el.scrollHeight <= el.clientHeight + 1) return;
+    }
   }
   // --- overview and stats ---
   function tHome() {
@@ -762,7 +793,8 @@
     for (let c = 0; c <= 5; c++) {
       const qsIn = QUESTS.map((q, i) => ({ q, i })).filter((x) => x.q.chapter === c); if (!qsIn.length) continue;
       const started = qsIn.some((x) => x.i <= s.i);
-      html += '<div class="tcard' + (started ? '' : ' done') + '"><b>第' + c + '章 ' + tesc(CHAPTERS[c]) + '</b>' + qsIn.map(({ q, i }) => {
+      if (!started) { html += '<div class="tcard done"><b>第' + c + '章 ' + tesc(CHAPTERS[c]) + '</b> <span class="tsub">· ' + qsIn.length + ' quests ???</span></div>'; continue; }
+      html += '<div class="tcard"><b>第' + c + '章 ' + tesc(CHAPTERS[c]) + '</b>' + qsIn.map(({ q, i }) => {
         const st = i < s.i ? 'done' : i === s.i ? 'cur' : '';
         return '<div class="line ' + st + '">' + (i < s.i ? '✓ ' : i === s.i ? '▶ ' : '· ') + (i <= s.i ? tesc(q.jp) + ' <span class="tsub">' + tesc(q.en) + '</span>' : '<span class="tsub">???</span>') +
           (i === s.i ? '<ol style="margin:.3em 0 0">' + q.steps.map((stp, k) => '<li class="' + (k < s.step ? 'done' : k === s.step ? 'cur' : '') + '">' + tesc(stp.jp) + ' <span class="tsub">' + tesc(stp.en) + '</span></li>').join('') + '</ol>' : '') + '</div>';
@@ -1973,7 +2005,7 @@
     $('board-sub').textContent = b.day + '日目 · ' + Jobs.taken(b).length + '/3 taken · ' + Jobs.doneCount(b) + ' done';
     $('board-list').innerHTML = b.jobs.map(jobRow).join('');
   }
-  function showBoard(on) { $('board').hidden = !on; if (on) renderBoard(); }
+  function showBoard(on) { $('board').hidden = !on; if (on) { renderBoard(); fitBox($('board'), 1); } }
   $('board').addEventListener('click', (e) => {
     const t = e.target.closest('button'); if (!t) return;
     if (t.dataset.take) takeJob(t.dataset.take);
@@ -2119,7 +2151,7 @@
     if (prev !== 'ollama' && prev === c.provider) c.keys[c.provider] = $('ai-key').value.trim();
     return c;
   }
-  $('gear').addEventListener('click', () => { fillSettings(); $('settings').hidden = false; });
+  $('gear').addEventListener('click', () => { fillSettings(); $('settings').hidden = false; fitBox($('settings'), 0.9); });
   $('ai-close').addEventListener('click', () => { AI.save(readSettings()); $('settings').hidden = true; });
   $('ai-provider').addEventListener('change', () => {
     const c = AI.load(); const prov = $('ai-provider').value;

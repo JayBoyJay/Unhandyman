@@ -151,6 +151,8 @@ When the phone is on any app except the controller and the camera, the TV shows 
 
 The panel sits on the right of the TV, with the game still visible on the left.
 
+Nothing on the TV scrolls. The tablet starts narrow on the right and, when a page has more on it, widens (up to almost the full screen) and flows into two or three columns; only if it still doesn't fit does the text get a little smaller. Settings is one wide panel in three columns, and the job board shrinks its text slightly if it ever gets too tall.
+
 ## Known gaps
 
 - Voices use the browser's Japanese text-to-speech; VOICEVOX recordings come later.
