@@ -1268,7 +1268,7 @@
   // ---------- phones ----------
   const net = Net.host({
     onReady(code) {
-      const url = new URL('phone.html?room=' + code, location.href).href;
+      const url = new URL('phone.html?room=' + code + Net.turnParams(), location.href).href;
       $('code').textContent = code;
       $('joinurl').textContent = url;
       try { $('qr').innerHTML = ''; new QRCode($('qr'), { text: url, width: 132, height: 132 }); } catch (_) { $('qr').textContent = 'QR unavailable'; }

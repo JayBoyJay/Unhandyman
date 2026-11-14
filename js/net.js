@@ -199,5 +199,11 @@
     };
   }
 
-  window.Net = { host, join };
+  // the TV's relay settings, as URL parameters, so the phone link (QR code) carries them too
+  function turnParams() {
+    const t = turnConfig()[0];
+    if (!t || !t.urls) return '';
+    return '&turn=' + encodeURIComponent(t.urls) + '&tu=' + encodeURIComponent(t.username || '') + '&tp=' + encodeURIComponent(t.credential || '');
+  }
+  window.Net = { host, join, turnParams };
 })();
