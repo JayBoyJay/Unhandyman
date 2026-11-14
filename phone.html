@@ -309,10 +309,10 @@
 </main>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script src="assets/atlas.js?v=20261115f"></script>
-<script src="js/net.js?v=20261115f"></script>
-<script src="js/speech.js?v=20261115f"></script>
-<script src="js/voice.js?v=20261115f"></script>
+<script src="assets/atlas.js?v=20261115h"></script>
+<script src="js/net.js?v=20261115h"></script>
+<script src="js/speech.js?v=20261115h"></script>
+<script src="js/voice.js?v=20261115h"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -606,7 +606,7 @@
   function renderContacts() {
     const fr = D.state ? D.state.friends.slice().sort((a, b) => b.points - a.points) : [];
     $('contacts').innerHTML = fr.length ? fr.map((f) => '<button class="thr" type="button" data-go="msgs" data-arg="' + esc(f.name) + '"><span class="av" style="background:' + avColor(f.name) + '">' + esc(initial(f.name)) + '</span>' +
-      '<span style="flex:1;min-width:0"><span class="nm">' + esc(f.name) + '</span><span class="pv"><span class="stars">' + '★'.repeat(f.stars) + '☆'.repeat(3 - f.stars) + '</span>' + (f.role ? ' · ' + esc(f.role) : '') + (f.chatted ? ' · talked today ✓' : '') + '</span></span></button>').join('')
+      '<span style="flex:1;min-width:0"><span class="nm">' + esc(f.name) + '</span><span class="pv"><span class="stars">' + '★'.repeat(f.stars) + '☆'.repeat(3 - f.stars) + '</span>' + (f.role ? ' · ' + esc(f.role) : '') + (f.chatted ? ' · talked today ✓' : '') + '</span>' + (f.personality ? '<span class="pv" style="white-space:normal;font-size:12px">' + esc(f.personality) + (f.quirk && f.stars >= 1 ? '. <i>' + esc(f.quirk) + '</i>' : '') + '</span>' : '') + '</span></button>').join('')
       : '<p class="empty">No contacts yet.</p>';
   }
 

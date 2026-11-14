@@ -213,6 +213,7 @@
   const NAMES = { landlord: 'ハナさん', radio: 'ラジオ', dog: 'いぬ', you: 'あなた', phone: 'ハナさん · 電話', yamada: '山田さん', crow: 'カラス', house: 'いえの 人' };
   function say(who, text, opts) {
     opts = opts || {};
+    S.lastSayT = S.t;
     $('who').textContent = NAMES[who] || who;
     $('line').textContent = text;
     $('caption').classList.toggle('radio', who === 'radio');
@@ -589,7 +590,7 @@
       if (hasItem(c.wish.item)) return deliverWish(best.id, who), true;
       if (d.chatDay[best.id] === d.day) { say(who, c.wish.ask, { noRepeat: false }); return true; }
     }
-    if (d.chatDay[best.id] === d.day) { say(who, c.again); return true; }
+    if (d.chatDay[best.id] === d.day) { say(who, pick(c.again)); return true; }
     const stage = st >= 3 ? d.day % 3 : Math.min(st, 2), turns = c.chats[stage] || c.chats[0];
     S.chat = { id: best.id, npc: best, who, turns, i: 0, wait: false, until: S.t + 40 };
     if (best.hello) { say(who, best.hello); after(2.6, () => chatTurn()); } else chatTurn();
@@ -642,14 +643,48 @@
     const pay = STAR_PAY[stars] || STAR_PAY[1], c = CH[id];
     SV().yen += pay.yen; SV().treats += pay.treats;
     toast(npcName(id) + 'と なかよし ' + '★'.repeat(stars) + '  +¥' + pay.yen + '  +おやつ ' + pay.treats);
-    if (stars >= 3 && c && c.gift) {
-      const who = id === 'hana' ? 'landlord' : c.name;
-      addFurniture(c.gift.sprite, c.gift.en, id);
-      say(who, c.gift.line);
-      if (c.gift.extra) after(3.4, () => { addFurniture(c.gift.extra.sprite, c.gift.extra.en, id, c.gift.extra.for); say(who, c.gift.extra.line); });
-      after(c.gift.extra ? 7 : 3.4, () => toast('🎁 ' + c.gift.en + (c.gift.extra ? ' + ' + c.gift.extra.en : '') + ' → おうち'));
-    }
+    const near = c && (MAP.npcs || []).find((n) => n.id === id);
+    if (c && c.stars && c.stars[stars] && near) say(id === 'hana' ? 'landlord' : c.name, c.stars[stars]);
+    if (stars >= 3 && c && c.gift) after(near ? 3.4 : 0, () => giveGift(id));
     Save.save(); syncBoard();
+  }
+  function giveGift(id) {
+    const c = CH[id], who = id === 'hana' ? 'landlord' : c.name;
+    addFurniture(c.gift.sprite, c.gift.en, id);
+    say(who, c.gift.line);
+    if (c.gift.extra) after(3.4, () => { addFurniture(c.gift.extra.sprite, c.gift.extra.en, id, c.gift.extra.for); say(who, c.gift.extra.line); });
+    after(c.gift.extra ? 7 : 3.4, () => toast('🎁 ' + c.gift.en + (c.gift.extra ? ' + ' + c.gift.extra.en : '') + ' → おうち'));
+    Save.save();
+  }
+
+  // ---------- little lines when you walk past ----------
+  // People mutter to themselves (by time of day) or react to the dog, in a speech bubble and
+  // their own voice. Not too often: each person waits 25-40 s, and only one talks at a time.
+  const pick = (a) => (Array.isArray(a) ? a[Math.floor(Math.random() * a.length)] : a);
+  let ambientT = 0;
+  function ambient() {
+    if (!['day', 'morning', 'evening'].includes(S.phase) || S.chat || (S.cur && !S.cur.waiting) || S.t < ambientT || S.t - (S.lastSayT || 0) < 5) return;
+    for (const n of MAP.npcs || []) {
+      const c = CH[n.id]; if (!c || !c.idle) continue;
+      if (Math.hypot(n.x - S.hero.x, n.y - S.hero.y) > 3.4) continue;
+      // only people clearly on screen, with room for the bubble clear of the HUD boxes in the top corners
+      const sp = scr(n.x, n.y);
+      if (sp.y < 36 || sp.y > H - 75 || sp.x < 30 || sp.x > W - 30) continue;
+      if (n.nextIdle === undefined) { n.nextIdle = S.t + 1 + Math.random() * 3; continue; }
+      if (S.t < n.nextIdle) continue;
+      const nearDog = Math.hypot(n.x - dog.x, n.y - dog.y) < 1.8 && c.dog && Math.random() < 0.6;
+      const part = S.clock < 11 * 60 ? 'm' : S.clock < 16.5 * 60 ? 'd' : 'e';
+      const pool = (nearDog ? c.dog : c.idle[part] || c.idle.d).filter((t) => t !== n.lastIdle);
+      const text = pick(pool.length ? pool : c.idle.d); if (!text) continue;
+      n.lastIdle = text; n.talk = { text, until: S.t + 2.5 + text.length * 0.12 };
+      n.nextIdle = S.t + 25 + Math.random() * 15; ambientT = S.t + 8;
+      const who = n.id === 'hana' ? 'landlord' : c.name;
+      if (window.Voice) Voice.speak(who, text);
+      Words.wordsIn(text).forEach((w) => Save.word(w, 'heard'));
+      logLine({ th: c.name, who: c.name, text, day: SV().day });
+      net.broadcast({ t: 'line', who: c.name, th: c.name, text, day: SV().day, aside: true });
+      return;
+    }
   }
   function addFurniture(sprite, en, from, wishFor) {
     SV().house.furniture.push({ sprite, en, from, for: wishFor || null, day: SV().day, given: false });
@@ -1036,6 +1071,7 @@
     dog.anim += dt * 10;
     if (dog.state === 'idle') dog.state = 'follow';
     if (S.chat && S.t > S.chat.until) endChat(false);
+    if ((S.ambT = (S.ambT || 0) + dt) > 0.5) { S.ambT = 0; ambient(); }
     if (dog.state === 'follow' && !(dog.trick && S.t < dog.trick.until)) moveToward(dog, h.x + 0.7, h.y + 0.7, 3.4, dt, 0.5);
     else if (dog.state === 'go') {
       if (dog.chase) { dog.tx = dog.chase.x; dog.ty = dog.chase.y; }
@@ -1334,7 +1370,30 @@
     g.fillStyle = C.ink; g.fillText(text, Math.round(x - w / 2) + 3, y + 1);
   }
 
-  function drawNpc(n) { shadow(n.x, n.y, 6); spr(n.sprite, n.x, n.y); if (n.bubble && n.bubbleT > S.t) { const p = scr(n.x, n.y); bubble(p.x, p.y - 30, n.bubble); } }
+  let lateDraw = [];
+  function drawNpc(n) {
+    shadow(n.x, n.y, 6); spr(n.sprite, n.x, n.y);
+    const p = scr(n.x, n.y);
+    // speech is drawn after the lighting so it stays easy to read at dusk and night
+    if (n.talk && n.talk.until > S.t) lateDraw.push(() => talkBubble(p.x, p.y - 30, n.talk.text));
+    else if (n.bubble && n.bubbleT > S.t) lateDraw.push(() => bubble(p.x, p.y - 30, n.bubble));
+  }
+  // a speech bubble with a line of Japanese, wrapped to fit
+  function talkBubble(x, y, text) {
+    g.font = '8px DotGothic16, monospace';
+    const words = text.split(' '), lines = [];
+    let cur = '';
+    for (const w of words) { const t = cur ? cur + ' ' + w : w; if (g.measureText(t).width > 96 && cur) { lines.push(cur); cur = w; } else cur = t; }
+    if (cur) lines.push(cur);
+    const w = Math.ceil(Math.max(...lines.map((l) => g.measureText(l).width))) + 8, h = lines.length * 10 + 4;
+    const bx = Math.round(Math.max(2, Math.min(W - w - 2, x - w / 2)));
+    // above the head if there's room clear of the HUD and hints at the top; otherwise below the feet
+    const below = y - h < 58, by = Math.round(below ? y + 38 : y - h);
+    R(bx, by, w, h, '#fff8e7'); g.strokeStyle = C.ink; g.lineWidth = 1; g.strokeRect(bx + 0.5, by + 0.5, w - 1, h - 1);
+    if (below) { R(x - 2, by - 2, 4, 3, '#fff8e7'); R(x - 1, by - 3, 2, 1, C.ink); }
+    else { R(x - 2, by + h - 1, 4, 3, '#fff8e7'); R(x - 1, by + h + 2, 2, 1, C.ink); }
+    g.fillStyle = C.ink; lines.forEach((l, i) => g.fillText(l, bx + 4, by + 10 + i * 10));
+  }
   // house number plates on the back lane
   function drawPlate(b) {
     const p = scr(b.x - 0.25, b.y + 0.05);
@@ -1464,6 +1523,7 @@
       g.fillStyle = 'rgba(255,220,140,' + (0.18 * S.night).toFixed(3) + ')';
       g.beginPath(); g.ellipse(wp.x, wp.y + 4, 22, 9, 0, 0, Math.PI * 2); g.fill();
     }
+    lateDraw.forEach((f) => f()); lateDraw = [];
   }
 
   // ---------- loop ----------
@@ -1561,7 +1621,7 @@
       job: S.cur ? { title: S.cur.title, goal: S.cur.goal } : null,
       dog: { busy: dogBusy(), carry: dog.carry || null },
       words: Object.entries(d.words || {}).map(([id, w]) => Object.assign(Words.gloss(id), { heard: w.heard, said: w.said, strength: Math.round(Save.fade(id)) })),
-      friends: Object.entries(d.friends || {}).map(([id, f]) => ({ id, name: names[id] || id, role: (CH[id] && CH[id].role) || '', stars: f.stars, points: f.points, chatted: d.chatDay[id] === d.day })),
+      friends: Object.entries(d.friends || {}).map(([id, f]) => ({ id, name: names[id] || id, role: (CH[id] && CH[id].role) || '', personality: (CH[id] && CH[id].personality) || '', quirk: (CH[id] && CH[id].quirk) || '', stars: f.stars, points: f.points, chatted: d.chatDay[id] === d.day })),
       furniture: (d.house.furniture || []).map((f) => ({ sprite: f.sprite, en: f.en, from: npcName(f.from), for: f.for ? npcName(f.for) : '', given: !!f.given })),
       tricks: (d.tricks || []).map((id) => { const c = Object.values(CH).find((x) => x.wish && x.wish.trick.id === id); return c ? { id, say: c.wish.scrap.jp, en: c.wish.trick.en } : { id }; }),
       scraps: d.scraps || [], diary: (d.diary || []).slice(-10)

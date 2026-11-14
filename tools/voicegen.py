@@ -105,7 +105,11 @@ def collect_lines():
         chars = json.loads(src[src.index('window.CHARACTERS =') + len('window.CHARACTERS ='):src.rindex(';')])
         for cid, c in chars.items():
             who = 'landlord' if cid == 'hana' else c['name']
-            said = [c.get('again', ''), c['gift']['line'], c['gift'].get('extra', {}).get('line', '')]
+            again = c.get('again', '')
+            said = (again if isinstance(again, list) else [again]) + [c['gift']['line'], c['gift'].get('extra', {}).get('line', '')]
+            for part in c.get('idle', {}).values():
+                said += part
+            said += c.get('dog', []) + list(c.get('stars', {}).values())
             for chat in c['chats']:
                 for turn in chat:
                     said.append(turn['say'])
