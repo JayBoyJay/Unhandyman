@@ -1,77 +1,331 @@
 {
  "byName": {
   "phone": "landlord",
+  "いえの 人": "house",
   "カラス": "crow",
   "ハナさん": "landlord",
   "ハナさん · 電話": "landlord",
-  "ハルちゃん": "child",
   "ラジオ": "radio",
   "山田さん": "yamada"
  },
  "credits": [
+  "VOICEVOX:No.7",
   "VOICEVOX:ずんだもん",
+  "VOICEVOX:ちび式じい",
   "VOICEVOX:もち子さん",
+  "VOICEVOX:九州そら",
+  "VOICEVOX:冥鳴ひまり",
+  "VOICEVOX:剣崎雌雄",
+  "VOICEVOX:四国めたん",
   "VOICEVOX:春日部つむぎ",
+  "VOICEVOX:櫻歌ミコ",
+  "VOICEVOX:波音リツ",
   "VOICEVOX:玄野武宏",
   "VOICEVOX:白上虎太郎",
-  "VOICEVOX:青山龍星"
+  "VOICEVOX:雀松朱司",
+  "VOICEVOX:雨晴はう",
+  "VOICEVOX:青山龍星",
+  "VOICEVOX:麒ヶ島宗麟"
  ],
  "engine": "VOICEVOX 0.26.1",
  "files": {
-  "008dfed8": "008dfed8.m4a",
-  "0283aa46": "0283aa46.m4a",
-  "05f759c3": "05f759c3.m4a",
-  "0cca9110": "0cca9110.m4a",
-  "125bd507": "125bd507.m4a",
-  "1347458d": "1347458d.m4a",
-  "13480c3b": "13480c3b.m4a",
-  "15851941": "15851941.m4a",
-  "17dbd4ad": "17dbd4ad.m4a",
-  "2ab20ac9": "2ab20ac9.m4a",
-  "2c01b7b5": "2c01b7b5.m4a",
-  "2d4292e9": "2d4292e9.m4a",
-  "4251fbd3": "4251fbd3.m4a",
-  "486cef29": "486cef29.m4a",
-  "492553df": "492553df.m4a",
-  "4f541058": "4f541058.m4a",
-  "4f90eec8": "4f90eec8.m4a",
-  "5aab3256": "5aab3256.m4a",
-  "5b08eb85": "5b08eb85.m4a",
-  "5c77ff82": "5c77ff82.m4a",
-  "5daa6da7": "5daa6da7.m4a",
-  "5e75bc2b": "5e75bc2b.m4a",
-  "60e3d46a": "60e3d46a.m4a",
-  "627ed40c": "627ed40c.m4a",
-  "667e2c3e": "667e2c3e.m4a",
-  "68f194ab": "68f194ab.m4a",
-  "7960ba07": "7960ba07.m4a",
-  "7acd4e11": "7acd4e11.m4a",
-  "7f846572": "7f846572.m4a",
-  "8b8cedbe": "8b8cedbe.m4a",
-  "8c30a23e": "8c30a23e.m4a",
-  "8c41db76": "8c41db76.m4a",
-  "9f107643": "9f107643.m4a",
-  "a2990706": "a2990706.m4a",
-  "a54676b2": "a54676b2.m4a",
-  "abbbc2e4": "abbbc2e4.m4a",
-  "abe1c85c": "abe1c85c.m4a",
-  "adb5b72b": "adb5b72b.m4a",
-  "c2e2655d": "c2e2655d.m4a",
-  "c36b84b3": "c36b84b3.m4a",
-  "c737a291": "c737a291.m4a",
-  "d06971af": "d06971af.m4a",
-  "d97efcd1": "d97efcd1.m4a",
-  "de57c17d": "de57c17d.m4a",
-  "e8321d31": "e8321d31.m4a",
-  "ed33eee2": "ed33eee2.m4a"
+  "09a04f48": "09a04f48.m4a",
+  "0ed1b8ac": "0ed1b8ac.m4a",
+  "1559c464": "1559c464.m4a",
+  "1b8509b0": "1b8509b0.m4a",
+  "210bf7d8": "210bf7d8.m4a",
+  "286ee432": "286ee432.m4a",
+  "2a5f6f63": "2a5f6f63.m4a",
+  "2b30bf87": "2b30bf87.m4a",
+  "2c01a943": "2c01a943.m4a",
+  "2c16b8cd": "2c16b8cd.m4a",
+  "2f67dc3d": "2f67dc3d.m4a",
+  "2fd8ae78": "2fd8ae78.m4a",
+  "4cc1a4d2": "4cc1a4d2.m4a",
+  "4d40b102": "4d40b102.m4a",
+  "513bad05": "513bad05.m4a",
+  "53664672": "53664672.m4a",
+  "55b8704a": "55b8704a.m4a",
+  "65fb0a06": "65fb0a06.m4a",
+  "70c6b673": "70c6b673.m4a",
+  "7196be1d": "7196be1d.m4a",
+  "7976d923": "7976d923.m4a",
+  "82e3b1ec": "82e3b1ec.m4a",
+  "8549163b": "8549163b.m4a",
+  "8680ec25": "8680ec25.m4a",
+  "8ec2050c": "8ec2050c.m4a",
+  "9c851cdc": "9c851cdc.m4a",
+  "9d8d517d": "9d8d517d.m4a",
+  "a0e90247": "a0e90247.m4a",
+  "a3b239c3": "a3b239c3.m4a",
+  "a438730f": "a438730f.m4a",
+  "a7d36ea3": "a7d36ea3.m4a",
+  "ac801b6f": "ac801b6f.m4a",
+  "b8072aeb": "b8072aeb.m4a",
+  "bbc243d5": "bbc243d5.m4a",
+  "bc51b2e5": "bc51b2e5.m4a",
+  "c5aa6d14": "c5aa6d14.m4a",
+  "c60544b8": "c60544b8.m4a",
+  "cd24c15d": "cd24c15d.m4a",
+  "ced0a067": "ced0a067.m4a",
+  "d1fe4ab6": "d1fe4ab6.m4a",
+  "d419f77d": "d419f77d.m4a",
+  "d7e26ec0": "d7e26ec0.m4a",
+  "db92cc54": "db92cc54.m4a",
+  "e38d8013": "e38d8013.m4a",
+  "eaef8666": "eaef8666.m4a",
+  "f9aba1c2": "f9aba1c2.m4a"
  },
- "voices": {
-  "child": 3,
-  "crow": 3,
-  "default": 8,
-  "house": 12,
-  "landlord": 20,
-  "radio": 13,
-  "yamada": 11
+ "roles": {
+  "crow": {
+   "id": 7,
+   "key": "7:+0.06:1.15:1.40",
+   "params": {
+    "intonationScale": 1.4,
+    "pitchScale": 0.06,
+    "speedScale": 1.15
+   },
+   "voice": "ずんだもん（ツンツン）"
+  },
+  "default": {
+   "id": 8,
+   "key": "8:+0.00:1.00:1.00",
+   "params": {
+    "intonationScale": 1.0,
+    "pitchScale": 0.0,
+    "speedScale": 1.0
+   },
+   "voice": "春日部つむぎ（ノーマル）"
+  },
+  "house": {
+   "id": 21,
+   "key": "21:+0.00:1.00:1.00",
+   "params": {
+    "intonationScale": 1.0,
+    "pitchScale": 0.0,
+    "speedScale": 1.0
+   },
+   "voice": "剣崎雌雄（ノーマル）"
+  },
+  "landlord": {
+   "id": 80,
+   "key": "80:-0.03:0.92:1.15",
+   "params": {
+    "intonationScale": 1.15,
+    "pitchScale": -0.03,
+    "speedScale": 0.92
+   },
+   "voice": "もち子さん（のんびり）"
+  },
+  "radio": {
+   "id": 30,
+   "key": "30:+0.00:1.05:0.90",
+   "params": {
+    "intonationScale": 0.9,
+    "pitchScale": 0.0,
+    "speedScale": 1.05
+   },
+   "voice": "No.7（アナウンス）"
+  },
+  "yamada": {
+   "id": 11,
+   "key": "11:-0.02:0.95:1.00",
+   "params": {
+    "intonationScale": 1.0,
+    "pitchScale": -0.02,
+    "speedScale": 0.95
+   },
+   "voice": "玄野武宏（ノーマル）"
+  },
+  "たこ焼きの おばちゃん": {
+   "id": 9,
+   "key": "9:-0.04:1.08:1.35",
+   "params": {
+    "intonationScale": 1.35,
+    "pitchScale": -0.04,
+    "speedScale": 1.08
+   },
+   "voice": "波音リツ（ノーマル）"
+  },
+  "ケンさん": {
+   "id": 32,
+   "key": "32:+0.00:1.05:1.25",
+   "params": {
+    "intonationScale": 1.25,
+    "pitchScale": 0.0,
+    "speedScale": 1.05
+   },
+   "voice": "白上虎太郎（わーい）"
+  },
+  "コン": {
+   "id": 31,
+   "key": "31:+0.00:0.90:1.10",
+   "params": {
+    "intonationScale": 1.1,
+    "pitchScale": 0.0,
+    "speedScale": 0.9
+   },
+   "voice": "No.7（読み聞かせ）"
+  },
+  "サクラさん": {
+   "id": 14,
+   "key": "14:+0.00:0.90:0.85",
+   "params": {
+    "intonationScale": 0.85,
+    "pitchScale": 0.0,
+    "speedScale": 0.9
+   },
+   "voice": "冥鳴ひまり（ノーマル）"
+  },
+  "ネムさん": {
+   "id": 84,
+   "key": "84:-0.02:0.80:0.70",
+   "params": {
+    "intonationScale": 0.7,
+    "pitchScale": -0.02,
+    "speedScale": 0.8
+   },
+   "voice": "青山龍星（しっとり）"
+  },
+  "ハルちゃん": {
+   "id": 45,
+   "key": "45:+0.05:1.05:1.40",
+   "params": {
+    "intonationScale": 1.4,
+    "pitchScale": 0.05,
+    "speedScale": 1.05
+   },
+   "voice": "櫻歌ミコ（ロリ）"
+  },
+  "マリさん": {
+   "id": 10,
+   "key": "10:+0.00:1.00:1.20",
+   "params": {
+    "intonationScale": 1.2,
+    "pitchScale": 0.0,
+    "speedScale": 1.0
+   },
+   "voice": "雨晴はう（ノーマル）"
+  },
+  "ミカさん": {
+   "id": 8,
+   "key": "8:+0.00:1.00:1.15",
+   "params": {
+    "intonationScale": 1.15,
+    "pitchScale": 0.0,
+    "speedScale": 1.0
+   },
+   "voice": "春日部つむぎ（ノーマル）"
+  },
+  "ユイ": {
+   "id": 0,
+   "key": "0:+0.03:1.08:1.30",
+   "params": {
+    "intonationScale": 1.3,
+    "pitchScale": 0.03,
+    "speedScale": 1.08
+   },
+   "voice": "四国めたん（あまあま）"
+  },
+  "ユリママ": {
+   "id": 4,
+   "key": "4:-0.03:0.92:1.00",
+   "params": {
+    "intonationScale": 1.0,
+    "pitchScale": -0.03,
+    "speedScale": 0.92
+   },
+   "voice": "四国めたん（セクシー）"
+  },
+  "大吉さん": {
+   "id": 52,
+   "key": "52:+0.00:1.05:1.30",
+   "params": {
+    "intonationScale": 1.3,
+    "pitchScale": 0.0,
+    "speedScale": 1.05
+   },
+   "voice": "雀松朱司（ノーマル）"
+  },
+  "大吉さんの おくさん": {
+   "id": 16,
+   "key": "16:+0.00:1.00:1.00",
+   "params": {
+    "intonationScale": 1.0,
+    "pitchScale": 0.0,
+    "speedScale": 1.0
+   },
+   "voice": "九州そら（ノーマル）"
+  },
+  "水野さん": {
+   "id": 33,
+   "key": "33:+0.00:0.90:1.00",
+   "params": {
+    "intonationScale": 1.0,
+    "pitchScale": 0.0,
+    "speedScale": 0.9
+   },
+   "voice": "白上虎太郎（びくびく）"
+  },
+  "源さん": {
+   "id": 82,
+   "key": "82:-0.05:0.85:0.70",
+   "params": {
+    "intonationScale": 0.7,
+    "pitchScale": -0.05,
+    "speedScale": 0.85
+   },
+   "voice": "青山龍星（不機嫌）"
+  },
+  "熊田さん": {
+   "id": 42,
+   "key": "42:+0.00:0.88:1.15",
+   "params": {
+    "intonationScale": 1.15,
+    "pitchScale": 0.0,
+    "speedScale": 0.88
+   },
+   "voice": "ちび式じい（ノーマル）"
+  },
+  "田中さん": {
+   "id": 12,
+   "key": "12:+0.00:1.00:1.10",
+   "params": {
+    "intonationScale": 1.1,
+    "pitchScale": 0.0,
+    "speedScale": 1.0
+   },
+   "voice": "白上虎太郎（ふつう）"
+  },
+  "町長さん": {
+   "id": 53,
+   "key": "53:+0.00:0.95:1.20",
+   "params": {
+    "intonationScale": 1.2,
+    "pitchScale": 0.0,
+    "speedScale": 0.95
+   },
+   "voice": "麒ヶ島宗麟（ノーマル）"
+  },
+  "金子さん": {
+   "id": 21,
+   "key": "21:+0.00:1.00:0.85",
+   "params": {
+    "intonationScale": 0.85,
+    "pitchScale": 0.0,
+    "speedScale": 1.0
+   },
+   "voice": "剣崎雌雄（ノーマル）"
+  },
+  "鉄さん": {
+   "id": 39,
+   "key": "39:+0.00:1.05:1.35",
+   "params": {
+    "intonationScale": 1.35,
+    "pitchScale": 0.0,
+    "speedScale": 1.05
+   },
+   "voice": "玄野武宏（喜び）"
+  }
  }
 }
