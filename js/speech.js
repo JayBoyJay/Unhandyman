@@ -92,6 +92,96 @@
       return [...new Set(alts.map((a) => a.trim()))].filter(Boolean);
     }
   };
+  // iPhone/iPad: after the first recognition session, iOS often feeds new sessions silence and
+  // then aborts them. So we start ONE continuous session on the first tap and keep it running.
+  // Each press only marks where your line starts; release takes the words heard since then.
+  // If iOS ends the session (long silence, page hidden), the next tap starts a new one.
+  const IosLive = {
+    name: 'phone',
+    tapToTalk: true,
+    available: () => !!SR,
+    live: null, cur: null, log: () => {},
+    open(opts) {
+      const r = new SR();
+      r.lang = 'ja-JP'; r.interimResults = true; r.maxAlternatives = 5; r.continuous = true;
+      const L = { rec: r, results: [], ended: false, error: null, started: Date.now() };
+      const mine = () => this.live === L;
+      r.onaudiostart = () => { if (mine()) this.log('mic on (kept on)'); };
+      r.onsoundstart = () => { if (mine() && this.cur) this.log('sound'); };
+      r.onspeechstart = () => { if (mine() && this.cur) this.log('speech'); };
+      r.onresult = (e) => {
+        if (!mine()) return;
+        L.results = Array.from(e.results);
+        const fin = L.results[L.results.length - 1];
+        if (fin && fin.isFinal && L.onFinal) { const f = L.onFinal; L.onFinal = null; f(); }
+        const c = this.cur;
+        if (c) {
+          const t = L.results.slice(c.from).map((x) => x[0].transcript).join('');
+          const last = L.results[L.results.length - 1];
+          this.log('result' + (last && last.isFinal ? ' (final)' : '') + ': ' + t);
+          c.opts && c.opts.onInterim && c.opts.onInterim(t);
+          if (last && last.isFinal && t.trim() && c.opts && c.opts.onAutoEnd) c.opts.onAutoEnd();   // you paused: send it
+        }
+      };
+      r.onerror = (e) => { if (mine()) { L.error = e.error; this.log('error: ' + e.error); } };
+      r.onend = () => {
+        L.ended = true; this.log('session ended after ' + Math.round((Date.now() - L.started) / 1000) + ' s');
+        if (mine()) { const c = this.cur; if (c && c.waiting) c.waiting(); }
+      };
+      this.live = L;
+      r.start();
+      this.log('session start');
+      return L;
+    },
+    // Not async: when a new session is needed, r.start() must run inside the tap.
+    start(opts) {
+      if (!SR) return Promise.reject(new Error('This browser has no built-in speech recognition. Use Safari.'));
+      this.log = (opts && opts.onLog) || (() => {});
+      this.lastError = null;
+      let L = this.live;
+      if (!L || L.ended) {
+        try { L = this.open(opts); }
+        catch (e) { return Promise.reject(new Error('Speech could not start: ' + (e.message || e.name))); }
+      }
+      // a result still being spoken when you pressed belongs to the old line, so start after it
+      this.cur = { from: L.results.length, opts, L };
+      this.log('press · from #' + this.cur.from);
+      return Promise.resolve();
+    },
+    stop() {
+      const c = this.cur; this.cur = null;
+      if (!c) return Promise.resolve([]);
+      // this line is the results from the press up to now (the last one may still be finishing)
+      c.to = Math.max(c.L.results.length, c.from + 1);
+      const take = () => c.L.results.slice(c.from, c.to);
+      return new Promise((resolve) => {
+        let done = false;
+        const finish = () => {
+          if (done) return; done = true;
+          const res = take();
+          if (!res.length) {
+            if (c.L.error === 'not-allowed' || c.L.error === 'service-not-allowed') this.lastError = 'Microphone or speech permission was blocked. Check Settings → Privacy & Security → Speech Recognition and Microphone.';
+            else if (c.L.error && c.L.error !== 'no-speech' && c.L.error !== 'aborted') this.lastError = 'Speech error: ' + c.L.error;
+            return resolve([]);
+          }
+          const head = res.slice(0, -1).map((r) => r[0].transcript).join('');
+          const last = res[res.length - 1], alts = [];
+          for (let i = 0; i < last.length; i++) alts.push(head + last[i].transcript);
+          resolve([...new Set(alts.map((a) => a.trim()))].filter(Boolean));
+        };
+        const res = take(), last = res[res.length - 1];
+        if (!res.length || (last && last.isFinal)) { if (res.length) return finish(); }
+        // wait briefly for iOS to finish the last words
+        c.L.onFinal = finish;
+        c.waiting = finish;
+        setTimeout(finish, 700);
+      });
+    },
+    shutdown() { const L = this.live; this.live = null; this.cur = null; if (L && !L.ended) { try { L.rec.abort(); } catch (_) {} } }
+  };
+  // switch the mic off when the phone page is hidden; the next tap starts a fresh session
+  if (IOS) document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') IosLive.shutdown(); });
+
   const VOSK_LIB = 'https://cdn.jsdelivr.net/npm/vosk-browser@0.0.8/dist/vosk.js';
   const VoskRec = {
     name: 'vosk',
@@ -150,5 +240,5 @@
     }
   };
 
-  window.Speech = { engines: { phone: PhoneRec, vosk: VoskRec } };
+  window.Speech = { engines: { phone: IOS ? IosLive : PhoneRec, vosk: VoskRec }, IOS };
 })();
