@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Un-Handy Man · 手ぶら町</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#2b2a27; --paper:#fff8e7; --accent:#d9533c; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #1d1c1a; color: var(--ink); font-family: 'DotGothic16', system-ui, sans-serif; overflow: hidden; }
+  .stage { position: relative; width: min(100vw, 177.78vh); aspect-ratio: 16 / 9; margin: 0 auto; top: 50%; transform: translateY(-50%); font-size: min(1.6vw, 2.85vh); }
+  canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+  .box { background: var(--paper); border: 0.25em solid var(--ink); border-radius: 0.6em; }
+  #caption { position: absolute; left: 3%; right: 3%; bottom: 3%; padding: 0.6em 1em; min-height: 4.2em; }
+  #caption.radio { background: #2e2c28; color: var(--paper); border-color: var(--paper); }
+  #who { font-size: 0.9em; opacity: 0.75; }
+  #line { font-size: 2em; line-height: 1.3; }
+  #heard { position: absolute; left: 3%; top: 3%; padding: 0.3em 0.8em; border-radius: 99em; font-size: 1.2em; background: var(--paper); border: 0.2em solid var(--ink); }
+  #heard:empty { display: none; }
+  #heard.no { background: #e9e2d3; }
+  #heard.ok { background: #c6e0a8; }
+  #hint { position: absolute; left: 50%; top: 3%; transform: translateX(-50%); padding: 0.35em 1em; font-size: 1.3em; background: #fff1c9; border: 0.2em dashed var(--ink); border-radius: 0.5em; white-space: nowrap; }
+  #join { position: absolute; right: 2%; top: 3%; padding: 0.6em; text-align: center; width: 12em; z-index: 2; }
+  .overlay { z-index: 1; }
+  #join h2 { margin: 0 0 0.3em; font-size: 1em; font-weight: 400; }
+  #qr { display: flex; justify-content: center; background: #fff; padding: 0.3em; }
+  #qr img, #qr canvas { width: 8em !important; height: 8em !important; image-rendering: pixelated; }
+  #code { font-size: 1.8em; letter-spacing: 0.15em; margin-top: 0.2em; }
+  #joinurl { font-size: 0.55em; word-break: break-all; opacity: 0.7; }
+  #phones { font-size: 0.7em; margin-top: 0.3em; }
+  #join.small { width: auto; padding: 0.3em 0.8em; }
+  #join.small h2, #join.small #qr, #join.small #joinurl { display: none; }
+  #join.small #code { font-size: 1em; margin: 0; }
+  .overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.8em; background: rgba(29, 28, 26, 0.72); color: var(--paper); text-align: center; }
+  .overlay h1 { margin: 0; font-size: 4em; font-weight: 400; }
+  .overlay p { margin: 0; font-size: 1.2em; }
+  button, input, select { font-family: inherit; font-size: 1em; }
+  .btn { background: var(--paper); color: var(--ink); border: 0.2em solid var(--ink); border-radius: 99em; padding: 0.5em 1.6em; cursor: pointer; }
+  #gear { position: absolute; right: 1.5%; bottom: 1.5%; width: 2.6em; height: 2.6em; border-radius: 50%; padding: 0; z-index: 3; }
+  #testform { position: absolute; left: 3%; bottom: 21%; display: flex; gap: 0.3em; opacity: 0.55; z-index: 3; }
+  #testform:focus-within, #testform:hover { opacity: 1; }
+  #testform input { width: 12em; padding: 0.3em 0.5em; border: 0.15em solid var(--ink); border-radius: 0.4em; }
+  #settings { position: absolute; right: 2%; bottom: 12%; width: 24em; padding: 1em; z-index: 4; display: flex; flex-direction: column; gap: 0.6em; font-size: 0.9em; }
+  #settings[hidden], [hidden] { display: none !important; }
+  #settings label { display: flex; flex-direction: column; gap: 0.2em; }
+  #settings input[type=text], #settings input[type=password], #settings select { padding: 0.35em; border: 0.15em solid var(--ink); border-radius: 0.4em; }
+  #settings .row { display: flex; gap: 0.5em; align-items: center; }
+  #ai-status { font-size: 0.85em; min-height: 1.2em; }
+  #hud { position: absolute; left: 3%; top: 11%; padding: 0.3em 0.8em; font-size: 0.95em; background: rgba(255,248,231,0.92); border: 0.15em solid var(--ink); border-radius: 0.5em; display: flex; flex-direction: column; gap: 0.15em; max-width: 34%; }
+  #hud .now { font-size: 1.15em; }
+  #toast { position: absolute; left: 50%; top: 12%; transform: translateX(-50%); padding: 0.4em 1.1em; font-size: 1.25em; background: #fff1c9; border: 0.2em solid var(--ink); border-radius: 0.6em; white-space: nowrap; z-index: 2; }
+  #toast[hidden] { display: none; }
+  #jobsBtn { position: absolute; right: 7%; bottom: 1.5%; height: 2.6em; padding: 0 1em; z-index: 3; }
+  #board { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -58%); width: 62%; max-height: 74%; overflow: auto; padding: 0.8em 1em; z-index: 3; display: flex; flex-direction: column; gap: 0.5em; }
+  #board h2 { margin: 0; font-size: 1.4em; font-weight: 400; display: flex; justify-content: space-between; align-items: baseline; }
+  #board h2 small { font-size: 0.6em; opacity: 0.75; }
+  .job { display: grid; grid-template-columns: 1.6em 1fr auto; gap: 0.6em; align-items: center; padding: 0.45em 0.6em; border: 0.15em solid var(--ink); border-radius: 0.5em; background: #fff; }
+  .job.taken { background: #fff1c9; }
+  .job.done { background: #e4f0d2; opacity: 0.85; }
+  .job .num { font-size: 1.2em; text-align: center; }
+  .job .t { font-size: 1.15em; }
+  .job .meta { font-size: 0.75em; opacity: 0.8; }
+  .job .btn { padding: 0.25em 0.9em; font-size: 0.9em; }
+  .stars { color: #b8860b; letter-spacing: 0.05em; }
+  #save-status { font-size: 0.85em; }
+  #taskcard { position: absolute; right: 3%; top: 31%; width: 22%; padding: 0.6em 0.8em; text-align: center; z-index: 1; }
+  #taskcard .cardlabel { font-size: 0.75em; opacity: 0.75; margin-bottom: 0.3em; }
+  #taskcard .letter { background: #fdfaf2; border: 0.12em dashed #d9533c; padding: 0.5em; font-size: 1.5em; line-height: 1.5; }
+  #taskcard .letter rt { font-size: 0.45em; }
+  #taskcard .sign { background: #f3e2c4; border: 0.15em solid var(--ink); padding: 0.4em; font-size: 1.5em; line-height: 1.3; }
+  #taskcard .big { font-size: 1.5em; }
+  #taskcard .cardnote { font-size: 0.7em; margin-top: 0.4em; opacity: 0.8; }
+  #taskcard .clock { font-size: 1.3em; margin-bottom: 0.3em; }
+  #taskcard .times { display: grid; grid-template-columns: 1fr 1fr; gap: 0.2em 0.6em; font-size: 1.25em; }
+
+</style>
+</head>
+<body>
+<div class="stage">
+  <canvas id="game" width="320" height="180" aria-label="Un-Handy Man backyard"></canvas>
+
+  <div id="heard" class="ok"></div>
+  <div id="hint" hidden></div>
+
+  <div id="join" class="box">
+    <h2>Join on your phone</h2>
+    <div id="qr"></div>
+    <div id="code">····</div>
+    <div id="joinurl"></div>
+    <div id="phones">Waiting for a phone</div>
+  </div>
+
+  <div id="hud" hidden><div id="hud-day"></div><div id="hud-now" class="now"></div></div>
+  <div id="toast" hidden></div>
+  <div id="taskcard" class="box" hidden></div>
+
+  <div id="board" class="box" hidden>
+    <h2><span>しごと · Jobs</span><small id="board-sub"></small></h2>
+    <div id="board-list"></div>
+    <div style="font-size:0.75em;opacity:0.75">Take up to 3 jobs. The board changes every day. Keys: J to close, 1–5 to take or drop.</div>
+  </div>
+
+  <div id="caption" class="box"><div id="who">　</div><div id="line">　</div></div>
+
+  <form id="testform" autocomplete="off">
+    <input id="testinput" type="text" placeholder="Test: type what you'd say" aria-label="Type a test command">
+    <button class="btn" type="submit" style="padding:0.2em 0.8em">送る</button>
+  </form>
+
+  <button id="jobsBtn" class="btn" type="button">しごと</button>
+  <button id="gear" class="btn" type="button" aria-label="Settings">設定</button>
+  <div id="settings" class="box" hidden>
+    <strong>Save</strong>
+    <div class="row">
+      <button id="save-download" class="btn" type="button">Download save</button>
+      <button id="save-load" class="btn" type="button">Load save</button>
+      <button id="save-new" class="btn" type="button">New game</button>
+      <input id="save-file" type="file" accept="application/json,.json" hidden>
+    </div>
+    <div id="save-status" role="status">Progress saves automatically in this browser.</div>
+    <div class="row"><input id="explore" type="checkbox"><label for="explore" style="flex-direction:row">Unlock all areas (for testing the maps)</label></div>
+    <strong>AI conversation (optional)</strong>
+    <div class="row"><input id="ai-enabled" type="checkbox"><label for="ai-enabled" style="flex-direction:row">Use AI for free chat</label></div>
+    <label>Provider
+      <select id="ai-provider">
+        <option value="ollama">Ollama on this computer (default)</option>
+        <option value="claude">Claude (your API key)</option>
+        <option value="openai">OpenAI (your API key)</option>
+        <option value="gemini">Gemini (your API key)</option>
+      </select>
+    </label>
+    <label id="ai-url-row">Ollama address <input id="ai-url" type="text"></label>
+    <label id="ai-key-row">API key, stored only in this browser <input id="ai-key" type="password"></label>
+    <label>Model <input id="ai-model" type="text" list="ai-models"></label>
+    <datalist id="ai-models"></datalist>
+    <div class="row">
+      <button id="ai-list" class="btn" type="button">Find Ollama models</button>
+      <button id="ai-test" class="btn" type="button">Test</button>
+      <button id="ai-close" class="btn" type="button">Done</button>
+    </div>
+    <div id="ai-status" role="status"></div>
+  </div>
+
+  <div id="title" class="overlay">
+    <h1>手ぶら町</h1>
+    <p>Un-Handy Man · Chapter 0</p>
+    <p style="font-size:0.9em;opacity:0.8">Scan the code with your phone to start, or press Start to try it with the test box.</p>
+    <button id="start" class="btn" type="button">Start</button>
+  </div>
+
+  <div id="end" class="overlay" hidden>
+    <h1>広場へ！</h1>
+    <p>Chapter 0 complete · the town square is open</p>
+    <button id="nextday" class="btn" type="button">つぎの日 · Next day</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="js/words.js"></script>
+<script src="js/net.js"></script>
+<script src="js/ai.js"></script>
+<script src="assets/atlas.js"></script>
+<script src="js/save.js"></script>
+<script src="js/jobs.js"></script>
+<script src="js/maps.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

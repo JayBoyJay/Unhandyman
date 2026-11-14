@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>おうち app</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3B3A36}a:hover{color:#1F1E1B}
+.seg{flex:1;border:none;padding:10px;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;min-height:44px}
+.row{display:flex;gap:12px;align-items:center;background:#FFFFFF;border:2px solid #3B3A36;border-radius:16px;padding:8px 12px}
+.ic{width:44px;height:44px;flex:none;border-radius:12px;border:2px solid #3B3A36}
+.play{width:40px;height:40px;flex:none;border-radius:50%;border:2px solid #3B3A36;background:#FFE0CC;display:flex;align-items:center;justify-content:center;padding:0}
+.pill{font-size:12px;font-weight:700;border:2px solid #3B3A36;border-radius:999px;padding:2px 8px;white-space:nowrap}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #FFF1E6; font-family: 'M PLUS Rounded 1c', sans-serif; color: #3B3A36">
+
+<div style="padding: 20px 20px 0; display: flex; justify-content: space-between; align-items: center">
+<div><p style="margin: 0; font-size: 22px; font-weight: 800">おうち</p><p style="margin: 0; font-size: 13px" lang="en">Your house · 4 of 12 spots filled</p></div>
+<div style="border: 2px solid #3B3A36; border-radius: 999px; padding: 6px 12px; font-size: 15px; font-weight: 800; background: #FFFFFF">¥1,200</div>
+</div>
+
+<div style="margin: 14px 20px 0; display: flex; border: 3px solid #3B3A36; border-radius: 999px; overflow: hidden; background: #FFFFFF">
+<button class="seg" type="button" onClick="{{ showStore }}" style="background: {{ storeBg }}; color: {{ storeFg }}">物置 · Storage</button>
+<button class="seg" type="button" onClick="{{ showShop }}" style="background: {{ shopBg }}; color: {{ shopFg }}">カタログ · Shops</button>
+</div>
+
+<sc-if value="{{ store }}" hint-placeholder-val="{{ true }}">
+<p style="margin: 14px 20px 8px; font-size: 13px" lang="en">Waiting in storage. Tell a dog where to put each one.</p>
+<div style="margin: 0 20px; display: flex; flex-direction: column; gap: 8px">
+<div class="row"><span class="ic" style="background: #85B7EB"></span><span style="flex: 1"><span style="display: block; font-size: 17px; font-weight: 800">青い椅子</span><span class="pill" style="background: #E9C9A0">茶色い犬</span></span><button class="play" type="button" aria-label="Hear 青い椅子"><svg width="14" height="14" viewBox="0 0 24 24" fill="#3B3A36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button></div>
+<div class="row"><span class="ic" style="background: #FAC775"></span><span style="flex: 1"><span style="display: block; font-size: 17px; font-weight: 800">ランプ</span><span class="pill" style="background: #FFFFFF">白い犬</span></span><button class="play" type="button" aria-label="Hear ランプ"><svg width="14" height="14" viewBox="0 0 24 24" fill="#3B3A36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button></div>
+<div class="row"><span class="ic" style="background: #C9A27A"></span><span style="flex: 1"><span style="display: block; font-size: 17px; font-weight: 800">本棚</span><span class="pill" style="background: #E9C9A0">茶色い犬</span></span><button class="play" type="button" aria-label="Hear 本棚"><svg width="14" height="14" viewBox="0 0 24 24" fill="#3B3A36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button></div>
+<div class="row"><span class="ic" style="background: #F4C0D1"></span><span style="flex: 1"><span style="display: block; font-size: 17px; font-weight: 800">ラグ</span><span class="pill" style="background: #E9C9A0">茶色い犬</span></span><button class="play" type="button" aria-label="Hear ラグ"><svg width="14" height="14" viewBox="0 0 24 24" fill="#3B3A36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button></div>
+<div class="row"><span class="ic" style="background: #FFFFFF"></span><span style="flex: 1"><span style="display: block; font-size: 17px; font-weight: 800">時計</span><span class="pill" style="background: #FFFFFF">白い犬</span></span><button class="play" type="button" aria-label="Hear 時計"><svg width="14" height="14" viewBox="0 0 24 24" fill="#3B3A36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button></div>
+</div>
+<div style="margin: 14px 20px 0; background: #FFF8E7; border: 3px solid #3B3A36; border-radius: 16px; padding: 10px 14px">
+<p style="margin: 0; font-size: 13px" lang="en">Place words you know</p>
+<p style="margin: 4px 0 0; font-size: 17px; font-weight: 700">上 · 下 · 前 · 後ろ · 横 · 隣</p>
+</div>
+</sc-if>
+
+<sc-if value="{{ shop }}" hint-placeholder-val="{{ false }}">
+<p style="margin: 14px 20px 8px; font-size: 13px" lang="en">Hear the name and price here, then ask the shopkeeper in person.</p>
+<div style="margin: 0 20px; display: flex; flex-direction: column; gap: 8px">
+<div class="row"><span class="ic" style="background: #C0DD97"></span><span style="flex: 1"><span style="display: block; font-size: 17px; font-weight: 800">植木鉢</span><span style="font-size: 13px">金物屋 · ¥300</span></span><button class="play" type="button" aria-label="Hear name and price"><svg width="14" height="14" viewBox="0 0 24 24" fill="#3B3A36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button></div>
+<div class="row"><span class="ic" style="background: #CBD6E8"></span><span style="flex: 1"><span style="display: block; font-size: 17px; font-weight: 800">ラジオ</span><span style="font-size: 13px">金物屋 · ¥800</span></span><button class="play" type="button" aria-label="Hear name and price"><svg width="14" height="14" viewBox="0 0 24 24" fill="#3B3A36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button></div>
+<div class="row"><span class="ic" style="background: #F7C9A8"></span><span style="flex: 1"><span style="display: block; font-size: 17px; font-weight: 800">カレンダー</span><span style="font-size: 13px">パン屋 · ¥200</span></span><button class="play" type="button" aria-label="Hear name and price"><svg width="14" height="14" viewBox="0 0 24 24" fill="#3B3A36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button></div>
+<div class="row"><span class="ic" style="background: #FFFFFF"></span><span style="flex: 1"><span style="display: block; font-size: 17px; font-weight: 800">犬のベッド</span><span style="font-size: 13px">金物屋 · ¥1,500</span></span><span class="pill" style="background: #FAC775" lang="en">needed for dog 3</span></div>
+<div class="row" style="background: #E9E2D3; border-style: dashed"><span class="ic" style="background: #E9E2D3; border-style: dashed"></span><span style="flex: 1; font-size: 14px" lang="en">Café street shops open in Chapter 2</span></div>
+</div>
+<div style="margin: 14px 20px 0; background: #FFF8E7; border: 3px solid #3B3A36; border-radius: 16px; padding: 10px 14px">
+<p style="margin: 0; font-size: 13px" lang="en">At the counter, try</p>
+<p style="margin: 4px 0 0; font-size: 17px; font-weight: 700">これはいくらですか？ · ラジオをください</p>
+</div>
+</sc-if>
+
+<a href="PhoneHome.dc.html" style="position: absolute; left: 0; bottom: 0; width: 390px; height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 12px; color: #4F4C45" lang="en"><span style="width: 120px; height: 6px; border-radius: 3px; background: #3B3A36"></span>Home</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { tab: 'store' };
+}
+renderVals() {
+const s = this.state.tab === 'store';
+return {
+store: s, shop: !s,
+storeBg: s ? '#3B3A36' : '#FFFFFF', storeFg: s ? '#FFF8E7' : '#3B3A36',
+shopBg: s ? '#FFFFFF' : '#3B3A36', shopFg: s ? '#3B3A36' : '#FFF8E7',
+showStore: () => this.setState({ tab: 'store' }),
+showShop: () => this.setState({ tab: 'shop' })
+};
+}
+}
+</script>
+</body>
+</html>

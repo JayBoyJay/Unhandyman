@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Phone incoming call</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#FFF8E7}a:hover{color:#FFFFFF}
+.sm{border:2px solid #FFF8E7;border-radius:999px;background:transparent;padding:10px 16px;font-family:inherit;font-size:15px;font-weight:700;color:#FFF8E7;min-height:48px}
+.bar{width:8px;border-radius:4px;background:#FFE0CC}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #2E2C28; font-family: 'M PLUS Rounded 1c', sans-serif; color: #FFF8E7; box-sizing: border-box; padding: 80px 28px 48px; display: flex; flex-direction: column; align-items: center; gap: 14px">
+
+<div style="width: 120px; height: 120px; border-radius: 50%; background: #F7C9A8; border: 4px solid #FFF8E7; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 800; color: #3B3A36">パ</div>
+<p style="margin: 8px 0 0; font-size: 30px; font-weight: 800">パン屋さん</p>
+<p style="margin: 0; font-size: 15px" lang="en">{{ statusLabel }}</p>
+
+<sc-if value="{{ ringing }}" hint-placeholder-val="{{ true }}">
+<div style="margin-top: auto; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 18px">
+<p style="margin: 0; font-size: 16px; text-align: center" lang="en">Hold talk and say <b lang="ja">もしもし</b> to answer</p>
+<div style="display: flex; gap: 60px">
+<a href="PhoneApp.dc.html" style="width: 76px; height: 76px; border-radius: 50%; background: #B5462E; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 15px; font-weight: 700">切る</a>
+<button type="button" onClick="{{ answer }}" style="width: 76px; height: 76px; border-radius: 50%; border: none; background: #1D9E75; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 700">もしもし</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ talking }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top: 30px; height: 70px; display: flex; align-items: center; gap: 6px" role="img" aria-label="Caller speaking">
+<div class="bar" style="height: 20px"></div><div class="bar" style="height: 46px"></div><div class="bar" style="height: 30px"></div><div class="bar" style="height: 64px"></div><div class="bar" style="height: 38px"></div><div class="bar" style="height: 54px"></div><div class="bar" style="height: 24px"></div><div class="bar" style="height: 44px"></div><div class="bar" style="height: 16px"></div>
+</div>
+<p style="margin: 0; font-size: 14px; text-align: center" lang="en">Audio only. No subtitles on calls.</p>
+<div style="margin-top: auto; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 14px">
+<div style="display: flex; gap: 10px">
+<button class="sm" type="button">もう一回</button>
+<button class="sm" type="button">ゆっくり</button>
+</div>
+<p style="margin: 0; font-size: 13px; text-align: center; color: #D9D3C4" lang="en">Asking for a repeat out loud works too, and the caller is happy to help</p>
+<a href="PhoneApp.dc.html" style="width: 76px; height: 76px; border-radius: 50%; background: #B5462E; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 15px; font-weight: 700">切る</a>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { answered: false };
+}
+renderVals() {
+const a = this.state.answered;
+return {
+ringing: !a,
+talking: a,
+statusLabel: a ? 'On the call · 0:12' : 'Incoming call · new job',
+answer: () => this.setState({ answered: true })
+};
+}
+}
+</script>
+</body>
+</html>

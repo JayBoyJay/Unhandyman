@@ -1,0 +1,1566 @@
+{
+ "a_brass_ship_s_bell": {
+  "name": "A brass ship's bell",
+  "file": "sprites/a_brass_ship_s_bell.png",
+  "size": [
+   13,
+   15
+  ],
+  "upscale": 4,
+  "blob": "8cf24b4d4004d9c88102bf8d066e2cea"
+ },
+ "a_bread_oven": {
+  "name": "A bread oven",
+  "file": "sprites/a_bread_oven.png",
+  "size": [
+   38,
+   55
+  ],
+  "upscale": 4,
+  "blob": "a0c7de7fa0955ec2ab3826cf4804458d"
+ },
+ "a_cafe_counter": {
+  "name": "A café counter",
+  "file": "sprites/a_cafe_counter.png",
+  "size": [
+   52,
+   47
+  ],
+  "upscale": 4,
+  "blob": "9f2867ac4638ce8cfb93c948fdb90794"
+ },
+ "a_camping_tent_for_the_yard": {
+  "name": "A camping tent for the yard",
+  "file": "sprites/a_camping_tent_for_the_yard.png",
+  "size": [
+   32,
+   17
+  ],
+  "upscale": 4,
+  "blob": "4be7d2fce5c0ee8d140eb3e3cd41aa36"
+ },
+ "a_carved_bear": {
+  "name": "A carved bear",
+  "file": "sprites/a_carved_bear.png",
+  "size": [
+   16,
+   15
+  ],
+  "upscale": 4,
+  "blob": "74793564d16fbb48261043865f643c55"
+ },
+ "a_carved_wooden_fox": {
+  "name": "A carved wooden fox",
+  "file": "sprites/a_carved_wooden_fox.png",
+  "size": [
+   16,
+   21
+  ],
+  "upscale": 4,
+  "blob": "4cbe8e056e51d54038f1ad2987ee0f91"
+ },
+ "a_flower_shelf": {
+  "name": "A flower shelf",
+  "file": "sprites/a_flower_shelf.png",
+  "size": [
+   30,
+   26
+  ],
+  "upscale": 4,
+  "blob": "6576d5cbc51a32901939ae59f0a99db6"
+ },
+ "a_fruit_stand": {
+  "name": "A fruit stand",
+  "file": "sprites/a_fruit_stand.png",
+  "size": [
+   32,
+   30
+  ],
+  "upscale": 4,
+  "blob": "f791c6144063c175bbba87bfad9dff6d"
+ },
+ "a_giant_curry_pot": {
+  "name": "A giant curry pot",
+  "file": "sprites/a_giant_curry_pot.png",
+  "size": [
+   37,
+   37
+  ],
+  "upscale": 4,
+  "blob": "2fdc570e154d76f0aaaee78957ec691d"
+ },
+ "a_goldfish_tank": {
+  "name": "A goldfish tank",
+  "file": "sprites/a_goldfish_tank.png",
+  "size": [
+   34,
+   40
+  ],
+  "upscale": 4,
+  "blob": "f86a94935340420ba7cb4f9658bb638c"
+ },
+ "a_jukebox": {
+  "name": "A jukebox",
+  "file": "sprites/a_jukebox.png",
+  "size": [
+   18,
+   19
+  ],
+  "upscale": 4,
+  "blob": "6d763be011351ad7de3e6bb30f760311"
+ },
+ "a_kotatsu": {
+  "name": "A kotatsu",
+  "file": "sprites/a_kotatsu.png",
+  "size": [
+   50,
+   36
+  ],
+  "upscale": 4,
+  "blob": "4b896f86829dea212b2a078a9ec13f78"
+ },
+ "a_lantern_that_never_goes_out": {
+  "name": "A lantern that never goes out",
+  "file": "sprites/a_lantern_that_never_goes_out.png",
+  "size": [
+   15,
+   17
+  ],
+  "upscale": 4,
+  "blob": "19d2aa80cd991fdc6725be503ebfa452"
+ },
+ "a_noodle_bar_counter": {
+  "name": "A noodle bar counter",
+  "file": "sprites/a_noodle_bar_counter.png",
+  "size": [
+   52,
+   46
+  ],
+  "upscale": 4,
+  "blob": "440f65144e2bb3be8ba4726699f66f65"
+ },
+ "a_police_box_lamp": {
+  "name": "A police-box lamp",
+  "file": "sprites/a_police_box_lamp.png",
+  "size": [
+   11,
+   17
+  ],
+  "upscale": 4,
+  "blob": "587dc1a15f6219c7c5c8327b4a736f71"
+ },
+ "a_reading_chair_and_newspaper_rack": {
+  "name": "A reading chair and newspaper rack",
+  "file": "sprites/a_reading_chair_and_newspaper_rack.png",
+  "size": [
+   23,
+   13
+  ],
+  "upscale": 4,
+  "blob": "629ee34f710b28848ceb5d870fd147c5"
+ },
+ "a_rope_hammock": {
+  "name": "A rope hammock",
+  "file": "sprites/a_rope_hammock.png",
+  "size": [
+   32,
+   14
+  ],
+  "upscale": 4,
+  "blob": "b7de80c2311bbb7f2d84859406b9566c"
+ },
+ "a_skateboard_wall_rack": {
+  "name": "A skateboard wall rack",
+  "file": "sprites/a_skateboard_wall_rack.png",
+  "size": [
+   20,
+   13
+  ],
+  "upscale": 4,
+  "blob": "7e450a077ae2c3b82341920ce41a6c71"
+ },
+ "a_takoyaki_grill": {
+  "name": "A takoyaki grill",
+  "file": "sprites/a_takoyaki_grill.png",
+  "size": [
+   38,
+   33
+  ],
+  "upscale": 4,
+  "blob": "e5fc3ecdbda9be180118337599292b7c"
+ },
+ "a_tool_wall": {
+  "name": "A tool wall",
+  "file": "sprites/a_tool_wall.png",
+  "size": [
+   38,
+   45
+  ],
+  "upscale": 4,
+  "blob": "77dca4f70195d09b7a716febc950c5ec"
+ },
+ "a_town_banner": {
+  "name": "A town banner",
+  "file": "sprites/a_town_banner.png",
+  "size": [
+   13,
+   26
+  ],
+  "upscale": 4,
+  "blob": "3a382e2380149bd7c32ba29849c8d340"
+ },
+ "an_old_dial_phone": {
+  "name": "An old dial phone",
+  "file": "sprites/an_old_dial_phone.png",
+  "size": [
+   20,
+   15
+  ],
+  "upscale": 4,
+  "blob": "4eac6f59f9a9995a2a06a49cdddb1aab"
+ },
+ "back_gate": {
+  "name": "Back gate",
+  "file": "sprites/back_gate.png",
+  "size": [
+   41,
+   43
+  ],
+  "upscale": 4,
+  "blob": "5b8ad0b3fd519fc05e555cb8221c165d"
+ },
+ "baker": {
+  "name": "Baker, town square",
+  "file": "sprites/baker.png",
+  "size": [
+   20,
+   24
+  ],
+  "upscale": 4,
+  "blob": "948ad8c51d5511d76e6aef50e60f6ad1"
+ },
+ "bakery": {
+  "name": "Bakery",
+  "file": "sprites/bakery.png",
+  "size": [
+   82,
+   68
+  ],
+  "upscale": 4,
+  "blob": "8ffb36ea7708634a49f0e2fa4a1a318a"
+ },
+ "bamboo": {
+  "name": "Bamboo sprite",
+  "file": "sprites/bamboo.png",
+  "size": [
+   31,
+   71
+  ],
+  "upscale": 4,
+  "blob": "dc2f780b9f6d68978dd1794179f40a99"
+ },
+ "bamboo_grove_floor": {
+  "name": "Bamboo grove floor sprite",
+  "file": "sprites/bamboo_grove_floor.png",
+  "size": [
+   32,
+   26
+  ],
+  "upscale": 4,
+  "blob": "b88dbac33217a531f0b76df459675566"
+ },
+ "bamboo_thicket": {
+  "name": "Bamboo thicket sprite",
+  "file": "sprites/bamboo_thicket.png",
+  "size": [
+   33,
+   66
+  ],
+  "upscale": 4,
+  "blob": "9d685bcc3bfb10686ce4f6b468f3da67"
+ },
+ "bar_owner": {
+  "name": "Bar owner, café street",
+  "file": "sprites/bar_owner.png",
+  "size": [
+   20,
+   25
+  ],
+  "upscale": 4,
+  "blob": "8a17b4d3d19d9e6ecf58fa036b6c8bfc"
+ },
+ "bench": {
+  "name": "Bench",
+  "file": "sprites/bench.png",
+  "size": [
+   31,
+   19
+  ],
+  "upscale": 4,
+  "blob": "c30d33ca9bbb476e00e139ae0f274abe"
+ },
+ "big_brown_dog": {
+  "name": "Big brown dog",
+  "file": "sprites/big_brown_dog.png",
+  "size": [
+   26,
+   17
+  ],
+  "upscale": 4,
+  "blob": "cfaef7ad38116b47f67d5a17e3b75801"
+ },
+ "bucket": {
+  "name": "Bucket",
+  "file": "sprites/bucket.png",
+  "size": [
+   12,
+   11
+  ],
+  "upscale": 4,
+  "blob": "74961dd3855681a8fbce89abe58aa7e3"
+ },
+ "bus_stop": {
+  "name": "Bus stop sprite",
+  "file": "sprites/bus_stop.png",
+  "size": [
+   9,
+   18
+  ],
+  "upscale": 4,
+  "blob": "2604724ed99c7847e18638870b2dd6fc"
+ },
+ "bush": {
+  "name": "Bush",
+  "file": "sprites/bush.png",
+  "size": [
+   27,
+   16
+  ],
+  "upscale": 4,
+  "blob": "fcfa964d86cf2be0ed01c7aea8041f70"
+ },
+ "cafe": {
+  "name": "Café",
+  "file": "sprites/cafe.png",
+  "size": [
+   88,
+   70
+  ],
+  "upscale": 4,
+  "blob": "8f8bbfd77a4072f60aa15f899f01001f"
+ },
+ "cafe_owner": {
+  "name": "Café owner, café street",
+  "file": "sprites/cafe_owner.png",
+  "size": [
+   18,
+   22
+  ],
+  "upscale": 4,
+  "blob": "c94590e063d9362e8e8bd8d7ea0e5eba"
+ },
+ "cafe_regular": {
+  "name": "Café regular, café street",
+  "file": "sprites/cafe_regular.png",
+  "size": [
+   20,
+   22
+  ],
+  "upscale": 4,
+  "blob": "a383b9d5cbb080388bbc2a81e8c9030c"
+ },
+ "cafe_table": {
+  "name": "Café table",
+  "file": "sprites/cafe_table.png",
+  "size": [
+   30,
+   34
+  ],
+  "upscale": 4,
+  "blob": "e307157300d0324009497f57631eedd7"
+ },
+ "cedar_tree": {
+  "name": "Cedar tree",
+  "file": "sprites/cedar_tree.png",
+  "size": [
+   35,
+   70
+  ],
+  "upscale": 4,
+  "blob": "c740ec7b42f994b7c5890262db7cfa42"
+ },
+ "cherry_blossom_tree": {
+  "name": "Cherry blossom tree",
+  "file": "sprites/cherry_blossom_tree.png",
+  "size": [
+   60,
+   62
+  ],
+  "upscale": 4,
+  "blob": "ba046459f927a51c887c121a5bd23326"
+ },
+ "crow": {
+  "name": "Crow sprite",
+  "file": "sprites/crow.png",
+  "size": [
+   10,
+   8
+  ],
+  "upscale": 4,
+  "blob": "5a4909cf8779f1ab8a6e4a7218158327"
+ },
+ "diary_scrap": {
+  "name": "Diary scrap",
+  "file": "sprites/diary_scrap.png",
+  "size": [
+   12,
+   11
+  ],
+  "upscale": 4,
+  "blob": "c358c4e7938643c89e5fa9d45b4bd570"
+ },
+ "dig_spot": {
+  "name": "Dig spot",
+  "file": "sprites/dig_spot.png",
+  "size": [
+   27,
+   16
+  ],
+  "upscale": 4,
+  "blob": "b1bb6fe6ce0f0dce3957f9bd7eb08116"
+ },
+ "dirt_path": {
+  "name": "Dirt path",
+  "file": "sprites/dirt_path.png",
+  "size": [
+   32,
+   26
+  ],
+  "upscale": 4,
+  "blob": "6ec3d48f42ec458471d277195d97cd5d"
+ },
+ "dock_planks": {
+  "name": "Dock planks",
+  "file": "sprites/dock_planks.png",
+  "size": [
+   32,
+   26
+  ],
+  "upscale": 4,
+  "blob": "172288ad1739b376820186f0866714bd"
+ },
+ "dog_bed": {
+  "name": "Dog bed",
+  "file": "sprites/dog_bed.png",
+  "size": [
+   19,
+   12
+  ],
+  "upscale": 4,
+  "blob": "6bd76bf7cc5bfd537719de7a4ea41771"
+ },
+ "fallen_log": {
+  "name": "Fallen log",
+  "file": "sprites/fallen_log.png",
+  "size": [
+   30,
+   9
+  ],
+  "upscale": 4,
+  "blob": "bc97799be1f3892f4745b44d93b8be0f"
+ },
+ "fence": {
+  "name": "Fence",
+  "file": "sprites/fence.png",
+  "size": [
+   35,
+   32
+  ],
+  "upscale": 4,
+  "blob": "ef29936b7b8d6f76f20b81427ebe2007"
+ },
+ "ferry_boat": {
+  "name": "Ferry boat",
+  "file": "sprites/ferry_boat.png",
+  "size": [
+   30,
+   11
+  ],
+  "upscale": 4,
+  "blob": "147d73f5bc5316676d41de070a59e2ae"
+ },
+ "ferryman": {
+  "name": "Ferryman, town square dock",
+  "file": "sprites/ferryman.png",
+  "size": [
+   18,
+   22
+  ],
+  "upscale": 4,
+  "blob": "a2848fcf685727e6271d6c65d53a985d"
+ },
+ "festival_food_stall": {
+  "name": "Festival food stall",
+  "file": "sprites/festival_food_stall.png",
+  "size": [
+   40,
+   37
+  ],
+  "upscale": 4,
+  "blob": "b5e951c98b7d2873f0d2056e155c9403"
+ },
+ "festival_lanterns": {
+  "name": "Festival lanterns",
+  "file": "sprites/festival_lanterns.png",
+  "size": [
+   30,
+   39
+  ],
+  "upscale": 4,
+  "blob": "86c285076dc364a284286b5207e67ecb"
+ },
+ "festival_stallholder": {
+  "name": "Festival stallholder",
+  "file": "sprites/festival_stallholder.png",
+  "size": [
+   24,
+   22
+  ],
+  "upscale": 4,
+  "blob": "6f8257e92949111ce11a3fd1a3db7d7d"
+ },
+ "firework": {
+  "name": "Firework",
+  "file": "sprites/firework.png",
+  "size": [
+   41,
+   41
+  ],
+  "upscale": 4,
+  "blob": "912309685a2ce03167cad7104e262818"
+ },
+ "fishing_rod": {
+  "name": "Fishing rod sprite",
+  "file": "sprites/fishing_rod.png",
+  "size": [
+   24,
+   23
+  ],
+  "upscale": 4,
+  "blob": "ace5947474a0f22bda81db965c3151f7"
+ },
+ "florist": {
+  "name": "Florist, café street",
+  "file": "sprites/florist.png",
+  "size": [
+   20,
+   22
+  ],
+  "upscale": 4,
+  "blob": "53ae325cc4582f986e3a8391876f1142"
+ },
+ "florist_shop": {
+  "name": "Florist",
+  "file": "sprites/florist_shop.png",
+  "size": [
+   30,
+   26
+  ],
+  "upscale": 4,
+  "blob": "d34ee92d110ebc07c8855ef26dfea102"
+ },
+ "flower_holding_zombie": {
+  "name": "Flower-holding zombie",
+  "file": "sprites/flower_holding_zombie.png",
+  "size": [
+   22,
+   22
+  ],
+  "upscale": 4,
+  "blob": "732fdc03c67759a3b8909c2082e140da"
+ },
+ "fluffy_dog": {
+  "name": "Fluffy dog",
+  "file": "sprites/fluffy_dog.png",
+  "size": [
+   26,
+   21
+  ],
+  "upscale": 4,
+  "blob": "a79f786d4afc04ca9ce0cd9d6a0c4364"
+ },
+ "forest_floor": {
+  "name": "Forest floor",
+  "file": "sprites/forest_floor.png",
+  "size": [
+   32,
+   26
+  ],
+  "upscale": 4,
+  "blob": "73bf87e7b7914b04eafa12064485c4e0"
+ },
+ "forest_ranger": {
+  "name": "Forest ranger, the watch hut",
+  "file": "sprites/forest_ranger.png",
+  "size": [
+   21,
+   22
+  ],
+  "upscale": 4,
+  "blob": "c6b715d7664822d56a5a8fa67e54ca65"
+ },
+ "fountain": {
+  "name": "Fountain",
+  "file": "sprites/fountain.png",
+  "size": [
+   49,
+   42
+  ],
+  "upscale": 4,
+  "blob": "a0e580b73bee955e12ad2ec36b4b6049"
+ },
+ "fox_shrine": {
+  "name": "Fox shrine",
+  "file": "sprites/fox_shrine.png",
+  "size": [
+   82,
+   68
+  ],
+  "upscale": 4,
+  "blob": "51010dce4f47c1b2a63d273eb37f5856"
+ },
+ "fox_spirit": {
+  "name": "Fox spirit, shrine",
+  "file": "sprites/fox_spirit.png",
+  "size": [
+   18,
+   21
+  ],
+  "upscale": 4,
+  "blob": "92d0d614346cbcfc961a7bf33c211dda"
+ },
+ "fox_statue": {
+  "name": "Fox statue",
+  "file": "sprites/fox_statue.png",
+  "size": [
+   16,
+   23
+  ],
+  "upscale": 4,
+  "blob": "773f399f81118265e7c9e5b8a90b40b0"
+ },
+ "frog": {
+  "name": "Frog sprite",
+  "file": "sprites/frog.png",
+  "size": [
+   8,
+   7
+  ],
+  "upscale": 4,
+  "blob": "7b3e617eb7d96623ad27c054df413e19"
+ },
+ "garden_soil": {
+  "name": "Garden soil",
+  "file": "sprites/garden_soil.png",
+  "size": [
+   32,
+   26
+  ],
+  "upscale": 4,
+  "blob": "7845aed687b6e2ed2a69f9620e0b27a4"
+ },
+ "girl": {
+  "name": "Girl",
+  "file": "sprites/girl.png",
+  "size": [
+   18,
+   22
+  ],
+  "upscale": 4,
+  "blob": "beef306477bed8ee6df1aa56c6c62e8f"
+ },
+ "glasses_zombie": {
+  "name": "Glasses zombie",
+  "file": "sprites/glasses_zombie.png",
+  "size": [
+   18,
+   22
+  ],
+  "upscale": 4,
+  "blob": "eec050c49df14814a0dd2950702a2be8"
+ },
+ "grass": {
+  "name": "Grass",
+  "file": "sprites/grass.png",
+  "size": [
+   32,
+   26
+  ],
+  "upscale": 4,
+  "blob": "e5187f4db9a36235332cf0f0ee4abf3d"
+ },
+ "grocer": {
+  "name": "Grocer",
+  "file": "sprites/grocer.png",
+  "size": [
+   82,
+   68
+  ],
+  "upscale": 4,
+  "blob": "c6f59194727a40d7a7d4c21ffcc98df8"
+ },
+ "grocer_person": {
+  "name": "Grocer, town square",
+  "file": "sprites/grocer_person.png",
+  "size": [
+   18,
+   22
+  ],
+  "upscale": 4,
+  "blob": "32698320b6fa717465adc4aeb9c1c0c2"
+ },
+ "hardware_store": {
+  "name": "Hardware store",
+  "file": "sprites/hardware_store.png",
+  "size": [
+   82,
+   68
+  ],
+  "upscale": 4,
+  "blob": "f70d8a7c3a1645c3ce20a5f79911e433"
+ },
+ "hardware_store_owner": {
+  "name": "Hardware store owner, town square",
+  "file": "sprites/hardware_store_owner.png",
+  "size": [
+   19,
+   22
+  ],
+  "upscale": 4,
+  "blob": "732ae0dfaf4e383866b0404a0c882598"
+ },
+ "her_old_sewing_table": {
+  "name": "Her old sewing table",
+  "file": "sprites/her_old_sewing_table.png",
+  "size": [
+   42,
+   34
+  ],
+  "upscale": 4,
+  "blob": "2891484ca0ef43b0a1619dcc96506931"
+ },
+ "hero_back": {
+  "name": "Hero · back",
+  "file": "sprites/hero_back.png",
+  "size": [
+   18,
+   22
+  ],
+  "upscale": 4,
+  "blob": "52301271d135142da0d772bc76666ceb"
+ },
+ "hero_front": {
+  "name": "Hero · front",
+  "file": "sprites/hero_front.png",
+  "size": [
+   18,
+   22
+  ],
+  "upscale": 4,
+  "blob": "4a01e2e6809594f64812e66f758660c9"
+ },
+ "hero_side": {
+  "name": "Hero · side",
+  "file": "sprites/hero_side.png",
+  "size": [
+   18,
+   22
+  ],
+  "upscale": 4,
+  "blob": "8b23a55cb6d5f573eea085b3d1a6189b"
+ },
+ "high_wall": {
+  "name": "High wall",
+  "file": "sprites/high_wall.png",
+  "size": [
+   38,
+   42
+  ],
+  "upscale": 4,
+  "blob": "cc77e9c961053464893f83707548efd9"
+ },
+ "hiker": {
+  "name": "Hiker, mountain forest",
+  "file": "sprites/hiker.png",
+  "size": [
+   20,
+   21
+  ],
+  "upscale": 4,
+  "blob": "be19f2c20f4997cd6ae72d7fc54523e4"
+ },
+ "honesty_vegetable_stall": {
+  "name": "Honesty vegetable stall sprite",
+  "file": "sprites/honesty_vegetable_stall.png",
+  "size": [
+   30,
+   26
+  ],
+  "upscale": 4,
+  "blob": "d6f4880f140016bc2ba47c70be3b5c93"
+ },
+ "jizo_statue": {
+  "name": "Jizō statue sprite",
+  "file": "sprites/jizo_statue.png",
+  "size": [
+   12,
+   15
+  ],
+  "upscale": 4,
+  "blob": "ff386c2964da3e644ff211720c2a8fa6"
+ },
+ "karaoke_stage": {
+  "name": "Karaoke stage",
+  "file": "sprites/karaoke_stage.png",
+  "size": [
+   64,
+   41
+  ],
+  "upscale": 4,
+  "blob": "c6555793465ca540012a0bf5f99d9bf6"
+ },
+ "key": {
+  "name": "Key",
+  "file": "sprites/key.png",
+  "size": [
+   13,
+   7
+  ],
+  "upscale": 4,
+  "blob": "a46a1e2e0eeef4b231a0d2d328769580"
+ },
+ "landlord": {
+  "name": "Landlord",
+  "file": "sprites/landlord.png",
+  "size": [
+   18,
+   24
+  ],
+  "upscale": 4,
+  "blob": "f01548abc10a3c59e445182f77974d9d"
+ },
+ "landlord_s_house": {
+  "name": "Landlord's house",
+  "file": "sprites/landlord_s_house.png",
+  "size": [
+   90,
+   72
+  ],
+  "upscale": 4,
+  "blob": "426324e1715006dfdfcdbbe65d97e238"
+ },
+ "level_crossing_gate": {
+  "name": "Level crossing gate sprite",
+  "file": "sprites/level_crossing_gate.png",
+  "size": [
+   42,
+   45
+  ],
+  "upscale": 4,
+  "blob": "d4aa058c0de100e04398b4f6e266e3bd"
+ },
+ "local_train": {
+  "name": "Local train sprite",
+  "file": "sprites/local_train.png",
+  "size": [
+   74,
+   56
+  ],
+  "upscale": 4,
+  "blob": "2428b68c280f8206534d6144efcd2e35"
+ },
+ "mayor": {
+  "name": "Mayor, town square",
+  "file": "sprites/mayor.png",
+  "size": [
+   20,
+   27
+  ],
+  "upscale": 4,
+  "blob": "556f72fffa398f2167c2e0fe7ee308d3"
+ },
+ "mini_truck": {
+  "name": "Mini truck sprite",
+  "file": "sprites/mini_truck.png",
+  "size": [
+   28,
+   12
+  ],
+  "upscale": 4,
+  "blob": "cd2408e2143c28f6e09b389243fb3058"
+ },
+ "mushrooms": {
+  "name": "Mushrooms",
+  "file": "sprites/mushrooms.png",
+  "size": [
+   15,
+   9
+  ],
+  "upscale": 4,
+  "blob": "f457b0a80ab8c63614f17a5d6682468e"
+ },
+ "night_guard": {
+  "name": "Night guard, old school's back gate",
+  "file": "sprites/night_guard.png",
+  "size": [
+   18,
+   22
+  ],
+  "upscale": 4,
+  "blob": "e4534df70f0afc47d044dd591d6fff6b"
+ },
+ "noticeboard": {
+  "name": "Noticeboard",
+  "file": "sprites/noticeboard.png",
+  "size": [
+   34,
+   40
+  ],
+  "upscale": 4,
+  "blob": "3da75406932ff23a442aec43d5cef236"
+ },
+ "old_school": {
+  "name": "Old school",
+  "file": "sprites/old_school.png",
+  "size": [
+   154,
+   120
+  ],
+  "upscale": 4,
+  "blob": "1238fe0aa841762a70ca997912afeb58"
+ },
+ "paper_lantern": {
+  "name": "Paper lantern",
+  "file": "sprites/paper_lantern.png",
+  "size": [
+   12,
+   15
+  ],
+  "upscale": 4,
+  "blob": "e72189484346a2fc472c211b90f3538a"
+ },
+ "persimmon": {
+  "name": "Persimmon",
+  "file": "sprites/persimmon.png",
+  "size": [
+   11,
+   10
+  ],
+  "upscale": 4,
+  "blob": "f686a02c8beb13e7b097566b313cf851"
+ },
+ "petal_covered_grass": {
+  "name": "Petal-covered grass",
+  "file": "sprites/petal_covered_grass.png",
+  "size": [
+   32,
+   26
+  ],
+  "upscale": 4,
+  "blob": "c9dea403a1ccebef230867e2a59d2d1f"
+ },
+ "plumber": {
+  "name": "Plumber, town square",
+  "file": "sprites/plumber.png",
+  "size": [
+   24,
+   22
+  ],
+  "upscale": 4,
+  "blob": "90f08c8dab126cbd1ffd6f6d977c0763"
+ },
+ "police_bicycle": {
+  "name": "Police bicycle",
+  "file": "sprites/police_bicycle.png",
+  "size": [
+   22,
+   10
+  ],
+  "upscale": 4,
+  "blob": "cbd46a299012c31b1b3aa487ef046a8c"
+ },
+ "police_box": {
+  "name": "Police box",
+  "file": "sprites/police_box.png",
+  "size": [
+   74,
+   59
+  ],
+  "upscale": 4,
+  "blob": "2caf0c1f4e79cf057e4ed7c1a4090dff"
+ },
+ "police_officer": {
+  "name": "Police officer, police box",
+  "file": "sprites/police_officer.png",
+  "size": [
+   18,
+   22
+  ],
+  "upscale": 4,
+  "blob": "c11d177c3abb4ffb927b38b62b4a6245"
+ },
+ "postbox": {
+  "name": "Postbox sprite",
+  "file": "sprites/postbox.png",
+  "size": [
+   12,
+   15
+  ],
+  "upscale": 4,
+  "blob": "1a6d7d3b2d18eb5980097350628b33d0"
+ },
+ "power_pole": {
+  "name": "Power pole sprite",
+  "file": "sprites/power_pole.png",
+  "size": [
+   20,
+   49
+  ],
+  "upscale": 4,
+  "blob": "0e9e8af60f0589443683518d1f1e16bd"
+ },
+ "railway_track": {
+  "name": "Railway track sprite",
+  "file": "sprites/railway_track.png",
+  "size": [
+   32,
+   26
+  ],
+  "upscale": 4,
+  "blob": "54f310e6e759a2676cf70f85f570bc7c"
+ },
+ "ramen_stall": {
+  "name": "Ramen stall",
+  "file": "sprites/ramen_stall.png",
+  "size": [
+   40,
+   37
+  ],
+  "upscale": 4,
+  "blob": "353483c730b126cc9ecd09b8cd31eba2"
+ },
+ "ramen_stall_owner": {
+  "name": "Ramen stall owner, café street",
+  "file": "sprites/ramen_stall_owner.png",
+  "size": [
+   20,
+   22
+  ],
+  "upscale": 4,
+  "blob": "91b9bb32b2e6c9086f166c8eb4aff101"
+ },
+ "red_bridge_railing": {
+  "name": "Red bridge railing sprite",
+  "file": "sprites/red_bridge_railing.png",
+  "size": [
+   50,
+   41
+  ],
+  "upscale": 4,
+  "blob": "57d5556a74dcc6d990fcd099e810d589"
+ },
+ "red_hat_zombie": {
+  "name": "Red-hat zombie",
+  "file": "sprites/red_hat_zombie.png",
+  "size": [
+   18,
+   22
+  ],
+  "upscale": 4,
+  "blob": "38adf3704d29e8f4c961461fcac8a333"
+ },
+ "reeds": {
+  "name": "Reeds sprite",
+  "file": "sprites/reeds.png",
+  "size": [
+   14,
+   9
+  ],
+  "upscale": 4,
+  "blob": "16ba5f8289913027c21484fb1dfb94d4"
+ },
+ "rice_paddy": {
+  "name": "Rice paddy sprite",
+  "file": "sprites/rice_paddy.png",
+  "size": [
+   32,
+   26
+  ],
+  "upscale": 4,
+  "blob": "ed6455a5a4a9d09c2951ba0d0d4cf750"
+ },
+ "rice_straw_bundle": {
+  "name": "Rice straw bundle sprite",
+  "file": "sprites/rice_straw_bundle.png",
+  "size": [
+   12,
+   11
+  ],
+  "upscale": 4,
+  "blob": "4a87b1572d575dc94c7c11065788fba7"
+ },
+ "river_water": {
+  "name": "River water",
+  "file": "sprites/river_water.png",
+  "size": [
+   32,
+   26
+  ],
+  "upscale": 4,
+  "blob": "3a0f69384b1b43468901f52f49e6a5de"
+ },
+ "rocks": {
+  "name": "Rocks",
+  "file": "sprites/rocks.png",
+  "size": [
+   35,
+   20
+  ],
+  "upscale": 4,
+  "blob": "a363e31e462dcbb85d64c99d098c0bb1"
+ },
+ "route_back_lane": {
+  "name": "Back lane",
+  "file": "maps/route_back_lane.png",
+  "size": [
+   2160,
+   1464
+  ]
+ },
+ "route_bamboo_path": {
+  "name": "Bamboo path",
+  "file": "maps/route_bamboo_path.png",
+  "size": [
+   2160,
+   1464
+  ]
+ },
+ "route_railway_crossing": {
+  "name": "Railway crossing",
+  "file": "maps/route_railway_crossing.png",
+  "size": [
+   2160,
+   1464
+  ]
+ },
+ "route_riverside_walk": {
+  "name": "Riverside walk",
+  "file": "maps/route_riverside_walk.png",
+  "size": [
+   2160,
+   1464
+  ]
+ },
+ "route_terrace_road": {
+  "name": "Terrace road",
+  "file": "maps/route_terrace_road.png",
+  "size": [
+   2160,
+   1464
+  ]
+ },
+ "scarecrow": {
+  "name": "Scarecrow sprite",
+  "file": "sprites/scarecrow.png",
+  "size": [
+   13,
+   16
+  ],
+  "upscale": 4,
+  "blob": "c25188b577804e76b9ce55bd4ffa6fac"
+ },
+ "scene_cafe": {
+  "name": "scene_cafe",
+  "file": "maps/scene_cafe.png"
+ },
+ "scene_forest": {
+  "name": "scene_forest",
+  "file": "maps/scene_forest.png"
+ },
+ "scene_home": {
+  "name": "scene_home",
+  "file": "maps/scene_home.png"
+ },
+ "scene_police": {
+  "name": "scene_police",
+  "file": "maps/scene_police.png"
+ },
+ "scene_shrine": {
+  "name": "scene_shrine",
+  "file": "maps/scene_shrine.png"
+ },
+ "scene_square": {
+  "name": "scene_square",
+  "file": "maps/scene_square.png"
+ },
+ "sleepy_guard": {
+  "name": "Sleepy guard",
+  "file": "sprites/sleepy_guard.png",
+  "size": [
+   18,
+   22
+  ],
+  "upscale": 4,
+  "blob": "3570827ad0a54f1f751a8fe4a8b89841"
+ },
+ "small_bar": {
+  "name": "Small bar",
+  "file": "sprites/small_bar.png",
+  "size": [
+   82,
+   68
+  ],
+  "upscale": 4,
+  "blob": "7e9ce7d1070aa1835c35b2e43007af8c"
+ },
+ "small_white_dog": {
+  "name": "Small white dog",
+  "file": "sprites/small_white_dog.png",
+  "size": [
+   20,
+   14
+  ],
+  "upscale": 4,
+  "blob": "33c27a77efa91ec6b4245780e30f58f4"
+ },
+ "sneaking_cat": {
+  "name": "Sneaking cat",
+  "file": "sprites/sneaking_cat.png",
+  "size": [
+   17,
+   9
+  ],
+  "upscale": 4,
+  "blob": "899c296165023577341e1162d530fe09"
+ },
+ "spotted_dog": {
+  "name": "Spotted dog",
+  "file": "sprites/spotted_dog.png",
+  "size": [
+   22,
+   14
+  ],
+  "upscale": 4,
+  "blob": "c4beffad94f703e5ee578d61aa534534"
+ },
+ "station_sign": {
+  "name": "Station sign sprite",
+  "file": "sprites/station_sign.png",
+  "size": [
+   16,
+   12
+  ],
+  "upscale": 4,
+  "blob": "2c16f06a1d7f8120fbe3923bb2203781"
+ },
+ "stepping_stone": {
+  "name": "Stepping stone sprite",
+  "file": "sprites/stepping_stone.png",
+  "size": [
+   15,
+   11
+  ],
+  "upscale": 4,
+  "blob": "9ec5f7a9302211b65c5d41df183381f6"
+ },
+ "stone": {
+  "name": "Stone",
+  "file": "sprites/stone.png",
+  "size": [
+   22,
+   14
+  ],
+  "upscale": 4,
+  "blob": "34cc871dff5e0950cb910212a27c0948"
+ },
+ "stone_lantern": {
+  "name": "Stone lantern",
+  "file": "sprites/stone_lantern.png",
+  "size": [
+   16,
+   23
+  ],
+  "upscale": 4,
+  "blob": "aad8ae79bc335177d729720b85b23af3"
+ },
+ "stone_paving": {
+  "name": "Stone paving",
+  "file": "sprites/stone_paving.png",
+  "size": [
+   32,
+   26
+  ],
+  "upscale": 4,
+  "blob": "ad2de58c957c1abeb29d3e3ec4e72cfc"
+ },
+ "stone_steps": {
+  "name": "Stone steps",
+  "file": "sprites/stone_steps.png",
+  "size": [
+   32,
+   26
+  ],
+  "upscale": 4,
+  "blob": "28df4f25d7c8153ea230bfcdfb7b2354"
+ },
+ "street": {
+  "name": "Street",
+  "file": "sprites/street.png",
+  "size": [
+   32,
+   26
+  ],
+  "upscale": 4,
+  "blob": "a5e3f9f0aa2582dea9562fb583450729"
+ },
+ "street_lamp": {
+  "name": "Street lamp",
+  "file": "sprites/street_lamp.png",
+  "size": [
+   10,
+   20
+  ],
+  "upscale": 4,
+  "blob": "6890da9ffe04606c0e32906931f8a6b0"
+ },
+ "student": {
+  "name": "Student, café street",
+  "file": "sprites/student.png",
+  "size": [
+   20,
+   22
+  ],
+  "upscale": 4,
+  "blob": "ae36e6bea9a8e7e12fc15b67d275e48b"
+ },
+ "tanuki_statue": {
+  "name": "Tanuki statue sprite",
+  "file": "sprites/tanuki_statue.png",
+  "size": [
+   12,
+   14
+  ],
+  "upscale": 4,
+  "blob": "3d4f187632c13d9407dfe50b94f3a018"
+ },
+ "tea_field": {
+  "name": "Tea field sprite",
+  "file": "sprites/tea_field.png",
+  "size": [
+   32,
+   26
+  ],
+  "upscale": 4,
+  "blob": "fa27dec7405f964bb727a703328f8891"
+ },
+ "the_fluffiest_futon_in_town": {
+  "name": "The fluffiest futon in town",
+  "file": "sprites/the_fluffiest_futon_in_town.png",
+  "size": [
+   64,
+   38
+  ],
+  "upscale": 4,
+  "blob": "e513f287d9f628ced7fd68c44af9958c"
+ },
+ "the_old_hut": {
+  "name": "The old hut",
+  "file": "sprites/the_old_hut.png",
+  "size": [
+   84,
+   69
+  ],
+  "upscale": 4,
+  "blob": "ef94a0e25dfa7fe84567fedbf7483e6d"
+ },
+ "tool_shed": {
+  "name": "Tool shed",
+  "file": "sprites/tool_shed.png",
+  "size": [
+   52,
+   46
+  ],
+  "upscale": 4,
+  "blob": "567530da8f7fa2e08d7739d639c6478a"
+ },
+ "torii_gate": {
+  "name": "Torii gate",
+  "file": "sprites/torii_gate.png",
+  "size": [
+   61,
+   64
+  ],
+  "upscale": 4,
+  "blob": "f67cd7ea04223fe1d8af0b5355c0043d"
+ },
+ "trail_signpost": {
+  "name": "Trail signpost",
+  "file": "sprites/trail_signpost.png",
+  "size": [
+   14,
+   14
+  ],
+  "upscale": 4,
+  "blob": "8a79821819e556d3031e68083d235556"
+ },
+ "tree_stump": {
+  "name": "Tree stump",
+  "file": "sprites/tree_stump.png",
+  "size": [
+   12,
+   10
+  ],
+  "upscale": 4,
+  "blob": "f469e3a0d45fd7cf43e50e4906de0e95"
+ },
+ "vegetable_crate": {
+  "name": "Vegetable crate",
+  "file": "sprites/vegetable_crate.png",
+  "size": [
+   16,
+   9
+  ],
+  "upscale": 4,
+  "blob": "7b421455214c9efd1780384d1e9db6d5"
+ },
+ "vegetable_patch": {
+  "name": "Vegetable patch",
+  "file": "sprites/vegetable_patch.png",
+  "size": [
+   32,
+   26
+  ],
+  "upscale": 4,
+  "blob": "06867fd230c7e11b9a14066723bc53ba"
+ },
+ "vending_machine": {
+  "name": "Vending machine",
+  "file": "sprites/vending_machine.png",
+  "size": [
+   15,
+   18
+  ],
+  "upscale": 4,
+  "blob": "f05b93ee8930ff47f5de6889e79e1ac7"
+ },
+ "washing_line": {
+  "name": "Washing line",
+  "file": "sprites/washing_line.png",
+  "size": [
+   40,
+   44
+  ],
+  "upscale": 4,
+  "blob": "b37b44df9bdd8e7af88bbd8582d8c7aa"
+ },
+ "watch_hut": {
+  "name": "Watch hut",
+  "file": "sprites/watch_hut.png",
+  "size": [
+   52,
+   52
+  ],
+  "upscale": 4,
+  "blob": "9ca255752b177d9fad48467cddf8dd4a"
+ },
+ "waterfall_cliff": {
+  "name": "Waterfall cliff",
+  "file": "sprites/waterfall_cliff.png",
+  "size": [
+   122,
+   107
+  ],
+  "upscale": 4,
+  "blob": "0f2b6246a238ac0242c4c1554344c0ec"
+ },
+ "wayside_shrine": {
+  "name": "Wayside shrine sprite",
+  "file": "sprites/wayside_shrine.png",
+  "size": [
+   16,
+   15
+  ],
+  "upscale": 4,
+  "blob": "91c9dfede4afb4527699727a9cd6ff8e"
+ },
+ "well": {
+  "name": "Well sprite",
+  "file": "sprites/well.png",
+  "size": [
+   28,
+   37
+  ],
+  "upscale": 4,
+  "blob": "f15841b14f2e151fba316621a0645bbb"
+ },
+ "willow": {
+  "name": "Willow sprite",
+  "file": "sprites/willow.png",
+  "size": [
+   49,
+   67
+  ],
+  "upscale": 4,
+  "blob": "bf3593f21303a047281f4937ce6487f7"
+ },
+ "wish_board": {
+  "name": "Wish board",
+  "file": "sprites/wish_board.png",
+  "size": [
+   34,
+   40
+  ],
+  "upscale": 4,
+  "blob": "d6d0692c374b7f8fa790331b9118557b"
+ },
+ "young_cedar": {
+  "name": "Young cedar",
+  "file": "sprites/young_cedar.png",
+  "size": [
+   29,
+   45
+  ],
+  "upscale": 4,
+  "blob": "861c7da1516b4ba34caff3a2fcd37da8"
+ },
+ "young_cherry_tree": {
+  "name": "Young cherry tree",
+  "file": "sprites/young_cherry_tree.png",
+  "size": [
+   40,
+   54
+  ],
+  "upscale": 4,
+  "blob": "419a27685fd877caca93dd43f763f643"
+ },
+ "your_arms": {
+  "name": "Your arms, the old hut",
+  "file": "sprites/your_arms.png",
+  "size": [
+   17,
+   12
+  ],
+  "upscale": 4,
+  "blob": "4e197af74e2d6c701d6ddece295075d5"
+ },
+ "your_workshop": {
+  "name": "Your workshop",
+  "file": "sprites/your_workshop.png",
+  "size": [
+   92,
+   72
+  ],
+  "upscale": 4,
+  "blob": "1642d033ad62e7b28780ad621155351b"
+ }
+}

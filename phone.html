@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#dcebc4">
+<title>Un-Handy Man · Controller</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#3b3a36; --paper:#fff8e7; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: #dcebc4; color: var(--ink); font-family: 'M PLUS Rounded 1c', system-ui, sans-serif; overscroll-behavior: none; -webkit-user-select: none; user-select: none; }
+  main { max-width: 480px; margin: 0 auto; min-height: 100%; padding: 16px 18px 24px; display: flex; flex-direction: column; gap: 12px; }
+  [hidden] { display: none !important; }
+  .card { background: #fff; border: 3px solid var(--ink); border-radius: 22px; padding: 12px 14px; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .sm { border: 2px solid var(--ink); border-radius: 999px; background: #fff; padding: 8px 14px; font: inherit; font-size: 14px; font-weight: 700; color: var(--ink); min-height: 44px; }
+  .top { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #b5462e; margin-right: 6px; }
+  .dot.on { background: #1d9e75; }
+  select { font: inherit; font-size: 13px; border: 2px solid var(--ink); border-radius: 999px; padding: 4px 8px; background: #fff; color: var(--ink); }
+  #lastText { margin: 6px 0 10px; font-size: 22px; font-weight: 700; line-height: 1.35; }
+  #you { font-size: 15px; padding: 8px 12px; border-radius: 14px; border: 2px dashed var(--ink); background: var(--paper); min-height: 44px; }
+  #you.ok { background: #c6e0a8; border-style: solid; }
+  #you.no { background: #e9e2d3; }
+  .controls { margin-top: auto; display: flex; justify-content: space-between; align-items: center; padding-top: 8px; }
+  #stick { width: 140px; height: 140px; border-radius: 50%; background: #c6e0a8; border: 3px solid var(--ink); position: relative; touch-action: none; }
+  #knob { position: absolute; left: 40px; top: 40px; width: 54px; height: 54px; border-radius: 50%; background: var(--paper); border: 3px solid var(--ink); }
+  #ptt { width: 170px; height: 170px; border-radius: 50%; border: 4px solid var(--ink); background: #ffe0cc; color: var(--ink); font: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; touch-action: none; }
+  #ptt.live { background: #d9533c; color: #fff; }
+  #ptt.busy { background: #fff1c9; }
+  #pttLabel { font-size: 22px; font-weight: 800; }
+  #pttSub { font-size: 12px; }
+  #status { font-size: 13px; min-height: 18px; }
+  details summary { font-size: 13px; cursor: pointer; }
+  details form { margin-top: 8px; display: flex; gap: 8px; }
+  details input { flex: 1; font: inherit; font-size: 16px; padding: 8px 10px; border: 2px solid var(--ink); border-radius: 12px; -webkit-user-select: text; user-select: text; }
+  #joinView { justify-content: center; align-items: center; text-align: center; background: #ffe0cc; }
+  #joinView h1 { margin: 0; font-size: 44px; font-weight: 800; }
+  #codeInput { font: inherit; font-size: 32px; letter-spacing: 0.2em; text-transform: uppercase; text-align: center; width: 200px; padding: 10px; border: 3px solid var(--ink); border-radius: 18px; -webkit-user-select: text; user-select: text; }
+  .tabs { display: flex; gap: 6px; }
+  .tabs button { flex: 1; min-height: 44px; border: 2px solid var(--ink); border-radius: 999px; background: #fff; font: inherit; font-weight: 800; color: var(--ink); }
+  .tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper); }
+  #wallet { font-size: 14px; font-weight: 700; }
+  .job { background: #fff; border: 3px solid var(--ink); border-radius: 18px; padding: 10px 12px; display: flex; gap: 10px; align-items: center; }
+  .job.taken { background: #fff1c9; }
+  .job.done { background: #e4f0d2; }
+  .job .info { flex: 1; }
+  .job .t { font-size: 18px; font-weight: 800; }
+  .job .m { font-size: 13px; color: #4f4c45; }
+  .job .now { font-size: 12px; font-weight: 800; color: #b5462e; }
+  .stars { color: #b8860b; font-size: 18px; letter-spacing: 1px; }
+  .big { background: var(--ink); color: var(--paper); border: none; border-radius: 999px; padding: 16px 28px; font: inherit; font-size: 20px; font-weight: 800; }
+</style>
+</head>
+<body>
+
+<main id="joinView" hidden>
+  <p style="margin:0;font-size:14px;font-weight:700">UN-HANDY MAN</p>
+  <h1>手ぶら町</h1>
+  <p style="margin:0">Type the code shown on the TV.</p>
+  <input id="codeInput" maxlength="4" autocomplete="off" aria-label="Room code">
+  <button id="joinBtn" class="big" type="button">はじめる · Join</button>
+</main>
+
+<main id="padView" hidden>
+  <div class="top">
+    <span><span id="dot" class="dot"></span><span id="conn">Connecting…</span></span>
+    <label>Voice
+      <select id="engine">
+        <option value="phone">Phone speech</option>
+        <option value="vosk">Vosk (offline)</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button id="tabPad" role="tab" aria-selected="true" type="button">コントローラー</button>
+    <button id="tabJobs" role="tab" aria-selected="false" type="button">しごと</button>
+  </div>
+
+  <section id="jobsView" hidden>
+    <div class="row" style="justify-content:space-between;margin-bottom:8px"><strong id="jobsDay">しごと</strong><span id="wallet"></span></div>
+    <div id="jobList" style="display:flex;flex-direction:column;gap:8px"><p>Waiting for the TV…</p></div>
+    <p style="font-size:13px;color:#4f4c45">Take up to 3 jobs. The board changes every day, so some jobs will be missed.</p>
+  </section>
+
+  <div id="padBits" style="display:contents">
+  <section class="card" aria-live="polite">
+    <div style="font-size:13px;color:#4f4c45">Last heard · <span id="lastWho">—</span></div>
+    <div id="lastText">…</div>
+    <div class="row">
+      <button id="again" class="sm" type="button">もう一回 · replay</button>
+      <button id="slow" class="sm" type="button">ゆっくり · slow</button>
+    </div>
+  </section>
+
+  <div id="you" aria-live="polite">Hold the button and speak</div>
+  <div class="row" style="font-size:14px"><strong>いぬ</strong><span id="dogStatus">free</span></div>
+  <div id="status" role="status"></div>
+
+  <details>
+    <summary>Type instead (for testing)</summary>
+    <form id="typeForm" autocomplete="off">
+      <input id="typeInput" type="text" placeholder="いぬ、バケツを持ってきて" aria-label="Type a command">
+      <button class="sm" type="submit">送る</button>
+    </form>
+  </details>
+
+  </div>
+
+  <div class="controls">
+    <div id="stick" role="img" aria-label="Walking joystick"><div id="knob"></div></div>
+    <button id="ptt" type="button" aria-label="Hold to talk">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      <span id="pttLabel">話す</span><span id="pttSub">Hold to talk</span>
+    </button>
+  </div>
+</main>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="js/net.js"></script>
+<script src="js/speech.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const params = new URLSearchParams(location.search);
+  let room = (params.get('room') || '').toUpperCase();
+  let link = null, grammar = [];
+
+  const store = {
+    get(k, d) { try { return localStorage.getItem('unhandyman.' + k) || d; } catch (_) { return d; } },
+    set(k, v) { try { localStorage.setItem('unhandyman.' + k, v); } catch (_) {} }
+  };
+
+  function show(view) { $('joinView').hidden = view !== 'join'; $('padView').hidden = view !== 'pad'; }
+  function status(t) { $('status').textContent = t || ''; }
+
+  function connect() {
+    show('pad');
+    $('conn').textContent = 'Connecting to ' + room + '…';
+    link = Net.join(room, {
+      onOpen() { $('dot').classList.add('on'); $('conn').textContent = 'Connected · ' + room; },
+      onClose() { $('dot').classList.remove('on'); $('conn').textContent = 'Disconnected. Reload to rejoin.'; },
+      onError(e) { $('conn').textContent = String(e); },
+      onMsg(d) {
+        if (!d || typeof d !== 'object') return;
+        if (d.t === 'hello') grammar = Array.isArray(d.grammar) ? d.grammar : [];
+        if (d.t === 'line') { $('lastWho').textContent = d.who; $('lastText').textContent = d.text; }
+        if (d.t === 'heard') {
+          $('you').textContent = d.text ? '聞こえた: 「' + d.text + '」' : '';
+          $('you').className = d.ok ? 'ok' : 'no';
+        }
+        if (d.t === 'dog') $('dogStatus').textContent = d.busy ? 'busy…' : 'free';
+        if (d.t === 'board') renderJobs(d);
+        if (d.t === 'buzz' && navigator.vibrate) navigator.vibrate([120, 80, 120, 80, 120]);
+      }
+    });
+  }
+
+  if (room) connect(); else show('join');
+
+  // Jobs app
+  function setTab(jobs) {
+    $('tabPad').setAttribute('aria-selected', String(!jobs)); $('tabJobs').setAttribute('aria-selected', String(jobs));
+    $('jobsView').hidden = !jobs; $('padBits').style.display = jobs ? 'none' : 'contents';
+  }
+  $('tabPad').addEventListener('click', () => setTab(false));
+  $('tabJobs').addEventListener('click', () => setTab(true));
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function renderJobs(b) {
+    $('jobsDay').textContent = b.day + '日目のしごと';
+    $('wallet').textContent = '¥' + b.yen + ' · おやつ ' + b.treats;
+    const taken = b.jobs.filter((j) => j.state === 'taken').length;
+    $('jobList').innerHTML = b.jobs.map((j) => {
+      const reward = '¥' + j.reward.yen + (j.reward.treats ? ' · おやつ ' + j.reward.treats : '');
+      const act = j.state === 'open' ? '<button class="sm" data-act="take" data-id="' + esc(j.id) + '"' + (taken >= 3 ? ' disabled' : '') + '>受ける</button>'
+        : j.state === 'taken' ? '<button class="sm" data-act="drop" data-id="' + esc(j.id) + '">やめる</button>'
+        : '<span class="stars">' + '★'.repeat(j.stars) + '☆'.repeat(3 - j.stars) + '</span>';
+      return '<div class="job ' + j.state + '"><div class="info"><div class="t">' + esc(j.title) + '</div><div class="m">' + esc(j.en) + ' · ' + esc(j.client) + '</div>' +
+        '<div class="m">' + esc(j.goal) + ' · ' + reward + '</div>' + (b.cur === j.id ? '<div class="now">いま · in progress</div>' : '') + '</div>' + act + '</div>';
+    }).join('');
+  }
+  window.__phone = { renderJobs, setTab };
+  $('jobList').addEventListener('click', (e) => {
+    const t = e.target.closest('button[data-act]'); if (!t) return;
+    if (navigator.vibrate) navigator.vibrate(10);
+    link && link.send({ t: 'job', act: t.dataset.act, id: t.dataset.id });
+  });
+  $('joinBtn').addEventListener('click', () => {
+    const v = $('codeInput').value.trim().toUpperCase();
+    if (v.length !== 4) { $('codeInput').focus(); return; }
+    room = v; history.replaceState(null, '', '?room=' + v); connect();
+  });
+
+  // voice engine switch
+  $('engine').value = store.get('engine', 'phone');
+  $('engine').addEventListener('change', () => {
+    store.set('engine', $('engine').value);
+    if ($('engine').value === 'vosk') Speech.engines.vosk.prepare(status).catch((e) => status(e.message));
+  });
+  const engine = () => Speech.engines[$('engine').value];
+
+  // push to talk
+  const ptt = $('ptt');
+  let talking = false, starting = null;
+  function setPtt(mode) {
+    ptt.className = mode === 'live' ? 'live' : mode === 'busy' ? 'busy' : '';
+    $('pttLabel').textContent = mode === 'live' ? '聞いてる…' : mode === 'busy' ? '…' : '話す';
+    $('pttSub').textContent = mode === 'live' ? 'Listening' : mode === 'busy' ? 'Sending' : 'Hold to talk';
+  }
+  ptt.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (talking) return;
+    try { ptt.setPointerCapture(e.pointerId); } catch (_) {}
+    talking = true; setPtt('live'); status('');
+    if (navigator.vibrate) navigator.vibrate(15);
+    starting = engine().start({ grammar, onStatus: status, onInterim: (t) => { $('you').textContent = t; $('you').className = ''; } })
+      .catch((err) => { status(err.message); talking = false; setPtt(''); return 'failed'; });
+  });
+  async function release() {
+    if (!talking) return;
+    talking = false; setPtt('busy');
+    try {
+      if ((await starting) === 'failed') { setPtt(''); return; }
+      const alts = await engine().stop();
+      if (alts.length) link && link.send({ t: 'speech', alts, source: engine().name });
+      else { $('you').textContent = '聞こえなかった · didn\'t catch that, try again'; $('you').className = 'no'; if (engine().lastError) status(engine().lastError); }
+    } catch (_) { /* status already shown */ }
+    setPtt('');
+  }
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((ev) => ptt.addEventListener(ev, release));
+  ptt.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  // replay buttons and typing
+  $('again').addEventListener('click', () => link && link.send({ t: 'replay', slow: false }));
+  $('slow').addEventListener('click', () => link && link.send({ t: 'replay', slow: true }));
+  $('typeForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = $('typeInput').value.trim();
+    if (!v) return;
+    link && link.send({ t: 'speech', alts: [v], source: 'typed' });
+    $('typeInput').value = '';
+  });
+
+  // joystick
+  const stick = $('stick'), knob = $('knob');
+  let sid = null, lastSend = 0;
+  function sendMove(x, y, force) {
+    const now = Date.now();
+    if (!force && now - lastSend < 50) return;
+    lastSend = now; link && link.send({ t: 'move', x: +x.toFixed(2), y: +y.toFixed(2) });
+  }
+  function moveStick(e) {
+    const r = stick.getBoundingClientRect();
+    let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+    const max = r.width / 2 - 20, d = Math.hypot(dx, dy);
+    if (d > max) { dx *= max / d; dy *= max / d; }
+    knob.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+    sendMove(dx / max, dy / max);
+  }
+  stick.addEventListener('pointerdown', (e) => { sid = e.pointerId; try { stick.setPointerCapture(sid); } catch (_) {} moveStick(e); });
+  stick.addEventListener('pointermove', (e) => { if (e.pointerId === sid) moveStick(e); });
+  function endStick(e) { if (e.pointerId !== sid) return; sid = null; knob.style.transform = ''; sendMove(0, 0, true); }
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((ev) => stick.addEventListener(ev, endStick));
+})();
+</script>
+</body>
+</html>

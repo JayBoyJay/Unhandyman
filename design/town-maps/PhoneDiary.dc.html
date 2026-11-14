@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Phone diary scraps</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3B3A36}a:hover{color:#1F1E1B}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;font-size:12px;color:#4F4C45}
+.tab b{font-size:17px;font-weight:800;color:#3B3A36}
+.on{background:#FFE0CC}
+.ch{padding-bottom:2px;border-bottom:4px solid}
+rt{font-size:11px}
+.row{display:flex;justify-content:space-between;align-items:center;background:#FFFFFF;border:2px solid #3B3A36;border-radius:16px;padding:10px 14px;font-size:15px;min-height:44px;box-sizing:border-box}
+.sm{border:2px solid #3B3A36;border-radius:999px;background:#FFFFFF;padding:8px 14px;font-family:inherit;font-size:14px;font-weight:700;color:#3B3A36;min-height:44px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #F3E9D6; font-family: 'M PLUS Rounded 1c', sans-serif; color: #3B3A36">
+
+<div style="padding: 20px 20px 0; display: flex; justify-content: space-between; align-items: center">
+<div><p style="margin: 0; font-size: 22px; font-weight: 800">日記</p><p style="margin: 0; font-size: 13px">Diary scraps · 3 of 40 found</p></div>
+<div style="border: 2px solid #3B3A36; border-radius: 999px; padding: 6px 12px; font-size: 14px; font-weight: 700; background: #FFFFFF">おやつ × {{ treats }}</div>
+</div>
+
+<div style="margin: 14px 20px 0; display: flex; border: 3px solid #3B3A36; border-radius: 999px; overflow: hidden; background: #FFFFFF">
+<a href="PhoneDiary.dc.html" style="flex: 1; text-align: center; padding: 10px; font-size: 15px; font-weight: 800; text-decoration: none; background: #3B3A36; color: #FFF8E7">かけら · Scraps</a>
+<a href="PhoneDictionary.dc.html" style="flex: 1; text-align: center; padding: 10px; font-size: 15px; font-weight: 800; text-decoration: none">言葉 · Words</a>
+</div>
+
+<button type="button" onClick="{{ next }}" style="margin: 14px 20px 0; width: 350px; text-align: left; font-family: inherit; color: #3B3A36; background: #FFFDF6; border: 3px solid #3B3A36; border-radius: 6px 22px 8px 20px; padding: 18px 16px; cursor: pointer; transform: rotate(-1deg)">
+<span style="display: block; font-size: 13px; color: #4F4C45">Scrap #3 · {{ stateLabel }}</span>
+<span style="display: block; font-size: 23px; line-height: 2.5; margin-top: 4px"><span class="ch" style="border-color: #D85A30"><ruby>昨日<rt style="color: {{ rtColor }}">きのう</rt></ruby>の<ruby>夜<rt style="color: {{ rtColor }}">よる</rt></ruby></span>、<span class="ch" style="border-color: #1D9E75"><ruby>赤<rt style="color: {{ rtColor }}">あか</rt></ruby>い<ruby>帽子<rt style="color: {{ rtColor }}">ぼうし</rt></ruby>の</span><span class="ch" style="border-color: #7F77DD"><ruby>男<rt style="color: {{ rtColor }}">おとこ</rt></ruby></span><span class="ch" style="border-color: #D4537E">に<ruby>触<rt style="color: {{ rtColor }}">さわ</rt></ruby>った</span>。</span>
+<sc-if value="{{ showEn }}" hint-placeholder-val="{{ false }}">
+<span style="display: block; font-size: 16px; margin-top: 10px" lang="en"><span class="ch" style="border-color: #D85A30">Last night</span>, <span style="color: #8A8578">(I)</span> <span class="ch" style="border-color: #D4537E">touched</span> <span class="ch" style="border-color: #7F77DD">the man</span> <span class="ch" style="border-color: #1D9E75">in the red hat</span>.</span>
+</sc-if>
+<span style="display: block; font-size: 12px; color: #4F4C45; margin-top: 10px" lang="en">{{ hint }}</span>
+</button>
+
+<div style="margin: 14px 20px 0; display: flex; gap: 8px">
+<button class="sm" type="button">聞く · listen</button>
+<button class="sm" type="button">ゆっくり · slow</button>
+</div>
+
+<p style="margin: 20px 20px 8px; font-size: 14px; font-weight: 700" lang="en">Collected</p>
+<div style="margin: 0 20px; display: flex; flex-direction: column; gap: 8px">
+<div class="row"><span>#1 冷たいドアに…</span><span style="font-size: 12px" lang="en">backyard</span></div>
+<div class="row"><span>#2 だれかを待って…</span><span style="font-size: 12px" lang="en">square</span></div>
+<div class="row" style="background: #E9E2D3; border-style: dashed"><span lang="en">#4 · the spotted dog can smell one nearby</span></div>
+</div>
+
+<a href="PhoneHome.dc.html" style="position: absolute; left: 0; bottom: 0; width: 390px; height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 12px; color: #4F4C45" lang="en"><span style="width: 120px; height: 6px; border-radius: 3px; background: #3B3A36"></span>Home</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { level: 0, treats: 5, free: 3 };
+}
+renderVals() {
+const l = this.state.level;
+const labels = ['Japanese only', 'With furigana', 'With English'];
+const hints = ['Tap for furigana', this.state.free > 0 ? 'Tap for English · ' + this.state.free + ' free today' : 'Tap for English · costs 1 dog treat', 'Tap to hide'];
+return {
+treats: this.state.treats,
+stateLabel: labels[l],
+hint: hints[l],
+rtColor: l > 0 ? '#4F4C45' : 'transparent',
+showEn: l === 2,
+next: () => {
+const n = (l + 1) % 3;
+const reveal = n === 2;
+const useFree = reveal && this.state.free > 0 ? 1 : 0;
+const spend = reveal && !useFree && this.state.treats > 0 ? 1 : 0;
+this.setState({ level: n, free: this.state.free - useFree, treats: this.state.treats - spend });
+}
+};
+}
+}
+</script>
+</body>
+</html>

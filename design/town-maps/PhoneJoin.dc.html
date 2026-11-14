@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Phone join screen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3B3A36}a:hover{color:#1F1E1B}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #FFE0CC; font-family: 'M PLUS Rounded 1c', sans-serif; color: #3B3A36; box-sizing: border-box; padding: 56px 28px 32px; display: flex; flex-direction: column; align-items: center; gap: 20px">
+<p style="margin: 0; font-size: 15px; font-weight: 700; letter-spacing: 1px">UN-HANDY MAN</p>
+<h1 style="margin: 0; font-size: 44px; font-weight: 800; line-height: 1.1">手ぶら町</h1>
+<p style="margin: 0; font-size: 16px; text-align: center">Scan the QR code on the TV to use this phone as your controller.</p>
+<div style="width: 240px; height: 240px; border: 4px solid #3B3A36; border-radius: 28px; background: #FFF8E7; display: flex; align-items: center; justify-content: center; position: relative; margin-top: 8px">
+<div style="width: 150px; height: 150px; border: 3px dashed #6B5B45; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 15px; text-align: center">Point at the TV</div>
+</div>
+<div style="width: 100%; background: #FFFFFF; border: 3px solid #3B3A36; border-radius: 20px; padding: 14px 16px; box-sizing: border-box; display: flex; gap: 12px; align-items: center">
+<div style="width: 40px; height: 40px; flex: none; border-radius: 50%; background: #C6E0A8; border: 2px solid #3B3A36; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B3A36" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></div>
+<p style="margin: 0; font-size: 14px">The game needs your microphone. You only talk while holding the button.</p>
+</div>
+<a href="PhoneControl.dc.html" style="margin-top: auto; width: 100%; box-sizing: border-box; text-align: center; text-decoration: none; background: #3B3A36; color: #FFF8E7; border-radius: 999px; padding: 18px; font-size: 20px; font-weight: 800">はじめる · Join game</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

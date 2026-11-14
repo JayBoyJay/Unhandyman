@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Phone app</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3B3A36}a:hover{color:#1F1E1B}
+.row{display:flex;gap:12px;align-items:center;background:#FFFFFF;border:2px solid #3B3A36;border-radius:18px;padding:10px 12px}
+.av{width:44px;height:44px;flex:none;border-radius:50%;border:2px solid #3B3A36;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800}
+.play{width:44px;height:44px;flex:none;border-radius:50%;border:2px solid #3B3A36;background:#FFE0CC;display:flex;align-items:center;justify-content:center;padding:0}
+.call{width:44px;height:44px;flex:none;border-radius:50%;border:2px solid #3B3A36;background:#9FE1CB;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.h{margin:18px 20px 8px;font-size:14px;font-weight:700}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #E8EDF5; font-family: 'M PLUS Rounded 1c', sans-serif; color: #3B3A36">
+
+<div style="padding: 20px 20px 0">
+<p style="margin: 0; font-size: 22px; font-weight: 800">電話</p>
+<p style="margin: 0; font-size: 13px" lang="en">Relisten to any past call. Calls are audio only.</p>
+</div>
+
+<p class="h">留守電 · <span lang="en">voicemail</span></p>
+<div style="margin: 0 20px" class="row">
+<span class="av" style="background: #D9D3E8">？</span>
+<span style="flex: 1"><span style="display: block; font-size: 16px; font-weight: 800">知らない番号</span><span style="display: block; font-size: 13px; color: #B5462E" lang="en">Missed · 2:13 am · mostly static</span></span>
+<button class="play" type="button" aria-label="Play voicemail"><svg width="16" height="16" viewBox="0 0 24 24" fill="#3B3A36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button>
+</div>
+
+<p class="h">履歴 · <span lang="en">recent calls</span></p>
+<div style="margin: 0 20px; display: flex; flex-direction: column; gap: 8px">
+<div class="row"><span class="av" style="background: #FFE0CC">パ</span><span style="flex: 1"><span style="display: block; font-size: 16px; font-weight: 800">パン屋さん</span><span style="display: block; font-size: 13px" lang="en">Today · new job · 0:42</span></span><button class="play" type="button" aria-label="Replay call"><svg width="16" height="16" viewBox="0 0 24 24" fill="#3B3A36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button></div>
+<div class="row"><span class="av" style="background: #FBE3B8">大</span><span style="flex: 1"><span style="display: block; font-size: 16px; font-weight: 800">大家さん</span><span style="display: block; font-size: 13px" lang="en">Yesterday · 1:05</span></span><button class="play" type="button" aria-label="Replay call"><svg width="16" height="16" viewBox="0 0 24 24" fill="#3B3A36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button></div>
+<div class="row"><span class="av" style="background: #CBD6E8">ラ</span><span style="flex: 1"><span style="display: block; font-size: 16px; font-weight: 800">町内ラジオ</span><span style="display: block; font-size: 13px" lang="en">Zombie warning · last night</span></span><button class="play" type="button" aria-label="Replay broadcast"><svg width="16" height="16" viewBox="0 0 24 24" fill="#3B3A36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button></div>
+</div>
+
+<p class="h">連絡先 · <span lang="en">call someone</span></p>
+<div style="margin: 0 20px; display: flex; flex-direction: column; gap: 8px">
+<div class="row"><span class="av" style="background: #FBE3B8">大</span><span style="flex: 1; font-size: 16px; font-weight: 800">大家さん</span><a class="call" href="PhoneCall.dc.html" aria-label="Call the landlord"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B3A36" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h4l2 5-3 2a11 11 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 4 5a2 2 0 0 1 2-2z"/></svg></a></div>
+<div class="row"><span class="av" style="background: #F7C9A8">カ</span><span style="flex: 1; font-size: 16px; font-weight: 800">カフェのマスター</span><a class="call" href="PhoneCall.dc.html" aria-label="Call the café owner"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B3A36" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h4l2 5-3 2a11 11 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 4 5a2 2 0 0 1 2-2z"/></svg></a></div>
+</div>
+
+<a href="PhoneHome.dc.html" style="position: absolute; left: 0; bottom: 0; width: 390px; height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 12px; color: #4F4C45" lang="en"><span style="width: 120px; height: 6px; border-radius: 3px; background: #3B3A36"></span>Home</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

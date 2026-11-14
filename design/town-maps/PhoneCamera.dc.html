@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Camera app</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#FFF8E7}a:hover{color:#FFFFFF}
+.tag{position:absolute;border-radius:12px;border:2px solid #FFF8E7;padding:3px 10px;font-size:15px;font-weight:800;white-space:nowrap}
+.res{display:flex;gap:12px;align-items:center;background:#FFFDF6;border:2px solid #3B3A36;border-radius:16px;padding:6px 10px;color:#3B3A36}
+.ic{width:42px;height:42px;flex:none;border-radius:12px;border:2px solid #3B3A36;display:flex;align-items:center;justify-content:center}
+.play{width:40px;height:40px;flex:none;border-radius:50%;border:2px solid #3B3A36;background:#FFE0CC;display:flex;align-items:center;justify-content:center;padding:0}
+.new{font-size:11px;font-weight:800;background:#D9533C;color:#FFFFFF;border-radius:999px;padding:2px 8px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #2E2C28; font-family: 'M PLUS Rounded 1c', sans-serif; color: #FFF8E7">
+
+<div style="padding: 18px 20px 0; display: flex; justify-content: space-between; align-items: center">
+<p style="margin: 0; font-size: 22px; font-weight: 800">カメラ</p>
+<p style="margin: 0; font-size: 13px" lang="en">Aim with the triangle on the TV</p>
+</div>
+
+<div style="position: absolute; left: 20px; top: 64px; width: 350px; height: 270px; border-radius: 22px; background: #A9CF94; border: 3px solid #FFF8E7; overflow: hidden">
+<div style="position: absolute; left: 20px; top: 20px; width: 310px; height: 230px; background: #C6E0A8; clip-path: polygon(0% 50%, 100% 0%, 100% 100%)"></div>
+<div style="position: absolute; left: 8px; top: 120px; width: 30px; height: 30px; border-radius: 50%; background: #D9533C; border: 2px solid #3B3A36; color: #FFFFFF; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center">私</div>
+<div style="position: absolute; left: 230px; top: 40px; width: 54px; height: 54px; border-radius: 50%; background: #3B6D11; border: 2px solid #3B3A36"></div>
+<div style="position: absolute; left: 160px; top: 150px; width: 40px; height: 40px; border-radius: 50%; border: 6px solid #378ADD; box-sizing: border-box"></div>
+<div style="position: absolute; left: 270px; top: 190px; width: 40px; height: 32px; border-radius: 16px; background: #EF9F27; border: 2px solid #3B3A36"></div>
+<sc-if value="{{ snapped }}" hint-placeholder-val="{{ false }}">
+<div class="tag" style="left: 210px; top: 100px; background: #3B6D11">木</div>
+<div class="tag" style="left: 130px; top: 196px; background: #185FA5">ホース</div>
+<div class="tag" style="left: 268px; top: 228px; background: #854F0B">ねこ</div>
+</sc-if>
+<sc-if value="{{ aiming }}" hint-placeholder-val="{{ true }}">
+<div style="position: absolute; right: 12px; top: 10px; font-size: 12px; background: #2E2C28; border-radius: 999px; padding: 3px 10px" lang="en">3 things in frame</div>
+</sc-if>
+</div>
+
+<div style="position: absolute; left: 0; top: 348px; width: 390px; display: flex; justify-content: center">
+<button type="button" onClick="{{ shoot }}" aria-label="{{ shutterAria }}" style="width: 84px; height: 84px; border-radius: 50%; border: 5px solid #FFF8E7; background: {{ shutterBg }}; color: #3B3A36; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">{{ shutterLabel }}</button>
+</div>
+
+<sc-if value="{{ aiming }}" hint-placeholder-val="{{ true }}">
+<p style="position: absolute; left: 30px; right: 30px; top: 470px; margin: 0; font-size: 15px; text-align: center; color: #D9D3C4" lang="en">Turn to point the triangle, then take a picture. Everything inside it becomes a word you can learn.</p>
+</sc-if>
+
+<sc-if value="{{ snapped }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 20px; top: 450px; width: 350px; display: flex; flex-direction: column; gap: 8px">
+<div class="res">
+<span class="ic" style="background: #C0DD97"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3B3A36" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M12 15v7M9 22h6"/></svg></span>
+<span style="flex: 1"><span style="display: block; font-size: 20px; font-weight: 800">木</span><span style="display: block; font-size: 13px">き</span></span>
+<span class="new">NEW</span>
+<button class="play" type="button" aria-label="Hear 木"><svg width="14" height="14" viewBox="0 0 24 24" fill="#3B3A36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button>
+</div>
+<div class="res">
+<span class="ic" style="background: #B5D4F4"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3B3A36" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="12" r="7"/><circle cx="11" cy="12" r="3"/><path d="M18 12h4"/></svg></span>
+<span style="flex: 1"><span style="display: block; font-size: 20px; font-weight: 800">ホース</span><span style="display: block; font-size: 13px" lang="en">katakana word</span></span>
+<span class="new">NEW</span>
+<button class="play" type="button" aria-label="Hear ホース"><svg width="14" height="14" viewBox="0 0 24 24" fill="#3B3A36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button>
+</div>
+<div class="res">
+<span class="ic" style="background: #FAC775"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3B3A36" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M5 9l1-5 4 3h4l4-3 1 5v5a7 6 0 0 1-14 0z"/><path d="M9 13h.01M15 13h.01"/></svg></span>
+<span style="flex: 1"><span style="display: block; font-size: 20px; font-weight: 800">ねこ</span><span style="display: block; font-size: 13px">猫</span></span>
+<button class="play" type="button" aria-label="Hear ねこ"><svg width="14" height="14" viewBox="0 0 24 24" fill="#3B3A36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button>
+</div>
+<a href="PhoneDictionary.dc.html" style="margin-top: 4px; text-align: center; text-decoration: none; border: 2px solid #FFF8E7; border-radius: 999px; padding: 12px; font-size: 15px; font-weight: 800">辞書で見る · 2 new words added</a>
+</div>
+</sc-if>
+
+<a href="PhoneHome.dc.html" style="position: absolute; left: 0; bottom: 0; width: 390px; height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 12px; color: #D9D3C4" lang="en"><span style="width: 120px; height: 6px; border-radius: 3px; background: #FFF8E7"></span>Home</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { snapped: false };
+}
+renderVals() {
+const s = this.state.snapped;
+return {
+snapped: s,
+aiming: !s,
+shutterLabel: s ? 'もう一枚' : '撮る',
+shutterAria: s ? 'Take another picture' : 'Take a picture',
+shutterBg: s ? '#FFE0CC' : '#FFF8E7',
+shoot: () => this.setState({ snapped: !s })
+};
+}
+}
+</script>
+</body>
+</html>

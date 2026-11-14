@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Café street map</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.z{position:absolute;border-radius:22px;border:3px solid #3B3A36;box-sizing:border-box;padding:14px 18px}
+.t{margin:0;font-size:22px;font-weight:800;color:#3B3A36;line-height:1.2}
+.s{margin:4px 0 0;font-size:15px;color:#4F4C45}
+.m{position:absolute;display:flex;align-items:center;gap:6px;background:#FFFFFF;border:2px solid #3B3A36;border-radius:999px;padding:3px 10px 3px 3px;font-size:14px;color:#3B3A36;white-space:nowrap}
+.d{width:24px;height:24px;border-radius:50%;color:#FFFFFF;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center}
+</style>
+</helmet>
+<div style="width: 960px; height: 640px; position: relative; overflow: hidden; background: #EFE6CF; font-family: 'M PLUS Rounded 1c', sans-serif; color: #3B3A36">
+
+<div style="position: absolute; left: 0; top: 0; width: 960px; height: 84px; background: #F3D3A6; border-bottom: 3px solid #3B3A36; box-sizing: border-box; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center">
+<div><h1 style="margin: 0; font-size: 30px; font-weight: 800">カフェ通り</h1><p style="margin: 2px 0 0; font-size: 15px">Chapter 2 · Café street</p></div>
+<div style="background: #FFF8E7; border: 3px solid #3B3A36; border-radius: 999px; padding: 8px 16px; font-size: 16px; font-weight: 700">Gate: 跳んで 登って · jump, climb</div>
+</div>
+
+<div style="position: absolute; left: 0; top: 104px; width: 960px; height: 34px; background: #A39C8E; border-top: 3px solid #3B3A36; border-bottom: 3px solid #3B3A36; box-sizing: border-box; font-size: 14px; color: #FFFFFF; padding: 4px 120px">High wall · police station and old school beyond</div>
+
+<div style="position: absolute; left: 0; top: 138px; width: 90px; height: 502px; background: #8FCDE3; border-right: 3px solid #3B3A36; box-sizing: border-box"></div>
+
+<div class="z" style="left: 120px; top: 170px; width: 300px; height: 200px; background: #F7C9A8">
+<p class="t">喫茶 Café</p>
+<p class="s">Run by the gruff owner. Regulars chat about food, weather and plans while you work shifts.</p>
+</div>
+<div class="z" style="left: 440px; top: 170px; width: 220px; height: 200px; background: #FBE3B8">
+<p class="t">ラーメン屋台</p>
+<p class="s">Ramen stall · ordering, likes and dislikes</p>
+</div>
+<div class="z" style="left: 680px; top: 170px; width: 250px; height: 200px; background: #D9D3E8">
+<p class="t">小さいバー</p>
+<p class="s">Small bar · group conversations, opens in Ch 4</p>
+</div>
+
+<div style="position: absolute; left: 90px; top: 400px; width: 870px; height: 90px; background: #EADBC0; border-top: 3px solid #3B3A36; border-bottom: 3px solid #3B3A36; box-sizing: border-box; padding: 28px 30px; font-size: 16px; font-weight: 700">通り · the street, where regulars stop to chat</div>
+
+<div class="z" style="left: 120px; top: 520px; width: 300px; height: 100px; background: #C6E0A8">
+<p class="t">花屋 Florist</p>
+<p class="s">Gift-giving starts here</p>
+</div>
+<div class="z" style="left: 440px; top: 520px; width: 220px; height: 100px; background: #CBD6E8">
+<p class="t">ベンチ</p>
+<p class="s">Bench · eavesdropping</p>
+</div>
+
+<div class="m" style="left: 130px; top: 336px"><span class="d" style="background: #B5462E">B</span>Boss: the café owner</div>
+<div class="m" style="left: 700px; top: 520px"><span class="d" style="background: #6B4FA0">S</span>Scrap on the wall top</div>
+<div class="m" style="left: 700px; top: 570px"><span class="d" style="background: #2F6F8F">D</span>Climb spot</div>
+<div class="m" style="left: 20px; top: 590px"><span class="d" style="background: #3B3A36">Z</span>Zombies</div>
+<div class="m" style="left: 460px; top: 336px"><span class="d" style="background: #C07A12">J</span>Café shifts</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":640}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

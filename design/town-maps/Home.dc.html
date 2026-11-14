@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Home and backyard map</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.z{position:absolute;border-radius:22px;border:3px solid #3B3A36;box-sizing:border-box;padding:14px 18px}
+.t{margin:0;font-size:22px;font-weight:800;color:#3B3A36;line-height:1.2}
+.s{margin:4px 0 0;font-size:15px;color:#4F4C45}
+.m{position:absolute;display:flex;align-items:center;gap:6px;background:#FFFFFF;border:2px solid #3B3A36;border-radius:999px;padding:3px 10px 3px 3px;font-size:14px;color:#3B3A36;white-space:nowrap}
+.d{width:24px;height:24px;border-radius:50%;color:#FFFFFF;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center}
+</style>
+</helmet>
+<div style="width: 960px; height: 640px; position: relative; overflow: hidden; background: #DCEBC4; font-family: 'M PLUS Rounded 1c', sans-serif; color: #3B3A36">
+
+<div style="position: absolute; left: 0; top: 0; width: 960px; height: 84px; background: #FFE0CC; border-bottom: 3px solid #3B3A36; box-sizing: border-box; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center">
+<div><h1 style="margin: 0; font-size: 30px; font-weight: 800">家と裏庭</h1><p style="margin: 2px 0 0; font-size: 15px">Chapter 0 · Home and backyard</p></div>
+<div style="background: #FFF8E7; border: 3px solid #3B3A36; border-radius: 999px; padding: 8px 16px; font-size: 16px; font-weight: 700">Gate: 掘って · dig</div>
+</div>
+
+<div class="z" style="left: 40px; top: 120px; width: 380px; height: 220px; background: #F7C9A8">
+<p class="t">工房 Your workshop</p>
+<p class="s">Home base. Dog beds, the diary desk for the spoken end-of-day recap, TV and radio for passive listening.</p>
+</div>
+
+<div class="z" style="left: 460px; top: 120px; width: 300px; height: 300px; background: #C6E0A8">
+<p class="t">裏庭 Backyard</p>
+<p class="s">Garden plot, washing line, tool shed. First fetch jobs and first zombie night.</p>
+</div>
+
+<div class="z" style="left: 40px; top: 380px; width: 380px; height: 200px; background: #FBE3B8">
+<p class="t">大家さんの家</p>
+<p class="s">The landlord's house next door. Slow, kind speech: the easiest listening in the game.</p>
+</div>
+
+<div style="position: absolute; left: 800px; top: 84px; width: 20px; height: 556px; background: #A07D55; border-left: 3px solid #3B3A36; border-right: 3px solid #3B3A36; box-sizing: border-box"></div>
+<div class="z" style="left: 836px; top: 230px; width: 108px; height: 150px; background: #E9E2D3; padding: 10px">
+<p class="t" style="font-size: 16px">Street</p>
+<p class="s" style="font-size: 13px">Locked until you can dig</p>
+</div>
+
+<div class="m" style="left: 250px; top: 520px"><span class="d" style="background: #B5462E">B</span>Boss: the landlord</div>
+<div class="m" style="left: 620px; top: 450px"><span class="d" style="background: #6B4FA0">S</span>First diary scrap</div>
+<div class="m" style="left: 620px; top: 500px"><span class="d" style="background: #6B4FA0">S</span>Buried scrap, dig later</div>
+<div class="m" style="left: 700px; top: 560px"><span class="d" style="background: #2F6F8F">D</span>Dig spot under the fence</div>
+<div class="m" style="left: 470px; top: 560px"><span class="d" style="background: #3B3A36">Z</span>Zombies arrive here</div>
+<div class="m" style="left: 60px; top: 290px"><span class="d" style="background: #C07A12">J</span>Fetch jobs start here</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":640}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

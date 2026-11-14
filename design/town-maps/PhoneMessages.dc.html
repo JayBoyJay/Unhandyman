@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Messages app</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3B3A36}a:hover{color:#1F1E1B}
+.row{width:100%;display:flex;gap:12px;align-items:center;text-align:left;background:#FFFFFF;border:2px solid #3B3A36;border-radius:18px;padding:10px 12px;font-family:inherit;color:#3B3A36;cursor:pointer;box-sizing:border-box;min-height:64px}
+.av{width:44px;height:44px;flex:none;border-radius:50%;border:2px solid #3B3A36;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800}
+.play{width:36px;height:36px;flex:none;border-radius:50%;border:2px solid #3B3A36;background:#FFE0CC;display:flex;align-items:center;justify-content:center;padding:0}
+.sm{border:2px solid #3B3A36;border-radius:999px;background:#FFFFFF;padding:8px 14px;font-family:inherit;font-size:14px;font-weight:700;color:#3B3A36;min-height:44px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #E6F2EC; font-family: 'M PLUS Rounded 1c', sans-serif; color: #3B3A36">
+
+<sc-if value="{{ listView }}" hint-placeholder-val="{{ true }}">
+<div style="padding: 20px 20px 0">
+<p style="margin: 0; font-size: 22px; font-weight: 800">メッセージ</p>
+<p style="margin: 0; font-size: 13px" lang="en">Every past conversation, ready to listen to again</p>
+</div>
+<div style="margin: 16px 20px 0; display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{ threads }}" as="t" hint-placeholder-count="4">
+<button class="row" type="button" onClick="{{ t.open }}">
+<span class="av" style="background: {{ t.color }}">{{ t.initial }}</span>
+<span style="flex: 1; min-width: 0"><span style="display: block; font-size: 16px; font-weight: 800">{{ t.name }}</span><span style="display: block; font-size: 14px; color: #4F4C45; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ t.preview }}</span></span>
+<sc-if value="{{ t.unread }}" hint-placeholder-val="{{ false }}"><span style="width: 14px; height: 14px; border-radius: 50%; background: #D9533C; border: 2px solid #3B3A36"></span></sc-if>
+</button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ threadView }}" hint-placeholder-val="{{ false }}">
+<div style="padding: 14px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 3px solid #3B3A36; background: #FFFDF6">
+<button type="button" onClick="{{ back }}" aria-label="Back to conversations" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #3B3A36; background: #FFFFFF; font-family: inherit; font-size: 22px; font-weight: 800; color: #3B3A36">‹</button>
+<span class="av" style="background: {{ cur.color }}">{{ cur.initial }}</span>
+<span style="font-size: 18px; font-weight: 800">{{ cur.name }}</span>
+</div>
+<div style="padding: 12px 16px 0; display: flex; gap: 8px">
+<button class="sm" type="button">▶ 全部聞く · replay chat</button>
+<button class="sm" type="button">ゆっくり</button>
+</div>
+<div style="padding: 14px 16px 0; display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{ msgs }}" as="m" hint-placeholder-count="4">
+<div style="display: flex; justify-content: {{ m.justify }}; align-items: center; gap: 8px">
+<sc-if value="{{ m.them }}" hint-placeholder-val="{{ true }}"><button class="play" type="button" aria-label="Play this line"><svg width="14" height="14" viewBox="0 0 24 24" fill="#3B3A36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button></sc-if>
+<div style="max-width: 250px; background: {{ m.bg }}; border: 2px solid #3B3A36; border-radius: {{ m.radius }}; padding: 10px 14px; font-size: 17px">{{ m.text }}</div>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{ noReply }}" hint-placeholder-val="{{ false }}">
+<p style="margin: 20px 16px 0; font-size: 13px; text-align: center; color: #4F4C45" lang="en">You can't reply to this number. Who is it?</p>
+</sc-if>
+<sc-if value="{{ canReply }}" hint-placeholder-val="{{ true }}">
+<p style="margin: 20px 16px 0; font-size: 13px; text-align: center; color: #4F4C45" lang="en">Green lines are what you said, as the game heard you</p>
+</sc-if>
+</sc-if>
+
+<a href="PhoneHome.dc.html" style="position: absolute; left: 0; bottom: 0; width: 390px; height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; font-size: 12px; color: #4F4C45" lang="en"><span style="width: 120px; height: 6px; border-radius: 3px; background: #3B3A36"></span>Home</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { open: null };
+}
+data() {
+return [
+{ id: 'unknown', name: '知らない番号', initial: '？', color: '#D9D3E8', unread: true, noReply: true,
+msgs: [[0, 'さむい'], [0, 'ドアが つめたい'], [0, '…まだ ここに いるよ']] },
+{ id: 'cafe', name: 'カフェのマスター', initial: 'カ', color: '#F7C9A8', unread: true,
+msgs: [[0, '何か用？'], [1, '好きな食べ物は何ですか？'], [0, '…甘いもの。なんで？'], [1, 'えっと… もう一回？'], [0, '甘いもの！ケーキとか。'], [0, 'また明日ね。']] },
+{ id: 'landlord', name: '大家さん', initial: '大', color: '#FBE3B8',
+msgs: [[0, 'おはよう。'], [1, 'おはようございます！'], [0, '青いバケツ、お願いね。'], [1, 'はい！']] },
+{ id: 'bakery', name: 'パン屋さん', initial: 'パ', color: '#FFE0CC',
+msgs: [[0, '椅子を2つ、持ってきて。'], [1, '何時ですか？'], [0, '3時にね。']] }
+];
+}
+renderVals() {
+const all = this.data();
+const cur = all.find((t) => t.id === this.state.open);
+const threads = all.map((t) => ({
+name: t.name, initial: t.initial, color: t.color, unread: !!t.unread,
+preview: t.msgs[t.msgs.length - 1][1],
+open: () => this.setState({ open: t.id })
+}));
+const msgs = cur ? cur.msgs.map((m) => ({
+text: m[1], them: m[0] === 0,
+justify: m[0] === 0 ? 'flex-start' : 'flex-end',
+bg: m[0] === 0 ? '#FFFFFF' : '#9FE1CB',
+radius: m[0] === 0 ? '6px 18px 18px 18px' : '18px 6px 18px 18px'
+})) : [];
+return {
+listView: !cur, threadView: !!cur, threads, msgs,
+cur: cur || { name: '', initial: '', color: '#FFFFFF' },
+noReply: !!(cur && cur.noReply), canReply: !!(cur && !cur.noReply),
+back: () => this.setState({ open: null })
+};
+}
+}
+</script>
+</body>
+</html>

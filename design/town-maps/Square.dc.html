@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Town square map</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.z{position:absolute;border-radius:22px;border:3px solid #3B3A36;box-sizing:border-box;padding:14px 18px}
+.t{margin:0;font-size:22px;font-weight:800;color:#3B3A36;line-height:1.2}
+.s{margin:4px 0 0;font-size:15px;color:#4F4C45}
+.m{position:absolute;display:flex;align-items:center;gap:6px;background:#FFFFFF;border:2px solid #3B3A36;border-radius:999px;padding:3px 10px 3px 3px;font-size:14px;color:#3B3A36;white-space:nowrap}
+.d{width:24px;height:24px;border-radius:50%;color:#FFFFFF;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center}
+</style>
+</helmet>
+<div style="width: 960px; height: 640px; position: relative; overflow: hidden; background: #EFE6CF; font-family: 'M PLUS Rounded 1c', sans-serif; color: #3B3A36">
+
+<div style="position: absolute; left: 0; top: 0; width: 960px; height: 84px; background: #FFF1C9; border-bottom: 3px solid #3B3A36; box-sizing: border-box; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center">
+<div><h1 style="margin: 0; font-size: 30px; font-weight: 800">広場</h1><p style="margin: 2px 0 0; font-size: 15px">Chapter 1 · Town square</p></div>
+<div style="background: #FFF8E7; border: 3px solid #3B3A36; border-radius: 999px; padding: 8px 16px; font-size: 16px; font-weight: 700">Gate: 泳いで · swim</div>
+</div>
+
+<div class="z" style="left: 40px; top: 116px; width: 190px; height: 150px; background: #CBD6E8">
+<p class="t">金物屋</p>
+<p class="s">Hardware store</p>
+</div>
+<div class="z" style="left: 250px; top: 116px; width: 190px; height: 150px; background: #F7C9A8">
+<p class="t">パン屋</p>
+<p class="s">Bakery · numbers and counters</p>
+</div>
+<div class="z" style="left: 460px; top: 116px; width: 190px; height: 150px; background: #C6E0A8">
+<p class="t">八百屋</p>
+<p class="s">Grocer · food words</p>
+</div>
+
+<div class="z" style="left: 120px; top: 300px; width: 440px; height: 200px; background: #FFF8E7; border-radius: 100px; text-align: center; padding-top: 50px">
+<p class="t">掲示板 Noticeboard</p>
+<p class="s">Handyman jobs, plus a fountain where the gossip sits</p>
+</div>
+
+<div style="position: absolute; left: 700px; top: 84px; width: 110px; height: 556px; background: #8FCDE3; border-left: 3px solid #3B3A36; border-right: 3px solid #3B3A36; box-sizing: border-box"></div>
+<div class="z" style="left: 640px; top: 400px; width: 120px; height: 110px; background: #FFFFFF; padding: 10px">
+<p class="t" style="font-size: 17px">渡し場</p>
+<p class="s" style="font-size: 13px">Ferry dock</p>
+</div>
+<div class="z" style="left: 826px; top: 200px; width: 118px; height: 180px; background: #F3D3A6; padding: 10px">
+<p class="t" style="font-size: 16px">Far bank</p>
+<p class="s" style="font-size: 13px">To café street, locked until the dog can swim</p>
+</div>
+
+<div style="position: absolute; left: 0; top: 560px; width: 700px; height: 80px; background: #EADBC0; border-top: 3px dashed #6B5B45; box-sizing: border-box; padding: 24px; font-size: 15px">↓ back to home</div>
+
+<div class="m" style="left: 590px; top: 520px"><span class="d" style="background: #B5462E">B</span>Boss: the ferryman</div>
+<div class="m" style="left: 160px; top: 510px"><span class="d" style="background: #C07A12">J</span>Job board</div>
+<div class="m" style="left: 290px; top: 510px"><span class="d" style="background: #6B4FA0">S</span>Scrap in the fountain</div>
+<div class="m" style="left: 726px; top: 112px"><span class="d" style="background: #3B3A36">Z</span>Zombies</div>
+<div class="m" style="left: 40px; top: 276px"><span class="d" style="background: #2F6F8F">G</span>Gossip spot</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":640}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
