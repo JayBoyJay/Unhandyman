@@ -154,6 +154,7 @@
   .job .m { font-size: 13px; color: var(--ink2); }
   .job .now { font-size: 12px; font-weight: 800; color: #b5462e; }
   .hd { font-size: 14px; font-weight: 700; margin-top: 6px; }
+  .picked { outline: 4px solid var(--red); outline-offset: 1px; }
   .shotItem { display: flex; gap: 10px; align-items: center; background: #fff8e7; color: var(--ink); border: 2px solid var(--ink); border-radius: 16px; padding: 8px 10px; }
   .shotItem .num { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--red); color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; }
   .shotItem .pic2 { flex: none; width: 48px; height: 40px; display: flex; align-items: center; justify-content: center; }
@@ -345,10 +346,10 @@
 </main>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script src="assets/atlas.js?v=20261115j"></script>
-<script src="js/net.js?v=20261115j"></script>
-<script src="js/speech.js?v=20261115j"></script>
-<script src="js/voice.js?v=20261115j"></script>
+<script src="assets/atlas.js?v=20261115k"></script>
+<script src="js/net.js?v=20261115k"></script>
+<script src="js/speech.js?v=20261115k"></script>
+<script src="js/voice.js?v=20261115k"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -382,6 +383,10 @@
     } catch (_) { onend && onend(); }
   }
 
+  // ---------- the TV's tablet panel follows what's open and selected here ----------
+  let viewSel = {};
+  function sendView(sel) { viewSel = sel || {}; send({ t: 'view', screen, sel: viewSel }); }
+
   // ---------- screens ----------
   const SCREENS = ['joinView', 'scrPad', 'scrHome', 'scrMsgs', 'scrMap', 'scrDiary', 'scrJobs', 'scrCall', 'scrHouse', 'scrCamera', 'scrSoon'];
   const BG = { scrPad: '#dcebc4', scrHome: '#bfe0ec', scrMsgs: '#e6f2ec', scrMap: '#efe6cf', scrDiary: '#f3e9d6', scrJobs: '#efe6cf', scrCall: '#e8edf5', scrHouse: '#fbeee2', scrCamera: '#2b2a33', scrSoon: '#f3eef8', joinView: '#ffe0cc' };
@@ -405,6 +410,7 @@
     if (id === 'scrCamera') { setCamTab('cam'); renderShot(); }
     if (id === 'scrSoon') renderSoon(arg);
     if (id !== 'scrPad') link && link.send({ t: 'move', x: 0, y: 0 }, { drop: true });
+    if (id !== 'scrMsgs' || !arg) sendView(id === 'scrDiary' ? { seg } : {});
     updateBadges();
     window.scrollTo(0, 0);
   }
@@ -527,8 +533,8 @@
     stopPlaying();
     curTh = th;
     $('msgList').hidden = !!th; $('msgThread').hidden = !th;
-    if (!th) { if (screen === 'scrMsgs') renderThreads(); return; }
-    D.read[th] = D.log.length; updateBadges();
+    if (!th) { if (screen === 'scrMsgs') { renderThreads(); sendView({}); } return; }
+    D.read[th] = D.log.length; updateBadges(); sendView({ thread: th });
     $('thAv').textContent = initial(th); $('thAv').style.background = avColor(th); $('thName').textContent = th;
     renderThread();
   }
@@ -569,10 +575,12 @@
     $('mapBox').innerHTML = s.maps.map((m) => {
       const pins = m.here ? '<span class="pin" style="background:#d9533c;color:#fff">私</span><span class="pin" style="background:#fff">犬</span>' + (s.job ? '<span class="pin" style="background:#c07a12;color:#fff">J</span>' : '') : '';
       const who = m.open && m.npcs.length ? '<div class="who">' + m.npcs.map((p) => esc(p.name) + (p.stars ? ' <span class="stars">' + '★'.repeat(p.stars) + '</span>' : '')).join(' · ') + '</div>' : '';
-      return '<div class="area' + (m.here ? ' here' : '') + (m.open ? '' : ' lk') + '"><div style="flex:1;min-width:0">' + esc(m.jp) + ' <span class="en">' + (m.open ? esc(m.en) : 'locked') + '</span>' + who + '</div>' +
+      return '<div class="area' + (m.here ? ' here' : '') + (m.open ? '' : ' lk') + (viewSel.area === m.id ? ' picked' : '') + '" data-area="' + esc(m.id) + '"><div style="flex:1;min-width:0">' + esc(m.jp) + ' <span class="en">' + (m.open ? esc(m.en) : 'locked') + '</span>' + who + '</div>' +
         (pins ? '<div class="row" style="gap:4px">' + pins + '</div>' : '') + '</div>';
     }).join('');
   }
+
+  $('mapBox').addEventListener('click', (e) => { const a = e.target.closest('[data-area]'); if (a) { buzz(8); sendView({ area: a.dataset.area }); renderMap(); } });
 
   // ---------- diary: scraps and words ----------
   let seg = 'words', cat = 'すべて';
@@ -582,7 +590,7 @@
   if (window.ATLAS) { atlasImg = new Image(); atlasImg.src = 'assets/atlas.png'; atlasImg.onload = () => { if (screen === 'scrDiary') renderDiary(); if (screen === 'scrHouse') renderHouse(); }; }
   function setSeg(s) {
     seg = s; $('segScraps').setAttribute('aria-selected', String(s === 'scraps')); $('segWords').setAttribute('aria-selected', String(s === 'words'));
-    $('scrapsView').hidden = s !== 'scraps'; $('wordsView').hidden = s !== 'words'; renderDiary();
+    $('scrapsView').hidden = s !== 'scraps'; $('wordsView').hidden = s !== 'words'; renderDiary(); sendView({ seg: s });
   }
   $('segScraps').addEventListener('click', () => setSeg('scraps'));
   $('segWords').addEventListener('click', () => setSeg('words'));
@@ -593,7 +601,7 @@
     $('diarySub').textContent = 'かけら ' + (s ? s.scraps.length : 0) + ' · 言葉 ' + words.length;
     if (seg === 'scraps') {
       const sc = s ? s.scraps : [];
-      $('scrapsView').innerHTML = sc.length ? sc.map((x, i) => '<div class="scrap"><p class="sub">Scrap #' + (i + 1) + (x.from ? ' · ' + esc(x.from) : '') + '</p>' +
+      $('scrapsView').innerHTML = sc.length ? sc.map((x, i) => '<div class="scrap' + (viewSel.scrap === i ? ' picked' : '') + '" data-scrap="' + i + '"><p class="sub">Scrap #' + (i + 1) + (x.from ? ' · ' + esc(x.from) : '') + '</p>' +
         '<div class="row" style="justify-content:space-between"><p class="jp">' + (x.html || esc(x.jp || x.text || '')) + '</p><button class="play s" type="button" data-word="' + esc(x.jp || '') + '" aria-label="Play">' + PLAY + '</button></div>' +
         (x.en ? '<p class="sub" lang="en">' + esc(x.en) + '</p>' : '') + (x.note ? '<p class="sub" lang="en" style="margin-top:4px">' + esc(x.note) + '</p>' : '') +
         (x.trick ? '<p class="sub" lang="en" style="margin-top:6px"><b>Dog trick:</b> say it to the dog and it ' + esc(x.trick) + '.</p>' : '') + '</div>').join('')
@@ -607,7 +615,7 @@
     $('words').innerHTML = list.map((w) => {
       const jp = w.kana && w.kana !== w.jp ? '<ruby>' + esc(w.jp) + '<rt>' + esc(w.kana) + '</rt></ruby>' : esc(w.jp);
       const pic = PIC[w.id] || w.sprite || '';
-      return '<div class="wc"><div class="pic" data-pic="' + pic + '">' + (pic ? '' : esc(w.en)) + '</div>' +
+      return '<div class="wc' + (viewSel.word === w.id ? ' picked' : '') + '" data-id="' + esc(w.id) + '"><div class="pic" data-pic="' + pic + '">' + (pic ? '' : esc(w.en)) + '</div>' +
         '<div class="w"><b>' + jp + '</b><button class="play s" type="button" data-word="' + esc(w.kana || w.jp) + '" aria-label="Play ' + esc(w.jp) + '">' + PLAY + '</button></div>' +
         '<p class="en">' + (pic ? esc(w.en) + '<br>' : '') + '聞いた ' + w.heard + ' · 言った ' + w.said + '</p><div class="meter" title="' + w.strength + '"><i style="width:' + w.strength + '%"></i></div></div>';
     }).join('');
@@ -618,10 +626,17 @@
       el.style.border = 'none'; el.appendChild(c);
     });
   }
-  $('words').addEventListener('click', (e) => { const b = e.target.closest('[data-word]'); if (b) speak(b.dataset.word, false); });
-  $('scrapsView').addEventListener('click', (e) => { const b = e.target.closest('[data-word]'); if (b) speak(b.dataset.word, false); });
+  $('words').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-word]'); if (b) { speak(b.dataset.word, false); return; }
+    const c = e.target.closest('[data-id]'); if (c) { buzz(8); sendView({ seg: 'words', word: c.dataset.id }); renderDiary(); }
+  });
+  $('scrapsView').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-word]'); if (b) { speak(b.dataset.word, false); return; }
+    const c = e.target.closest('[data-scrap]'); if (c) { buzz(8); sendView({ seg: 'scraps', scrap: +c.dataset.scrap }); renderDiary(); }
+  });
 
   // ---------- jobs ----------
+  $('questCard').addEventListener('click', () => { buzz(8); sendView({ quest: true }); });
   function renderQuest() {
     const q = D.state && D.state.quest;
     $('questCard').innerHTML = q ? '<div class="quest"><p class="ch">メインストーリー · 第' + q.chapter + '章 ' + esc(q.chapterName) + ' · ' + q.done + '/' + q.total + '</p>' +
@@ -641,24 +656,27 @@
       const act = j.state === 'open' ? '<button class="sm" data-act="take" data-id="' + esc(j.id) + '"' + (taken >= 3 ? ' disabled' : '') + '>受ける</button>'
         : j.state === 'taken' ? '<button class="sm" data-act="drop" data-id="' + esc(j.id) + '">やめる</button>'
         : j.state === 'done' ? '<span class="stars">' + '★'.repeat(j.stars) + '☆'.repeat(3 - j.stars) + '</span>' : '';
-      return '<div class="job ' + esc(j.state) + '"><button class="play" type="button" data-req="' + esc(j.title) + '" aria-label="Play job request">' + PLAY + '</button>' +
+      return '<div class="job ' + esc(j.state) + (viewSel.job === j.id ? ' picked' : '') + '" data-job="' + esc(j.id) + '"><button class="play" type="button" data-req="' + esc(j.title) + '" aria-label="Play job request">' + PLAY + '</button>' +
         '<div class="info"><div class="t">' + esc(j.client) + ' · ' + esc(j.title) + '</div><div class="m">' + esc(j.en) + ' · ' + reward + '</div>' +
         '<div class="m">' + esc(j.goal) + '</div>' + (b.cur === j.id ? '<div class="now">いま · in progress</div>' : '') + '</div>' + act + '</div>';
     }).join('');
   }
   $('jobList').addEventListener('click', (e) => {
     const r = e.target.closest('[data-req]'); if (r) { speak(r.dataset.req, false, null, 'landlord'); return; }
-    const t = e.target.closest('button[data-act]'); if (!t) return;
+    const t = e.target.closest('button[data-act]');
+    if (!t) { const j = e.target.closest('[data-job]'); if (j) { buzz(8); sendView({ job: j.dataset.job }); renderJobs(); } return; }
     buzz(10); send({ t: 'job', act: t.dataset.act, id: t.dataset.id });
   });
 
   // ---------- contacts ----------
   function renderContacts() {
     const fr = D.state ? D.state.friends.slice().sort((a, b) => b.points - a.points) : [];
-    $('contacts').innerHTML = fr.length ? fr.map((f) => '<button class="thr" type="button" data-go="msgs" data-arg="' + esc(f.name) + '"><span class="av" style="background:' + avColor(f.name) + '">' + esc(initial(f.name)) + '</span>' +
-      '<span style="flex:1;min-width:0"><span class="nm">' + esc(f.name) + '</span><span class="pv"><span class="stars">' + '★'.repeat(f.stars) + '☆'.repeat(3 - f.stars) + '</span>' + (f.role ? ' · ' + esc(f.role) : '') + (f.chatted ? ' · talked today ✓' : '') + '</span>' + (f.personality ? '<span class="pv" style="white-space:normal;font-size:12px">' + esc(f.personality) + (f.quirk && f.stars >= 1 ? '. <i>' + esc(f.quirk) + '</i>' : '') + '</span>' : '') + '</span></button>').join('')
+    $('contacts').innerHTML = fr.length ? fr.map((f) => '<div class="thr' + (viewSel.person === f.id ? ' picked' : '') + '" role="button" tabindex="0" data-person="' + esc(f.id) + '"><span class="av" style="background:' + avColor(f.name) + '">' + esc(initial(f.name)) + '</span>' +
+      '<span style="flex:1;min-width:0"><span class="nm">' + esc(f.name) + '</span><span class="pv"><span class="stars">' + '★'.repeat(f.stars) + '☆'.repeat(3 - f.stars) + '</span>' + (f.role ? ' · ' + esc(f.role) : '') + (f.chatted ? ' · talked today ✓' : '') + '</span>' + (f.personality ? '<span class="pv" style="white-space:normal;font-size:12px">' + esc(f.personality) + (f.quirk && f.stars >= 1 ? '. <i>' + esc(f.quirk) + '</i>' : '') + '</span>' : '') + '</span><button class="play s" type="button" data-go="msgs" data-arg="' + esc(f.name) + '" aria-label="Messages with ' + esc(f.name) + '">💬</button></div>').join('')
       : '<p class="empty">No contacts yet.</p>';
   }
+
+  $('houseList').addEventListener('click', (e) => { const c = e.target.closest('[data-fur]'); if (c) { buzz(8); sendView({ furniture: +c.dataset.fur }); renderHouse(); } });
 
   // ---------- カメラ ----------
   let lastShot = null, album = [];
@@ -708,12 +726,17 @@
   }
   function renderHouse() {
     const s = D.state, f = s ? s.furniture || [] : [], t = s ? s.tricks || [] : [];
-    $('houseList').innerHTML = f.length ? f.map((x) => '<div class="wc"' + (x.given ? ' style="opacity:.5"' : '') + '><div class="pic" style="border:none">' + spriteCanvas(x.sprite) + '</div>' +
+    $('houseList').innerHTML = f.length ? f.map((x, i) => '<div class="wc' + (viewSel.furniture === i ? ' picked' : '') + '" data-fur="' + i + '"' + (x.given ? ' style="opacity:.5"' : '') + '><div class="pic" style="border:none">' + spriteCanvas(x.sprite) + '</div>' +
       '<b style="font-size:14px;line-height:1.3">' + esc(x.en) + '</b><p class="en">from ' + esc(x.from) + (x.for ? ' · for ' + esc(x.for) + (x.given ? ' ✓ given' : ' — take it to them!') : '') + '</p></div>').join('')
       : '<p class="empty" style="grid-column:1/-1">Nothing yet. Friends give you furniture when you reach ★★★ with them. Say こんにちは to people every day!</p>';
     $('trickList').innerHTML = t.length ? t.map((x) => '<div class="card"><b>「' + esc(x.say || x.id) + '」</b><p class="sub">The dog ' + esc(x.en || '') + '.</p></div>').join('')
       : '<p class="sub">Deliver a friend\'s wish to learn a trick. The pun on the scrap is the command.</p>';
   }
+
+  $('contacts').addEventListener('click', (e) => {
+    if (e.target.closest('[data-go]')) return;
+    const c = e.target.closest('[data-person]'); if (c) { buzz(8); sendView({ person: c.dataset.person }); renderContacts(); }
+  });
 
   // ---------- coming soon ----------
   const SOON = {
@@ -727,7 +750,7 @@
     if (!d || typeof d !== 'object') return;
     switch (d.t) {
       case 'ack': gotAck(d.id); break;
-      case 'hello': grammar = Array.isArray(d.grammar) ? d.grammar : []; tvAcks = !!d.ack; vlog('TV linked' + (d.ack ? '' : ' (old TV page: reload it)')); break;
+      case 'hello': grammar = Array.isArray(d.grammar) ? d.grammar : []; tvAcks = !!d.ack; setTimeout(() => sendView(viewSel), 300); vlog('TV linked' + (d.ack ? '' : ' (old TV page: reload it)')); break;
       case 'log':
         D.log = Array.isArray(d.lines) ? d.lines.slice() : [];
         // history from before this phone joined counts as read

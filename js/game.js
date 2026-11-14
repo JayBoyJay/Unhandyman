@@ -636,6 +636,175 @@
     Save.save();
   }
 
+  // ---------- the tablet: a bigger, more detailed copy of the phone app you have open ----------
+  // The phone tells the TV which app is open and what's selected ({t:'view'}); the TV draws a
+  // tablet-sized page with everything it knows about it. The controller and camera show none.
+  const TABLET_APPS = { scrHome: 'スマホ · Overview', scrMsgs: 'メッセージ · Messages', scrMap: '地図 · Map', scrDiary: '日記 · Diary', scrJobs: '依頼 · Story and jobs', scrCall: '電話 · People', scrHouse: 'おうち · Home', scrSoon: '' };
+  let tabletLayout = 'side';
+  try { tabletLayout = localStorage.getItem('unhandyman.tablet') || 'side'; } catch (_) {}
+  function tabletOpen() { return !!(S.view && TABLET_APPS[S.view.screen] && S.ready); }
+  const tesc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const truby = (jp, kana) => (kana && kana !== jp ? '<ruby>' + tesc(jp) + '<rt>' + tesc(kana) + '</rt></ruby>' : tesc(jp));
+  const tstars = (n) => '<span style="color:#b8860b">' + '★'.repeat(n || 0) + '☆'.repeat(3 - (n || 0)) + '</span>';
+  const tbar = (pct, col) => '<div class="tbar"><i style="width:' + Math.max(0, Math.min(100, pct)) + '%' + (col ? ';background:' + col : '') + '"></i></div>';
+  const spriteURL = {};
+  function tsprite(name, h) {
+    if (!name || !ATLAS[name] || !atlasReady) return '';
+    if (!spriteURL[name]) { const m = ATLAS[name], c = document.createElement('canvas'); c.width = m[2]; c.height = m[3]; c.getContext('2d').drawImage(atlas, m[0], m[1], m[2], m[3], 0, 0, m[2], m[3]); spriteURL[name] = c.toDataURL(); }
+    return '<img class="px" alt="" src="' + spriteURL[name] + '" style="height:' + (h || 3) + 'em">';
+  }
+  const mapShot = {};
+  function tmapImage(id) {
+    if (!mapShot[id]) { try { mapShot[id] = window.__game.overview(id); } catch (_) { mapShot[id] = ''; } }
+    return mapShot[id] ? '<img class="px" alt="" src="' + mapShot[id] + '" style="width:100%;border:.12em solid #2b2a27;border-radius:.6em;background:#cfe3ea">' : '';
+  }
+  const fmtDate = (ms) => (ms ? new Date(ms).toLocaleDateString() : '—');
+  function renderTablet() {
+    const el = $('tablet'), dim = $('tablet-dim');
+    el.className = tabletLayout === 'centre' ? 'centre' : 'side';
+    if (!tabletOpen()) { el.hidden = true; dim.hidden = true; return; }
+    el.hidden = false; dim.hidden = tabletLayout !== 'centre';
+    const v = S.view, sel = v.sel || {};
+    $('tablet-app').textContent = TABLET_APPS[v.screen] || '';
+    let html = '';
+    try {
+      html = ({ scrHome: tHome, scrMsgs: tMsgs, scrMap: tMap, scrDiary: tDiary, scrJobs: tJobs, scrCall: tPeople, scrHouse: tHouse }[v.screen] || (() => '<p>…</p>'))(sel);
+    } catch (e) { html = '<p>…</p>'; console.warn('tablet', e); }
+    if ($('tablet-body').dataset.html !== html) { $('tablet-body').innerHTML = html; $('tablet-body').dataset.html = html; }
+  }
+  // --- overview and stats ---
+  function tHome() {
+    const d = SV(), words = Object.entries(d.words || {}), strong = words.filter(([id]) => Save.fade(id) >= 60).length;
+    const fr = Object.values(d.friends || {}), qi = questInfo();
+    const perDay = {}; words.forEach(([, w]) => { if (w.firstDay) perDay[w.firstDay] = (perDay[w.firstDay] || 0) + 1; });
+    const days = Object.keys(perDay).map(Number).sort((a, b) => a - b).slice(-7), maxN = Math.max(1, ...days.map((k) => perDay[k]));
+    const st = (label, val, sub) => '<div class="tstat"><span class="tsub">' + label + '</span><b>' + val + '</b>' + (sub ? '<span class="tsub">' + sub + '</span>' : '') + '</div>';
+    return '<div><h3>' + d.day + '日目 · ' + clockText(S.clock) + ' · ' + tesc(MAP.name) + '</h3><p class="tsub">' + partOfDay(S.clock) + '</p></div>' +
+      (qi ? '<div class="tcard"><p class="tsub">第' + qi.chapter + '章 ' + tesc(qi.chapterName) + '</p><b>' + tesc(qi.jp) + '</b> · ' + tesc(qi.en) + '<p>' + tesc((qi.steps.find((x) => x.cur) || {}).jp || '') + '</p></div>' : '') +
+      '<div class="tgrid">' + st('ことば · words', words.length, strong + ' strong') + st('しごと · jobs done', d.stats.jobsDone, d.stats.starsEarned + ' ★ earned') +
+      st('なかま · friends', fr.filter((f) => f.stars >= 1).length, fr.filter((f) => f.stars >= 3).length + ' at ★★★') + st('お金 · yen', '¥' + d.yen, 'おやつ ' + Save.treatsLeft() + ' today') +
+      st('クエスト · quests', qs().done.length + '/' + QUESTS.length, '') + st('しゃしん · photos', (d.photos || []).length, '') + st('かけら · scraps', d.scraps.length, (d.tricks || []).length + ' tricks') + st('おうち · furniture', d.house.furniture.length, '') + '</div>' +
+      '<div class="tcard"><b>あたらしい ことば · New words per day</b>' + (days.length ? '<div style="display:flex;gap:.4em;align-items:flex-end;height:5em;margin-top:.5em">' +
+        days.map((k) => '<div style="flex:1;text-align:center"><div style="background:#1d9e75;border:.1em solid #2b2a27;height:' + (perDay[k] / maxN) * 4 + 'em"></div><span class="tsub">' + k + '日 · ' + perDay[k] + '</span></div>').join('') + '</div>' : '<p class="tsub">No words yet.</p>') + '</div>' +
+      '<div class="tcard"><b>さいきん · Recently heard</b>' + S.log.slice(-5).reverse().map((m) => '<div class="line' + (m.me ? ' me' : '') + '"><span class="who">' + tesc(m.who) + '</span><br>' + tesc(m.text) + '</div>').join('') + '</div>';
+  }
+  // --- messages: each line with the words it uses ---
+  function lineWords(text) {
+    return Words.wordsIn(text).map((id) => Words.gloss(id)).filter((w) => w.jp).map((w) => '<span class="chip2">' + truby(w.jp, w.kana) + ' ' + tesc(w.en) + '</span>').join('');
+  }
+  function tMsgs(sel) {
+    const threads = []; S.log.forEach((m) => { if (!threads.includes(m.th)) threads.push(m.th); });
+    if (!sel.thread) return '<h3>会話 · Conversations</h3>' + (threads.length ? threads.map((th) => {
+      const ls = S.log.filter((m) => m.th === th), id = Object.keys(CH).find((k) => CH[k].name === th);
+      return '<div class="tcard"><b>' + tesc(th) + '</b> <span class="tsub">' + ls.length + ' lines' + (id && CH[id].role ? ' · ' + tesc(CH[id].role) : '') + '</span><p>' + tesc(ls[ls.length - 1].text) + '</p></div>';
+    }).join('') : '<p class="tsub">No messages yet.</p>');
+    const ls = S.log.filter((m) => m.th === sel.thread), id = Object.keys(CH).find((k) => CH[k].name === sel.thread || (k === 'hana' && sel.thread === NAMES.landlord));
+    return '<h3>' + tesc(sel.thread) + '</h3>' + (id ? '<p class="tsub">' + tesc(CH[id].role) + ' · ' + tesc(CH[id].personality || '') + '</p>' : '') +
+      ls.map((m) => '<div class="line' + (m.me ? ' me' : '') + '"><span class="who">' + tesc(m.who) + ' · ' + (m.day || '') + '日目</span><br><span style="font-size:1.15em">' + tesc(m.text) + '</span>' +
+        (m.me ? '' : '<div class="chips" style="margin-top:.2em">' + lineWords(m.text) + '</div>') + '</div>').join('');
+  }
+  // --- map: the whole area, who's there, and where the exits lead ---
+  function tMap(sel) {
+    const id = sel.area && MAPS[sel.area] ? sel.area : (MAP.parent || MAP.id), m = MAPS[id], fr = SV().friends, d = SV();
+    const nm = m.name.split(' · ');
+    const people = (m.npcs || []).filter((n) => n.id).map((n) => { const f = fr[n.id] || {}, c = CH[n.id] || {}; return '<tr><td>' + tsprite(n.sprite, 2) + '</td><td><b>' + tesc(n.name || c.name) + '</b><br><span class="tsub">' + tesc(c.role || '') + '</span></td><td>' + tstars(f.stars) + (d.chatDay[n.id] === d.day ? '<br><span class="tsub">talked today ✓</span>' : '') + '</td></tr>'; }).join('');
+    const rooms = (m.buildings || []).filter((b) => b.room && MAPS[b.room]).map((b) => '<span class="chip2">' + tesc(MAPS[b.room].name) + '</span>').join('');
+    const exits = (m.exits || []).filter((e) => MAPS[e.to]).map((e) => { const open = !e.need || d.story[e.need] || d.explore; return '<li>' + (open ? '→ ' : '🔒 ') + tesc(MAPS[e.to].name) + (open ? '' : ' <span class="tsub">(' + tesc(e.locked || 'finish the chapter') + ')</span>') + '</li>'; }).join('');
+    return '<h3>' + tesc(nm[0]) + ' <span class="tsub">' + tesc(nm[1] || '') + '</span></h3>' + (id === (MAP.parent || MAP.id) ? '<p class="tsub">📍 You are here' + (MAP.parent ? ' (inside ' + tesc(MAP.name) + ')' : '') + '</p>' : '') +
+      tmapImage(id) + (people ? '<div class="tcard"><b>ひと · People</b><table>' + people + '</table></div>' : '') +
+      (rooms ? '<div class="tcard"><b>なか · Inside</b><div class="chips" style="margin-top:.3em">' + rooms + '</div></div>' : '') +
+      (exits ? '<div class="tcard"><b>みち · Roads</b><ul style="margin:.3em 0 0;padding-left:1.1em">' + exits + '</ul></div>' : '');
+  }
+  // --- diary: word pages with examples, and scraps ---
+  function examplesFor(w) {
+    const keys = [w.jp, w.kana].filter((k) => k && k.length >= 2), out = [], seen = new Set();
+    const addEx = (who, text) => { if (out.length >= 4 || seen.has(text) || !keys.some((k) => text.includes(k))) return; seen.add(text); out.push({ who, text }); };
+    S.log.slice().reverse().forEach((m) => !m.me && addEx(m.who, m.text));
+    for (const c of Object.values(CH)) {
+      const all = [].concat(...(c.chats || []).map((ch) => ch.map((t) => t.say)), ...Object.values(c.idle || {}), c.dog || []);
+      all.forEach((t) => addEx(c.name, t));
+    }
+    return out;
+  }
+  function tDiary(sel) {
+    const d = SV();
+    if (sel.seg === 'scraps' || sel.scrap !== undefined) {
+      const list = d.scraps || [], i = sel.scrap !== undefined ? +sel.scrap : list.length - 1, x = list[i];
+      return '<h3>かけら · Scraps (' + list.length + ')</h3>' + (x ? '<div class="tcard"><p class="tsub">Scrap #' + (i + 1) + ' · from ' + tesc(x.from) + ' · day ' + (x.day || '') + '</p><p class="big">' + (x.html || tesc(x.jp)) + '</p><p><b>' + tesc(x.en) + '</b></p><p>' + tesc(x.note || '') + '</p>' + (x.trick ? '<p>🐕 Say it to the dog and it ' + tesc(x.trick) + '.</p>' : '') + '<div class="chips">' + lineWords(x.jp) + '</div></div>' : '<p class="tsub">No scraps yet. Deliver a friend\'s wish to get one.</p>') +
+        list.map((s, k) => '<div class="tcard' + (k === i ? ' sel' : '') + '">' + (s.html || tesc(s.jp)) + ' <span class="tsub">' + tesc(s.en) + '</span></div>').join('');
+    }
+    if (sel.word && d.words[sel.word]) {
+      const w = Object.assign(Words.gloss(sel.word), d.words[sel.word]), str = Math.round(Save.fade(sel.word)), ex = examplesFor(w);
+      const kanji = [...(w.jp || '')].filter((c) => /[一-鿿]/.test(c));
+      return '<div class="row2"><div style="flex:1"><p class="big">' + truby(w.jp, w.kana) + '</p><p><b>' + tesc(w.en) + '</b> · <span class="tsub">' + tesc(w.cat) + '</span></p></div>' + (w.sprite ? tsprite(w.sprite, 5) : '') + '</div>' +
+        '<div class="tgrid"><div class="tstat"><span class="tsub">聞いた · heard</span><b>' + w.heard + '</b></div><div class="tstat"><span class="tsub">言った · said</span><b>' + w.said + '</b></div>' +
+        '<div class="tstat"><span class="tsub">はじめて · first met</span><b>' + (w.firstDay ? w.firstDay + '日目' : '—') + '</b></div><div class="tstat"><span class="tsub">さいご · last used</span><b style="font-size:1em">' + fmtDate(w.last) + '</b></div></div>' +
+        '<div class="tcard"><b>つよさ · Strength ' + str + '%</b>' + tbar(str) + '<p class="tsub">Saying a word adds 8, hearing it adds 2; it fades about 10 a day unused.' + (w.said ? '' : ' Try saying this one!') + '</p></div>' +
+        (kanji.length ? '<div class="tcard"><b>かんじ · Written with</b><div class="chips" style="margin-top:.3em">' + kanji.map((k) => '<span class="chip2" style="font-size:1.4em">' + k + '</span>').join('') + '</div><p class="tsub">Read together as ' + tesc(w.kana || w.jp) + '.</p></div>' : '') +
+        '<div class="tcard"><b>れいぶん · Heard in</b>' + (ex.length ? ex.map((e) => '<div class="line"><span class="who">' + tesc(e.who) + '</span><br>' + tesc(e.text) + '</div>').join('') : '<p class="tsub">No example yet.</p>') + '</div>';
+    }
+    const words = Object.entries(d.words || {}).map(([id, w]) => Object.assign(Words.gloss(id), w, { str: Math.round(Save.fade(id)) }));
+    const cats = {}; words.forEach((w) => (cats[w.cat] = (cats[w.cat] || 0) + 1));
+    const fading = words.filter((w) => w.str < 30).sort((a, b) => a.str - b.str).slice(0, 8), strong = words.sort((a, b) => b.str - a.str).slice(0, 8);
+    const list = (ws) => ws.map((w) => '<span class="chip2">' + truby(w.jp, w.kana) + ' · ' + w.str + '%</span>').join('');
+    return '<h3>ことば · Words (' + words.length + ')</h3><div class="chips">' + Object.entries(cats).map(([c, n]) => '<span class="chip2">' + tesc(c) + ' ' + n + '</span>').join('') + '</div>' +
+      '<div class="tcard"><b>つよい · Strongest</b><div class="chips" style="margin-top:.3em">' + (list(strong) || '<span class="tsub">—</span>') + '</div></div>' +
+      '<div class="tcard"><b>わすれそう · Fading: practise these</b><div class="chips" style="margin-top:.3em">' + (list(fading) || '<span class="tsub">Nothing fading.</span>') + '</div></div>' +
+      '<p class="tsub">Tap a word on your phone to see its page here.</p>';
+  }
+  // --- story and jobs ---
+  function tJobs(sel) {
+    const s = qs(), jobs = board().jobs || [];
+    if (sel.job) {
+      const j = jobs.find((x) => x.id === sel.job);
+      if (j) return '<h3>' + tesc(j.title) + ' <span class="tsub">' + tesc(j.en) + '</span></h3><div class="tcard"><p>依頼人 · From <b>' + tesc(j.client === 'hana' ? NAMES.landlord : npcName(j.client)) + '</b></p><p class="big" style="font-size:1.6em">' + tesc(j.brief || j.title) + '</p><p>' + tesc(j.goal) + '</p>' +
+        '<p>Reward ¥' + j.reward.yen + (j.reward.treats ? ' + おやつ ' + j.reward.treats : '') + ' · ' + tesc(j.state) + (j.stars ? ' · ' + tstars(j.stars) : '') + '</p><div class="chips">' + lineWords(j.brief || j.title) + '</div></div>' +
+        '<p class="tsub">Stars: three for no mistakes, fewer for each miss. Friendship with the client grows by two per star.</p>';
+    }
+    let html = '<h3>メインストーリー · Main story</h3><p class="tsub">' + s.done.length + ' of ' + QUESTS.length + ' quests done</p>';
+    for (let c = 0; c <= 5; c++) {
+      const qsIn = QUESTS.map((q, i) => ({ q, i })).filter((x) => x.q.chapter === c); if (!qsIn.length) continue;
+      const started = qsIn.some((x) => x.i <= s.i);
+      html += '<div class="tcard' + (started ? '' : ' done') + '"><b>第' + c + '章 ' + tesc(CHAPTERS[c]) + '</b>' + qsIn.map(({ q, i }) => {
+        const st = i < s.i ? 'done' : i === s.i ? 'cur' : '';
+        return '<div class="line ' + st + '">' + (i < s.i ? '✓ ' : i === s.i ? '▶ ' : '· ') + (i <= s.i ? tesc(q.jp) + ' <span class="tsub">' + tesc(q.en) + '</span>' : '<span class="tsub">???</span>') +
+          (i === s.i ? '<ol style="margin:.3em 0 0">' + q.steps.map((stp, k) => '<li class="' + (k < s.step ? 'done' : k === s.step ? 'cur' : '') + '">' + tesc(stp.jp) + ' <span class="tsub">' + tesc(stp.en) + '</span></li>').join('') + '</ol>' : '') + '</div>';
+      }).join('') + '</div>';
+    }
+    html += '<h3>きょうの しごと · Today\'s jobs</h3>' + jobs.map((j) => '<div class="tcard"><b>' + tesc(j.title) + '</b> <span class="tsub">' + tesc(j.en) + ' · ' + tesc(j.state) + '</span><br>' + tesc(j.goal) + '</div>').join('');
+    return html;
+  }
+  // --- people: full profiles ---
+  const NEXT = [5, 15, 30];
+  function tPeople(sel) {
+    const d = SV(), ids = Object.keys(CH);
+    if (sel.person && CH[sel.person]) {
+      const id = sel.person, c = CH[id], f = d.friends[id] || { points: 0, stars: 0 }, nx = NEXT[f.stars], prev = f.stars ? NEXT[f.stars - 1] : 0;
+      const where = Object.values(MAPS).find((m) => (m.npcs || []).some((n) => n.id === id)), npc = where && where.npcs.find((n) => n.id === id);
+      const gift = c.gift, wish = c.wish, giftFor = gift && gift.extra ? ' + ' + gift.extra.en + ' (for ' + npcName(gift.extra.for) + ')' : '';
+      const heard = S.log.filter((m) => m.th === c.name && !m.me).slice(-4);
+      return '<div class="row2">' + (npc ? tsprite(npc.sprite, 5) : '') + '<div style="flex:1"><h3 style="font-size:1.5em">' + tesc(c.name) + '</h3><p class="tsub">' + tesc(c.role) + (where ? ' · 📍 ' + tesc(where.name) : '') + '</p><p>' + tstars(f.stars) + ' · ' + f.points + ' points</p></div></div>' +
+        '<div class="tcard"><b>せいかく · Personality</b><p>' + tesc(c.personality || '') + '</p>' + (f.stars >= 1 ? '<p class="tsub">Quirk: ' + tesc(c.quirk || '') + '</p>' : '<p class="tsub">Quirk: reach ★ to find out</p>') + '</div>' +
+        '<div class="tcard"><b>なかよし · Friendship</b>' + (nx ? tbar(((f.points - prev) / (nx - prev)) * 100, '#d9a400') + '<p class="tsub">' + (nx - f.points) + ' points to ★' + (f.stars + 1) + '. Daily chat +3, jobs +2 per star.</p>' : '<p>Best friends ★★★</p>') +
+        '<p class="tsub">' + (d.chatDay[id] === d.day ? 'Talked today ✓' : 'Say こんにちは to them today') + '</p></div>' +
+        '<div class="tcard"><b>プレゼント · Their ★★★ gift</b><div class="row2">' + (f.stars >= 3 ? tsprite(gift.sprite, 3) + '<p>' + tesc(gift.en) + tesc(giftFor) + '</p>' : '<p class="tsub">??? (at ★★★)</p>') + '</div></div>' +
+        (wish ? '<div class="tcard"><b>ねがい · Their wish</b><p>' + (d.wishes[id] ? '✓ ' + tesc(wish.item_en) + ' delivered · 「' + tesc(wish.scrap.jp) + '」' : f.stars >= 3 ? tesc(wish.item_en) + ' · ' + (hasItem(wish.item) ? 'you have it: say hello to give it!' : 'one of the townsfolk gives it at ★★★') : '<span class="tsub">??? (they\'ll tell you at ★★★)</span>') + '</p></div>' : '') +
+        '<div class="tcard"><b>さいきん · Recently said</b>' + (heard.length ? heard.map((m) => '<div class="line">' + tesc(m.text) + '</div>').join('') : '<p class="tsub">Nothing yet this session.</p>') + '</div>';
+    }
+    return '<h3>まちの ひと · Townsfolk</h3><div class="tgrid">' + ids.map((id) => {
+      const c = CH[id], f = d.friends[id] || { stars: 0 }, where = Object.values(MAPS).find((m) => (m.npcs || []).some((n) => n.id === id)), npc = where && where.npcs.find((n) => n.id === id);
+      return '<div class="tstat" style="text-align:center">' + (npc ? tsprite(npc.sprite, 3) : '') + '<br><b style="font-size:1em">' + tesc(c.name) + '</b>' + tstars(f.stars) + '<br><span class="tsub">' + tesc(c.role) + '</span></div>';
+    }).join('') + '</div><p class="tsub">Tap someone on your phone to see their page here.</p>';
+  }
+  // --- home: furniture and tricks ---
+  function tHouse(sel) {
+    const d = SV(), f = d.house.furniture || [], i = sel.furniture !== undefined ? +sel.furniture : -1, x = f[i];
+    const tricks = (d.tricks || []).map((id) => Object.values(CH).find((c) => c.wish && c.wish.trick.id === id)).filter(Boolean);
+    return (x ? '<div class="tcard"><div class="row2">' + tsprite(x.sprite, 6) + '<div><h3>' + tesc(x.en) + '</h3><p>From ' + tesc(npcName(x.from)) + ' · day ' + (x.day || '') + '</p>' + (x.for ? '<p>' + (x.given ? '✓ Given to ' : 'For ') + tesc(npcName(x.for)) + '</p>' : '') + '</div></div></div>' : '') +
+      '<h3>かぐ · Furniture (' + f.length + ')</h3><div class="tgrid">' + (f.length ? f.map((y, k) => '<div class="tstat' + (k === i ? ' sel' : '') + (y.given ? ' done' : '') + '" style="text-align:center">' + tsprite(y.sprite, 3) + '<br>' + tesc(y.en) + '<br><span class="tsub">from ' + tesc(npcName(y.from)) + '</span></div>').join('') : '<p class="tsub">Nothing yet. Friends give furniture at ★★★.</p>') + '</div>' +
+      '<h3>いぬの とくぎ · Dog tricks (' + tricks.length + ')</h3>' + (tricks.length ? tricks.map((c) => '<div class="tcard"><p class="big" style="font-size:1.5em">' + (c.wish.scrap.html || tesc(c.wish.scrap.jp)) + '</p><p>' + tesc(c.wish.scrap.en) + ' · <span class="tsub">' + tesc(c.wish.scrap.note) + '</span></p><p>🐕 The dog ' + tesc(c.wish.trick.en) + '.</p></div>').join('') : '<p class="tsub">Deliver a friend\'s wish to learn a trick.</p>');
+  }
+
   // ---------- camera ----------
   // The phone's カメラ app shows a viewfinder cone in front of the hero. Taking a picture finds
   // what's inside the cone (things, people, animals, the ground), tags them with numbers, and sends
@@ -1754,7 +1923,9 @@
   let last = performance.now();
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    update(dt); updateCamera(dt); draw();
+    if (!tabletOpen()) update(dt);   // the world pauses while the tablet panel is open
+    updateCamera(dt); draw();
+    if ((S.tabT = (S.tabT || 0) + dt) > 2) { S.tabT = 0; if (tabletOpen()) renderTablet(); }
     if (S.shot) capturePhoto();
     drawCameraFlash();
     if ((S.hudT = (S.hudT || 0) + dt) > 0.25) { S.hudT = 0; updateHud(); }
@@ -1885,7 +2056,7 @@
       if (S.ready) { c.send(phoneState()); lastState = ''; }
       if (S.phase === 'title') startGame();
     },
-    onLeave() { $('phones').textContent = net.count() + ' phone connected'; },
+    onLeave() { $('phones').textContent = net.count() + ' phone connected'; if (!net.count()) { S.view = null; renderTablet(); } },
     onMsg(d, c) {
       if (!d || typeof d !== 'object') return;
       if (d.t === 'move') { S.input.x = clamp(+d.x || 0, -1, 1); S.input.y = clamp(+d.y || 0, -1, 1); }
@@ -1895,6 +2066,7 @@
       }
       else if (d.t === 'replay') replay(!!d.slow);
       else if (d.t === 'camera') { S.camera = !!d.on; if (!S.camera) S.shot = null; }
+      else if (d.t === 'view') { S.view = { screen: String(d.screen || ''), sel: d.sel && typeof d.sel === 'object' ? d.sel : {} }; renderTablet(); }
       else if (d.t === 'turn') turnHero(+d.d || 0);
       else if (d.t === 'shoot') shoot();
       else if (d.t === 'album' && c) { try { c.send({ t: 'album', photos: SV().photos || [] }); } catch (_) {} }
@@ -2025,6 +2197,8 @@
   fillVoice();
   Voice.filesReady().then(() => { if (Voice.credits.length) { $('credits').textContent = '音声 · Voices: ' + Voice.credits.join('、'); $('credits').hidden = false; } });
 
+  $('tablet-layout').value = tabletLayout;
+  $('tablet-layout').addEventListener('change', () => { tabletLayout = $('tablet-layout').value; try { localStorage.setItem('unhandyman.tablet', tabletLayout); } catch (_) {} renderTablet(); });
   $('clock-speed').value = String(clockRate);
   $('clock-speed').addEventListener('change', () => { clockRate = +$('clock-speed').value; try { localStorage.setItem('unhandyman.clockRate', String(clockRate)); } catch (_) {} });
   $('explore').addEventListener('change', () => { SV().explore = $('explore').checked; Save.save(); });
@@ -2051,6 +2225,7 @@
     setClock(min) { setClock(min); },
     gainFriend, talkToNearby, get chat() { return S.chat; }, questCheck, questInfo, qs,
     camera(on) { S.camera = !!on; }, shoot, turnHero,
+    view(screen, sel) { S.view = { screen, sel: sel || {} }; renderTablet(); }, setTablet(l) { tabletLayout = l; renderTablet(); },
     get clock() { return S.clock; },
     hero: () => S.hero,
     // Draws a whole map to an image (for checking map layouts); returns a data URL.

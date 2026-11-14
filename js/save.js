@@ -132,6 +132,7 @@
       const now = Date.now(), w = Save.data.words[id] || (Save.data.words[id] = { heard: 0, said: 0, firstHeard: null, firstSaid: null, last: null, strength: 0 });
       if (how === 'heard') { w.heard++; w.firstHeard = w.firstHeard || now; w.strength = Math.min(100, w.strength + 2); }
       else { w.said++; w.firstSaid = w.firstSaid || now; w.strength = Math.min(100, w.strength + 8); }
+      w.firstDay = w.firstDay || Save.data.day;   // the in-game day it was first met
       w.last = now; Save.save();
     },
     skill(id) {

@@ -137,6 +137,20 @@ Step types: `flag`, `go` (reach a map), `talk` (say hello to them: a short scene
 
 Open カメラ on the phone and a viewfinder cone appears in front of the hero on the TV. Turn with ↺ ↻ (or walk on the controller), then press the shutter. Everything inside the cone (up to six things, people and animals, nearest first, plus the ground) gets a numbered tag in the photo; the phone lists each one with its Japanese, reading, English, a picture and a play button, and NEW on first sight. Words go into 日記 → 言葉 with their pictures; the last 24 photos are kept in the album. Names live in the `PHOTO` table in `js/words.js` (sprite → written, reading, English, category).
 
+## Tablet panel on the TV (new)
+
+When the phone is on any app except the controller and the camera, the TV shows a tablet-sized, more detailed version of it, and the game pauses (clock, jobs and chatter stop). It follows the phone: tap a word, person, map area, job, scrap or piece of furniture there and its full page opens on the TV.
+
+- **Overview** (phone home): day and time, current quest, stats (words, strong words, jobs, stars, friends, yen, quests, photos, scraps, furniture), new words per day, recent lines.
+- **Messages:** every conversation; a thread shows each line with the words it uses.
+- **Map:** a picture of the whole area, who's there with their stars, rooms you can enter, and where each road goes (or what unlocks it).
+- **Diary:** a word page (big reading, heard/said, first met, last used, strength, the kanji it's written with, example sentences from the town), strongest and fading words; scraps in full.
+- **Story and jobs:** the whole quest log by chapter (future quests hidden), the current quest's steps; job details.
+- **People:** everyone's card; a person's page with personality, quirk, friendship progress, their gift and wish.
+- **Home:** furniture and where it came from; dog tricks with the pun explained.
+
+Choose the layout in 設定: **Right side** (game visible) or **Centre** (game dimmed).
+
 ## Known gaps
 
 - Voices use the browser's Japanese text-to-speech; VOICEVOX recordings come later.
