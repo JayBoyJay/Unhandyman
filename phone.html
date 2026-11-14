@@ -274,6 +274,7 @@
 <main id="scrMap" class="scr" hidden>
   <div class="appbar"><button class="back" data-go="home" aria-label="Back">‹</button><div class="grow"><p class="h1">地図</p><p class="sub">手ぶら町 · Tebura-chō</p></div></div>
   <div class="mapbox" id="mapBox"></div>
+  <p class="sub" id="mapHidden" style="text-align:center"></p>
   <div class="row sub" style="flex-wrap:wrap;gap:12px">
     <span class="row" style="gap:6px"><span class="pin" style="background:#d9533c;color:#fff">私</span>You</span>
     <span class="row" style="gap:6px"><span class="pin" style="background:#fff">犬</span><span id="mapDog">Dog</span></span>
@@ -346,10 +347,10 @@
 </main>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script src="assets/atlas.js?v=20261115n"></script>
-<script src="js/net.js?v=20261115n"></script>
-<script src="js/speech.js?v=20261115n"></script>
-<script src="js/voice.js?v=20261115n"></script>
+<script src="assets/atlas.js?v=20261115p"></script>
+<script src="js/net.js?v=20261115p"></script>
+<script src="js/speech.js?v=20261115p"></script>
+<script src="js/voice.js?v=20261115p"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -572,6 +573,7 @@
     const s = D.state;
     if (!s) { $('mapBox').innerHTML = '<p class="empty">Waiting for the TV…</p>'; return; }
     $('mapDog').textContent = s.dog.busy ? 'Dog · busy' : 'Dog · free';
+    $('mapHidden').textContent = s.mapsHidden ? '？？？ まだ ' + s.mapsHidden + 'つの ばしょが ある… · ' + s.mapsHidden + ' places still to discover' : 'ぜんぶ みつけた！ · You\'ve been everywhere!';
     $('mapBox').innerHTML = s.maps.map((m) => {
       const pins = m.here ? '<span class="pin" style="background:#d9533c;color:#fff">私</span><span class="pin" style="background:#fff">犬</span>' + (s.job ? '<span class="pin" style="background:#c07a12;color:#fff">J</span>' : '') : '';
       const who = m.open && m.npcs.length ? '<div class="who">' + m.npcs.map((p) => esc(p.name) + (p.stars ? ' <span class="stars">' + '★'.repeat(p.stars) + '</span>' : '')).join(' · ') + '</div>' : '';

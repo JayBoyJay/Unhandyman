@@ -490,6 +490,7 @@
   function changeMap(id, at) {
     if (S.chat) endChat(false);
     useMap(id);
+    markVisited();
     S.hero.x = at.x; S.hero.y = at.y;
     dog.x = at.x + 0.5; dog.y = at.y + 0.5; dog.state = 'follow'; dog.then = null; dog.chase = null;
     S.fade = 1; updateCamera(0, true);
@@ -733,11 +734,15 @@
   }
   // --- map: the whole area, who's there, and where the exits lead ---
   function tMap(sel) {
-    const id = sel.area && MAPS[sel.area] ? sel.area : (MAP.parent || MAP.id), m = MAPS[id], fr = SV().friends, d = SV();
+    const been = visited(), id = sel.area && MAPS[sel.area] && been[sel.area] ? sel.area : (MAP.parent || MAP.id), m = MAPS[id], fr = SV().friends, d = SV();
     const nm = m.name.split(' · ');
     const people = (m.npcs || []).filter((n) => n.id).map((n) => { const f = fr[n.id] || {}, c = CH[n.id] || {}; return '<tr><td>' + tsprite(n.sprite, 2) + '</td><td><b>' + tesc(n.name || c.name) + '</b><br><span class="tsub">' + tesc(c.role || '') + '</span></td><td>' + tstars(f.stars) + (d.chatDay[n.id] === d.day ? '<br><span class="tsub">talked today ✓</span>' : '') + '</td></tr>'; }).join('');
     const rooms = (m.buildings || []).filter((b) => b.room && MAPS[b.room]).map((b) => '<span class="chip2">' + tesc(MAPS[b.room].name) + '</span>').join('');
-    const exits = (m.exits || []).filter((e) => MAPS[e.to]).map((e) => { const open = !e.need || d.story[e.need] || d.explore; return '<li>' + (open ? '→ ' : '🔒 ') + tesc(MAPS[e.to].name) + (open ? '' : ' <span class="tsub">(' + tesc(e.locked || 'finish the chapter') + ')</span>') + '</li>'; }).join('');
+    // roads to places you haven't been yet stay a mystery
+    const exits = (m.exits || []).filter((e) => MAPS[e.to]).map((e) => {
+      const open = !e.need || d.story[e.need] || d.explore, name = been[e.to] ? tesc(MAPS[e.to].name) : '？？？ <span class="tsub">not explored yet</span>';
+      return '<li>' + (open ? '→ ' : '🔒 ') + name + (open || been[e.to] ? '' : ' <span class="tsub">(opens later in the story)</span>') + '</li>';
+    }).join('');
     return '<h3>' + tesc(nm[0]) + ' <span class="tsub">' + tesc(nm[1] || '') + '</span></h3>' + (id === (MAP.parent || MAP.id) ? '<p class="tsub">📍 You are here' + (MAP.parent ? ' (inside ' + tesc(MAP.name) + ')' : '') + '</p>' : '') +
       tmapImage(id) + (people ? '<div class="tcard"><b>ひと · People</b><table>' + people + '</table></div>' : '') +
       (rooms ? '<div class="tcard"><b>なか · Inside</b><div class="chips" style="margin-top:.3em">' + rooms + '</div></div>' : '') +
@@ -1237,6 +1242,7 @@
     if (S.phase !== 'title' || !S.ready) return;
     $('title').hidden = true;
     setClock(SV().clock || DAY_START); S.dayOver = false;
+    markVisited();
     const st = SV().story;
     if (!st.met) {
       S.phase = 'greet';
@@ -2030,11 +2036,30 @@
     for (const m of Object.values(MAPS)) for (const p of m.npcs || []) if (p.id && p.name) n[p.id] = p.name;
     return n;
   }
+  // Areas you've been to. Old saves didn't record this, so it's filled in from where you are now
+  // and the areas your finished quests took you to.
+  function visited() {
+    const d = SV();
+    if (!d.visited || typeof d.visited !== 'object') d.visited = { home: true };
+    if (!d.visitedInit) {
+      d.visitedInit = true;
+      const q = d.quest || {};
+      QUESTS.forEach((qu, i) => qu.steps.forEach((st, k) => { if (st.type === 'go' && (i < (q.i || 0) || (i === q.i && k < q.step))) d.visited[st.map] = true; }));
+      if (d.visited.square || d.story.ch0done) d.visited.lane = true;
+      if (d.visited.cafe) d.visited.river = true;
+      if (d.visited.police) d.visited.rail = true;
+      if (d.visited.shrine) d.visited.bamboo = true;
+      if (d.visited.forest) d.visited.terrace = true;
+    }
+    return d.visited;
+  }
+  function markVisited() { const v = visited(), id = MAP.parent || MAP.id; if (!v[id]) { v[id] = true; Save.save(); } }
   function mapList() {
     const open = (ex) => ex.to && (!ex.need || SV().story[ex.need] || SV().explore);
     const seen = { home: true }, order = ['home'];
     for (let i = 0; i < order.length; i++) for (const ex of MAPS[order[i]].exits || []) if (open(ex) && MAPS[ex.to] && !seen[ex.to]) { seen[ex.to] = true; order.push(ex.to); }
-    const all = order.concat(Object.keys(MAPS).filter((id) => !seen[id])).filter((id) => !MAPS[id].interior);
+    const been = visited();
+    const all = order.concat(Object.keys(MAPS).filter((id) => !seen[id])).filter((id) => !MAPS[id].interior && been[id]);
     const fr = SV().friends || {};
     return all.map((id) => {
       const m = MAPS[id], nm = m.name.split(' · ');
@@ -2049,6 +2074,7 @@
       quest: questInfo(),
       clock: Math.floor(S.clock), clockText: clockText(S.clock), part: partOfDay(S.clock), sky: skyColor(S.clock),
       map: { id: MAP.id, jp: nm[0], en: nm[1] || '' }, maps: mapList(),
+      mapsHidden: Object.keys(MAPS).filter((id) => !MAPS[id].interior && !visited()[id]).length,
       job: S.cur ? { title: S.cur.title, goal: S.cur.goal } : null,
       dog: { busy: dogBusy(), carry: dog.carry || null },
       words: Object.entries(d.words || {}).map(([id, w]) => Object.assign(Words.gloss(id), { heard: w.heard, said: w.said, strength: Math.round(Save.fade(id)) })),
