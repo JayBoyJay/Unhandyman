@@ -154,6 +154,15 @@
   .job .m { font-size: 13px; color: var(--ink2); }
   .job .now { font-size: 12px; font-weight: 800; color: #b5462e; }
   .hd { font-size: 14px; font-weight: 700; margin-top: 6px; }
+  .quest { background: #fff1c9; border: 3px solid var(--ink); border-radius: 20px; padding: 12px 14px; }
+  .quest .ch { font-size: 12px; font-weight: 700; color: #7a3a14; }
+  .quest .qt { font-size: 18px; font-weight: 800; margin: 2px 0; }
+  .quest ol { margin: 8px 0 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .quest li { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
+  .quest li .bx { flex: none; width: 18px; height: 18px; border: 2px solid var(--ink); border-radius: 5px; background: #fff; font-size: 12px; line-height: 14px; text-align: center; }
+  .quest li.done { opacity: .5; }
+  .quest li.cur { font-weight: 800; }
+  .quest li .en { display: block; font-weight: 400; font-size: 12px; color: var(--ink2); }
 
   /* contacts + soon */
   #scrCall { background: #e8edf5; }
@@ -283,6 +292,8 @@
 <!-- ============ 依頼 ============ -->
 <main id="scrJobs" class="scr" hidden>
   <div class="appbar"><button class="back" data-go="home" aria-label="Back">‹</button><div class="grow"><p class="h1">依頼</p><p class="sub" id="jobsDay">Jobs</p></div><span class="sm" style="display:inline-flex;align-items:center" id="wallet">¥0</span></div>
+  <div id="questCard"></div>
+  <p class="hd" id="jobsHead">しごと · Today's jobs</p>
   <div id="jobList" style="display:flex;flex-direction:column;gap:8px"><p class="empty">Waiting for the TV…</p></div>
   <p class="sub">Take up to 3 jobs. The board changes every day, so some jobs will be missed. Tap ▶ to hear the request.</p>
 </main>
@@ -309,10 +320,10 @@
 </main>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script src="assets/atlas.js?v=20261115h"></script>
-<script src="js/net.js?v=20261115h"></script>
-<script src="js/speech.js?v=20261115h"></script>
-<script src="js/voice.js?v=20261115h"></script>
+<script src="assets/atlas.js?v=20261115i"></script>
+<script src="js/net.js?v=20261115i"></script>
+<script src="js/speech.js?v=20261115i"></script>
+<script src="js/voice.js?v=20261115i"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -453,6 +464,7 @@
     if (D.ringing) n = { who: 'ハナさん · 電話', text: 'でんわ だよ！ TVを 見て。', ic: 'call', bg: '#cbd6e8', go: 'msgs', arg: 'ハナさん' };
     else if (last) n = { who: last.th, text: last.text, ic: 'msgs', bg: '#9fe1cb', go: 'msgs', arg: last.th };
     else if (s && s.job) n = { who: 'いま · ' + s.job.title, text: s.job.goal, ic: 'jobs', bg: '#f7c9a8', go: 'jobs' };
+    else if (s && s.quest) { const c = s.quest.steps.find((x) => x.cur); if (c) n = { who: '📜 ' + s.quest.jp, text: c.jp + ' · ' + c.en, ic: 'jobs', bg: '#fff1c9', go: 'jobs' }; }
     $('notif').hidden = !n;
     if (n) {
       $('notifIc').innerHTML = svg(n.ic, 22); $('notifIc').style.background = n.bg;
@@ -580,7 +592,15 @@
   $('scrapsView').addEventListener('click', (e) => { const b = e.target.closest('[data-word]'); if (b) speak(b.dataset.word, false); });
 
   // ---------- jobs ----------
+  function renderQuest() {
+    const q = D.state && D.state.quest;
+    $('questCard').innerHTML = q ? '<div class="quest"><p class="ch">メインストーリー · 第' + q.chapter + '章 ' + esc(q.chapterName) + ' · ' + q.done + '/' + q.total + '</p>' +
+      '<p class="qt">' + esc(q.jp) + '</p><p class="sub" lang="en">' + esc(q.en) + '</p><ol>' +
+      q.steps.map((s) => '<li class="' + (s.done ? 'done' : s.cur ? 'cur' : '') + '"><span class="bx">' + (s.done ? '✓' : '') + '</span><span>' + esc(s.jp) + '<span class="en">' + esc(s.en) + '</span></span></li>').join('') + '</ol></div>'
+      : '';
+  }
   function renderJobs() {
+    renderQuest();
     const b = D.board;
     if (!b) return;
     $('jobsDay').textContent = b.day + '日目のしごと · ' + b.jobs.filter((j) => j.state === 'taken').length + '/3 taken';
@@ -670,6 +690,7 @@
         if (screen === 'scrDiary') { D.seenWords = wordCount(); renderDiary(); }
         if (screen === 'scrCall') renderContacts();
         if (screen === 'scrHouse') renderHouse();
+        if (screen === 'scrJobs') renderQuest();
         break;
       case 'buzz':
         buzz([120, 80, 120, 80, 120]); D.ringing = true;

@@ -54,6 +54,9 @@
   #hud-clock { font-size: 1.25em; font-weight: 800; display: flex; align-items: center; gap: .35em; }
   #hud-clock .sun { width: .9em; height: .9em; border-radius: 50%; border: .12em solid var(--ink); display: inline-block; }
   #hud-clock small { font-weight: 400; font-size: .7em; }
+  #hud-quest { font-weight: 700; color: #7a3a14; }
+  #hud-quest-en { font-size: .75em; opacity: .75; }
+  #hud-quest:empty, #hud-quest-en:empty { display: none; }
   #toast { position: absolute; left: 50%; top: 12%; transform: translateX(-50%); padding: 0.4em 1.1em; font-size: 1.25em; background: #fff1c9; border: 0.2em solid var(--ink); border-radius: 0.6em; white-space: nowrap; z-index: 2; }
   #toast[hidden] { display: none; }
   #jobsBtn { position: absolute; right: 7%; bottom: 1.5%; height: 2.6em; padding: 0 1em; z-index: 3; }
@@ -96,7 +99,7 @@
     <div id="phones">Waiting for a phone</div>
   </div>
 
-  <div id="hud" hidden><div id="hud-clock"></div><div id="hud-day"></div><div id="hud-now" class="now"></div></div>
+  <div id="hud" hidden><div id="hud-clock"></div><div id="hud-day"></div><div id="hud-quest"></div><div id="hud-quest-en"></div><div id="hud-now" class="now"></div></div>
   <div id="toast" hidden></div>
   <div id="taskcard" class="box" hidden></div>
 
@@ -176,16 +179,17 @@
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="js/words.js?v=20261115h"></script>
-<script src="js/net.js?v=20261115h"></script>
-<script src="js/ai.js?v=20261115h"></script>
-<script src="js/voice.js?v=20261115h"></script>
-<script src="assets/atlas.js?v=20261115h"></script>
-<script src="js/save.js?v=20261115h"></script>
-<script src="js/jobs.js?v=20261115h"></script>
-<script src="js/maps.js?v=20261115h"></script>
-<script src="js/rooms.js?v=20261115h"></script>
-<script src="js/characters.js?v=20261115h"></script>
-<script src="js/game.js?v=20261115h"></script>
+<script src="js/words.js?v=20261115i"></script>
+<script src="js/net.js?v=20261115i"></script>
+<script src="js/ai.js?v=20261115i"></script>
+<script src="js/voice.js?v=20261115i"></script>
+<script src="assets/atlas.js?v=20261115i"></script>
+<script src="js/save.js?v=20261115i"></script>
+<script src="js/jobs.js?v=20261115i"></script>
+<script src="js/maps.js?v=20261115i"></script>
+<script src="js/rooms.js?v=20261115i"></script>
+<script src="js/characters.js?v=20261115i"></script>
+<script src="js/quests.js?v=20261115i"></script>
+<script src="js/game.js?v=20261115i"></script>
 </body>
 </html>

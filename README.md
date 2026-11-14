@@ -118,6 +118,21 @@ https://192.168.5.158:50443 {
 - **Stars** at 5 / 15 / 30 points pay ¥100 / ¥200 / ¥300 and 1 / 2 / 3 treats. Three stars also gives that person's furniture (it goes to おうち on the phone).
 - **Wishes:** at three stars a core character asks for something. Five townsfolk include it with their own three-star gift (ネムさん → Hana's futon, 金子さん → Gen's bell, 鉄さん → Mika's curry pot, ユリママ → Tanaka's phone, 熊田さん → Kon's fox). Say hello to the core character while you have it to hand it over: you get a pun scrap (日記 → かけら) and a trick. Saying the pun to the dog makes it do the trick.
 
+## Main story (new)
+
+`js/quests.js` is the story: six chapters of small quests, one after another (plain JSON after `window.QUESTS =`, voiced by tools/voicegen.py). The current step shows on the TV under the clock and as a checklist at the top of the phone's 依頼 app.
+
+| Chapter | Area | Quests | New dog word | Boss (skill) | Opens |
+|---|---|---|---|---|---|
+| 0 Arrival | Home | Greet Hana, first jobs and zombie night, dig under the fence | 掘って | (the first night) | Back lane, town square |
+| 1 Settling in | Town square | Meet the mayor, fix the fountain (screws from Kaneko), be useful, can the dog swim? | 泳いで | 源さん: answer exactly (yes/no, a number, where) | Riverside walk |
+| 2 Making friends | Café street | Meet Yamada, make friends, jump and climb with Yui, ask Tetsu about Mika | 跳んで, 登って | ミカさん: ask her questions | Railway crossing |
+| 3 Mystery begins | Police box | Tanaka's little-hands report, witnesses (Nemu, Yuri), sneak | こっそり | 田中さん: your alibi in the past tense | Bamboo path |
+| 4 Part of the town | Shrine | Help the takoyaki auntie, the fox at dusk, vanish | 消えて | コン: a polite, sincere request | Terrace road |
+| 5 Local | Mountain forest | Kumada and Ken point to the old hut | | (the finale, still to build) | |
+
+Step types: `flag`, `go` (reach a map), `talk` (say hello to them: a short scene), `jobs`, `friends`, `say` (a new word for the dog, in the right area), `boss`. Bosses use a trust meter (shown at the top): exact answers +30, other replies +10, not understood −15 (もう一回 is free). Finish with enough trust and the required skill used, or they say また あした and you try again the next day.
+
 ## Known gaps
 
 - Voices use the browser's Japanese text-to-speech; VOICEVOX recordings come later.

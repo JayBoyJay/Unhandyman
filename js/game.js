@@ -583,6 +583,7 @@
     if (!best) return false;
     best.bubble = '♪'; best.bubbleT = S.t + 1.5;
     const c = CH[best.id];
+    if (questTalk(best)) return true;
     if (!c) { say(best.name, best.hello); if (best.id) gainFriend(best.id, 1); return true; }
     const who = best.id === 'hana' ? 'landlord' : c.name, d = SV(), st = (d.friends[best.id] || {}).stars || 0;
     // a core friend at three stars asks for their wish, or receives it
@@ -605,10 +606,11 @@
     if (!t.want) after(2.6, () => { if (S.chat === ch) { ch.i++; chatTurn(); } });
   }
   // what you said, as a chat answer; returns false to let the dog hear it instead
-  const CHAT_TYPES = { unknown: 1, none: 1, greet: 1, thanks: 1, yes: 1, no: 1, dunno: 1, number: 1, time: 1, name: 1, describe: 1, item: 1 };
+  const CHAT_TYPES = { unknown: 1, none: 1, greet: 1, thanks: 1, yes: 1, no: 1, dunno: 1, number: 1, time: 1, name: 1, describe: 1, item: 1, dogname: 1 };
   function chatAnswer(r) {
     const ch = S.chat, t = ch && ch.turns[ch.i];
     if (!t || !ch.wait) return false;
+    if (ch.boss) return bossAnswer(r);
     if (Math.hypot(ch.npc.x - S.hero.x, ch.npc.y - S.hero.y) > 4.5 || S.t > ch.until) { endChat(false); return false; }
     const w = t.want, reply = w[r.type] !== undefined ? w[r.type] : CHAT_TYPES[r.type] ? w.any : undefined;
     if (reply === undefined) {
@@ -624,11 +626,126 @@
   }
   function endChat(done) {
     const ch = S.chat; S.chat = null; if (!ch) return;
+    if (ch.boss) hint('');
     if (!done) return;
+    if (ch.boss) return bossEnd(ch);
+    if (ch.quest) { gainFriend(ch.id, 1); questStepDone(); return; }
     SV().chatDay[ch.id] = SV().day;
     ch.npc.bubble = '♥'; ch.npc.bubbleT = S.t + 2;
     gainFriend(ch.id, 3);
     Save.save();
+  }
+
+  // ---------- the main story (js/quests.js) ----------
+  // One quest at a time, one step at a time. Steps finish by themselves (a flag, reaching a map,
+  // jobs or friendships) or through a scene: talking to someone, telling the dog a new word, or a
+  // conversation boss. Finishing a quest pays a reward and starts the next.
+  const QUESTS = window.QUESTS || [];
+  const CHAPTERS = ['到着 · Arrival', '新生活 · Settling in', '友だち · Making friends', 'なぞ · The mystery begins', 'まちの 一員 · Part of the town', '地元 · Local'];
+  function qs() { const d = SV(); if (!d.quest || typeof d.quest !== 'object') d.quest = { i: 0, step: 0, base: {}, done: [], stepDone: false, bossLost: {} }; d.quest.bossLost = d.quest.bossLost || {}; return d.quest; }
+  function curQuest() { return QUESTS[qs().i] || null; }
+  function curStep() { const q = curQuest(); return q ? q.steps[qs().step] || null : null; }
+  function stepIsDone(st) {
+    const d = SV(), b = qs().base || {};
+    switch (st.type) {
+      case 'flag': return !!d.story[st.flag];
+      case 'go': return MAP.id === st.map || MAP.parent === st.map;
+      case 'jobs': return d.stats.jobsDone - (b.jobs || 0) >= st.n;
+      case 'friends': return Object.values(d.friends).filter((f) => f.stars >= st.stars).length >= st.n;
+      default: return !!qs().stepDone;
+    }
+  }
+  function questCheck() {
+    if (!S.ready || !QUESTS.length) return;
+    for (let guard = 0; guard < 40; guard++) {
+      const st = curStep(); if (!st || !stepIsDone(st)) break;
+      const q = curQuest(), s = qs();
+      s.stepDone = false; s.step++; s.base = { jobs: SV().stats.jobsDone, day: SV().day };
+      if (s.step >= q.steps.length) {
+        s.done.push(q.id); s.i++; s.step = 0;
+        const rw = q.reward || {};
+        SV().yen += rw.yen || 0; SV().treats += rw.treats || 0;
+        toast('✔ ' + q.jp + (rw.yen ? '  +¥' + rw.yen : '') + (rw.treats ? '  +おやつ ' + rw.treats : '') + (q.done ? '  ' + q.done : ''));
+        const nq = curQuest();
+        if (nq) after(3.6, () => toast((nq.chapter !== q.chapter ? '第' + nq.chapter + '章 ' + CHAPTERS[nq.chapter] + ' · ' : '新しい クエスト: ') + nq.jp + ' · ' + nq.en));
+      }
+      Save.save(); syncBoard();
+    }
+  }
+  function questStepDone() { qs().stepDone = true; questCheck(); }
+  // saying hello to the person the current step is about plays their scene instead of a daily chat
+  function questTalk(n) {
+    const st = curStep(); if (!st || st.npc !== n.id || (st.type !== 'talk' && st.type !== 'boss')) return false;
+    const c = CH[n.id], who = n.id === 'hana' ? 'landlord' : (c && c.name) || n.name;
+    if (st.time === 'evening' && S.clock < 17 * 60) { say(who, '…'); toast('…コンは ゆうがたに あらわれる · come back in the evening'); return true; }
+    if (st.type === 'boss' && qs().bossLost[n.id] === SV().day) { say(who, st.lose); return true; }
+    S.chat = { id: n.id, npc: n, who, turns: st.turns, i: 0, wait: false, until: S.t + 60, quest: true };
+    if (st.type === 'boss') { S.chat.boss = { trust: 40, need: st.need || 60, require: st.require || [], used: {}, st }; bossMeter(); }
+    chatTurn();
+    return true;
+  }
+  // ---------- conversation bosses: a trust meter instead of HP ----------
+  const RX = {
+    question: /(なに|なん|どこ|だれ|いつ|どう|どれ|どの|いくら|なぜ|か[？?]?$|[？?])/,
+    past: /(ました|でした|かった|った|いた|んだ|だった|た$|た[。、 ]|てた)/,
+    polite: /(ます|です|ください|おねがい|お願い|ございます)/
+  };
+  function bossMeter() {
+    const b = S.chat && S.chat.boss; if (!b) return;
+    const n = Math.round(b.trust / 20);
+    hint('しんらい ' + '■'.repeat(n) + '□'.repeat(5 - n) + '   ' + (b.st.hint || ''));
+  }
+  function bossAnswer(r) {
+    const ch = S.chat, b = ch.boss, t = ch.turns[ch.i], w = t.want || {};
+    const text = Words.norm(r.text || '');
+    for (const k of Object.keys(RX)) if (RX[k].test(text)) b.used[k] = true;
+    let key = Object.keys(w).find((k) => k !== 'any' && (RX[k] ? RX[k].test(text) : r.type === k));
+    if (!key && w.any && CHAT_TYPES[r.type]) key = 'any';
+    if (!key) {
+      if (!CHAT_TYPES[r.type]) return false;   // a dog command
+      b.trust = Math.max(0, b.trust - 15); ch.tries = (ch.tries || 0) + 1; bossMeter();
+      say(ch.who, '…ん？', { noRepeat: true });
+      if (ch.tries >= 2) { ch.wait = false; after(1.8, () => { if (S.chat === ch) { ch.i++; chatTurn(); } }); }
+      return true;
+    }
+    b.trust = Math.min(100, b.trust + (key === 'any' ? 10 : 30)); bossMeter();
+    ch.wait = false; success(); ch.tries = 0;
+    say(ch.who, w[key]);
+    after(2.8, () => { if (S.chat === ch) { ch.i++; chatTurn(); } });
+    return true;
+  }
+  function bossEnd(ch) {
+    const b = ch.boss, st = b.st, missing = b.require.filter((k) => !b.used[k]);
+    after(0.4, () => {
+      if (b.trust >= b.need && !missing.length) {
+        say(ch.who, st.win);
+        if (st.flag) SV().story[st.flag] = true;
+        gainFriend(ch.id, 3);
+        after(4, () => questStepDone());
+      } else {
+        say(ch.who, st.lose);
+        qs().bossLost[ch.id] = SV().day; Save.save();
+        toast(missing.length ? 'Try again tomorrow · remember to use: ' + missing.map((k) => ({ question: 'a question (なに / どこ / …か？)', past: 'the past tense (〜ました / 〜た)', polite: 'polite words (〜ます / ください)' }[k])).join(', ') : 'Try again tomorrow · answer each question more exactly');
+      }
+    });
+  }
+  // a new word for the dog, said in the right place
+  function questSay(text) {
+    const st = curStep(); if (!st || st.type !== 'say') return false;
+    const t = Words.norm(text);
+    if (!st.words.some((w) => t.includes(Words.norm(w)))) return false;
+    if (MAP.id !== st.map && MAP.parent !== st.map) { dogMood('？'); toast('ここ じゃない · try it in ' + (MAPS[st.map] ? MAPS[st.map].name : st.map)); return true; }
+    if (dogBusy()) { dogMood('…'); return true; }
+    dog.trick = { id: st.anim, until: S.t + 3.5, from: { x: dog.x, y: dog.y } };
+    dogMood('！', 3); Save.skill('verb:' + st.anim);
+    after(3.6, questStepDone);
+    return true;
+  }
+  function questInfo() {
+    const q = curQuest(); if (!q) return null;
+    const s = qs();
+    return { chapter: q.chapter, chapterName: CHAPTERS[q.chapter], jp: q.jp, en: q.en, done: s.done.length, total: QUESTS.length,
+      steps: q.steps.map((st, i) => ({ jp: st.jp, en: st.en, done: i < s.step, cur: i === s.step })) };
   }
 
   // ---------- friendship rewards ----------
@@ -900,6 +1017,8 @@
     const text = r.text || (alts && alts[0]) || '';
     let ok = r.type !== 'unknown' && r.type !== 'none';
     if (r.type === 'none') return;
+    // the current quest's new dog word
+    if (questSay(text)) { heard(text, 'quest', true, 'quest'); return; }
     // a pun from a wish scrap makes the dog do its trick
     const tr = trickIn(text);
     if (tr) { doTrick(tr); heard(text, 'trick', true, 'trick'); return; }
@@ -1072,6 +1191,7 @@
     if (dog.state === 'idle') dog.state = 'follow';
     if (S.chat && S.t > S.chat.until) endChat(false);
     if ((S.ambT = (S.ambT || 0) + dt) > 0.5) { S.ambT = 0; ambient(); }
+    if ((S.qT = (S.qT || 0) + dt) > 1) { S.qT = 0; questCheck(); }
     if (dog.state === 'follow' && !(dog.trick && S.t < dog.trick.until)) moveToward(dog, h.x + 0.7, h.y + 0.7, 3.4, dt, 0.5);
     else if (dog.state === 'go') {
       if (dog.chase) { dog.tx = dog.chase.x; dog.ty = dog.chase.y; }
@@ -1341,6 +1461,10 @@
       if (k >= 0.7 && !tr.moved) { tr.moved = true; d.x = tr.from.x + 1.4; d.y = tr.from.y - 0.8; if (!walkable(d.x, d.y)) { d.x = tr.from.x; d.y = tr.from.y; } }
       return false;
     }
+    if (tr.id === 'swim') { for (let i = 0; i < 5; i++) R(p.x - 12 + i * 6, p.y + 1 + Math.sin(S.t * 5 + i) * 1.5, 4, 1, '#7ec3e6'); spr('dog', d.x, d.y, { flip: Math.sin(S.t * 2) > 0, lift: 1 }); return true; }
+    if (tr.id === 'jump') { spr('dog', d.x, d.y, { flip: d.face > 0, lift: Math.round(Math.abs(Math.sin(S.t * 5)) * 16) }); return true; }
+    if (tr.id === 'climb') { spr('dog', d.x, d.y, { flip: d.face > 0, lift: Math.round(Math.min(1, k * 1.6) * 22) }); return true; }
+    if (tr.id === 'sneak') { g.globalAlpha = 0.45; spr('dog', d.x + Math.sin(S.t) * 0.3, d.y, { flip: d.face > 0 }); g.globalAlpha = 1; return true; }
     if (tr.id === 'traffic') { spr('dog', d.x, d.y, { flip: Math.sin(S.t * 4) > 0, lift: 5 }); R(p.x - 1, p.y - 22, 2, 5, '#d9533c'); return true; }
     if (tr.id === 'dolphin') { for (let i = 0; i < 5; i++) R(p.x - 12 + i * 6, p.y + 1 + Math.sin(S.t * 5 + i) * 1.5, 4, 1, '#7ec3e6'); spr('dog', d.x, d.y, { flip: d.face > 0, lift: 2 + Math.round(Math.sin(S.t * 3)) }); return true; }
     if (tr.id === 'futon') { for (let i = 0; i < 4; i++) { R(p.x - 9, p.y - 4 - i * 3, 18, 3, C.ink); R(p.x - 8, p.y - 3 - i * 3, 16, 2, i % 2 ? '#f2b6c6' : '#f6f3ea'); } spr('dog', d.x, d.y, { flip: d.face > 0, lift: 13 }); return true; }
@@ -1559,6 +1683,10 @@
     } else if (S.phase === 'day') now = Jobs.taken(board()).length ? '' : 'しごとを えらんで';
     else if (S.phase === 'evening') now = 'おやすみ？';
     $('hud-now').textContent = now;
+    const qi = curStep();
+    $('hud-quest').textContent = qi ? '📜 ' + qi.jp : '';
+    $('hud-quest').title = qi ? qi.en : '';
+    $('hud-quest-en').textContent = qi ? qi.en : '';
   }
   function jobRow(j, i) {
     const reward = '¥' + j.reward.yen + (j.reward.treats ? ' · おやつ ' + j.reward.treats : '');
@@ -1616,6 +1744,7 @@
     const d = SV(), names = npcNames(), nm = MAP.name.split(' · ');
     return {
       t: 'state', day: d.day, phase: S.phase, phaseJp: PHASE_JP[S.phase] || '昼', yen: d.yen, treats: Save.treatsLeft(),
+      quest: questInfo(),
       clock: Math.floor(S.clock), clockText: clockText(S.clock), part: partOfDay(S.clock), sky: skyColor(S.clock),
       map: { id: MAP.id, jp: nm[0], en: nm[1] || '' }, maps: mapList(),
       job: S.cur ? { title: S.cur.title, goal: S.cur.goal } : null,
@@ -1813,7 +1942,7 @@
     S, handleSpeech, startGame, takeJob, dropJob, nextDay, Save, Jobs, changeMap, MAPS, phoneState, boardMsg,
     goto(id) { const m = MAPS[id]; if (m) changeMap(id, m.start); },
     setClock(min) { setClock(min); },
-    gainFriend, talkToNearby, get chat() { return S.chat; },
+    gainFriend, talkToNearby, get chat() { return S.chat; }, questCheck, questInfo, qs,
     get clock() { return S.clock; },
     hero: () => S.hero,
     // Draws a whole map to an image (for checking map layouts); returns a data URL.

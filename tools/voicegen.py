@@ -98,11 +98,12 @@ def collect_lines():
         for name, hello in re.findall(r"N\('[^']*',\s*'([^']*)',\s*'[^']*',\s*[\d.]+,\s*[\d.]+,\s*'([^'\\]*)'\)", text):
             lines.append((name, hello))
     # every character's chats, gift and wish lines (js/characters.js is JSON after the '=')
+    chars = {}
     p = os.path.join(ROOT, 'js', 'characters.js')
     if os.path.exists(p):
         with open(p, encoding='utf-8') as f:
             src = f.read()
-        chars = json.loads(src[src.index('window.CHARACTERS =') + len('window.CHARACTERS ='):src.rindex(';')])
+        chars = json.loads(src[src.rindex('window.CHARACTERS =') + len('window.CHARACTERS ='):src.rindex(';')])
         for cid, c in chars.items():
             who = 'landlord' if cid == 'hana' else c['name']
             again = c.get('again', '')
@@ -117,6 +118,23 @@ def collect_lines():
             if 'wish' in c:
                 said += [c['wish']['ask'], c['wish']['deliver'], c['wish']['scrap']['jp']]
             lines += [(who, s) for s in said if s]
+    # the main story's scenes and bosses (js/quests.js)
+    p = os.path.join(ROOT, 'js', 'quests.js')
+    if os.path.exists(p):
+        with open(p, encoding='utf-8') as f:
+            src = f.read()
+        quests = json.loads(src[src.rindex('window.QUESTS =') + len('window.QUESTS ='):src.rindex(';')])
+        for qu in quests:
+            for st in qu['steps']:
+                npc = st.get('npc')
+                if not npc:
+                    continue
+                who = 'landlord' if npc == 'hana' else chars.get(npc, {}).get('name', npc)
+                said = [st.get('win', ''), st.get('lose', '')]
+                for turn in st.get('turns', []):
+                    said.append(turn['say'])
+                    said.extend(turn.get('want', {}).values())
+                lines += [(who, s) for s in said if s]
     return lines
 
 
