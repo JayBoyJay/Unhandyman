@@ -13,6 +13,8 @@
   html, body { margin: 0; height: 100%; background: #1d1c1a; color: var(--ink); font-family: 'DotGothic16', system-ui, sans-serif; overflow: hidden; }
   .stage { position: relative; width: min(100vw, 177.78vh); aspect-ratio: 16 / 9; margin: 0 auto; top: 50%; transform: translateY(-50%); font-size: min(1.6vw, 2.85vh); }
   canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+  /* speech bubbles, drawn sharp at full screen resolution over the pixel-art game */
+  #textlayer { position: absolute; inset: 0; pointer-events: none; image-rendering: auto; z-index: 0; }
   .box { background: var(--paper); border: 0.25em solid var(--ink); border-radius: 0.6em; }
   #caption { position: absolute; left: 3%; right: 3%; bottom: 3%; padding: 0.6em 1em; min-height: 4.2em; }
   #caption.radio { background: #2e2c28; color: var(--paper); border-color: var(--paper); }
@@ -97,7 +99,7 @@
   #hud-quest:empty, #hud-quest-en:empty { display: none; }
   #toast { position: absolute; left: 50%; top: 12%; transform: translateX(-50%); padding: 0.4em 1.1em; font-size: 1.25em; background: #fff1c9; border: 0.2em solid var(--ink); border-radius: 0.6em; white-space: nowrap; z-index: 2; }
   #toast[hidden] { display: none; }
-  #jobsBtn { position: absolute; right: 7%; bottom: 1.5%; height: 2.6em; padding: 0 1em; z-index: 3; }
+
   #board { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -58%); width: 62%; max-height: 80%; overflow: hidden; padding: 0.8em 1em; z-index: 3; display: flex; flex-direction: column; gap: 0.5em; }
   #board h2 { margin: 0; font-size: 1.4em; font-weight: 400; display: flex; justify-content: space-between; align-items: baseline; }
   #board h2 small { font-size: 0.6em; opacity: 0.75; }
@@ -125,6 +127,7 @@
 <body>
 <div class="stage">
   <canvas id="game" width="320" height="180" aria-label="Un-Handy Man backyard"></canvas>
+  <canvas id="textlayer" aria-hidden="true"></canvas>
 
   <div id="heard" class="ok"></div>
   <div id="hint" hidden></div>
@@ -158,7 +161,6 @@
     <button class="btn" type="submit" style="padding:0.2em 0.8em">送る</button>
   </form>
 
-  <button id="jobsBtn" class="btn" type="button">しごと</button>
   <button id="gear" class="btn" type="button" aria-label="Settings">設定</button>
   <div id="settings" class="box" hidden>
    <button id="settings-x" class="btn" type="button" aria-label="Close settings">✕ 閉じる · Close</button>
@@ -223,23 +225,23 @@
   <div id="end" class="overlay" hidden>
     <h1>広場へ！</h1>
     <p>Chapter 0 complete · the town square is open</p>
-    <button id="nextday" class="btn" type="button">つぎの日 · Next day</button>
+    <p style="font-size:0.9em;opacity:0.85">おやすみ！ Say おやすみ on your phone to sleep.</p>
   </div>
 </div>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="js/words.js?v=20261116a"></script>
-<script src="js/net.js?v=20261116a"></script>
-<script src="js/ai.js?v=20261116a"></script>
-<script src="js/voice.js?v=20261116a"></script>
-<script src="assets/atlas.js?v=20261116a"></script>
-<script src="js/save.js?v=20261116a"></script>
-<script src="js/jobs.js?v=20261116a"></script>
-<script src="js/maps.js?v=20261116a"></script>
-<script src="js/rooms.js?v=20261116a"></script>
-<script src="js/characters.js?v=20261116a"></script>
-<script src="js/quests.js?v=20261116a"></script>
-<script src="js/game.js?v=20261116a"></script>
+<script src="js/words.js?v=20261116c"></script>
+<script src="js/net.js?v=20261116c"></script>
+<script src="js/ai.js?v=20261116c"></script>
+<script src="js/voice.js?v=20261116c"></script>
+<script src="assets/atlas.js?v=20261116c"></script>
+<script src="js/save.js?v=20261116c"></script>
+<script src="js/jobs.js?v=20261116c"></script>
+<script src="js/maps.js?v=20261116c"></script>
+<script src="js/rooms.js?v=20261116c"></script>
+<script src="js/characters.js?v=20261116c"></script>
+<script src="js/quests.js?v=20261116c"></script>
+<script src="js/game.js?v=20261116c"></script>
 </body>
 </html>

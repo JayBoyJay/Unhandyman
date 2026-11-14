@@ -380,7 +380,7 @@
     after(2.2, () => {
       S.nightTarget = 0; S.phase = 'day'; S.dayOver = false; setClock(DAY_START); Save.save();
       say('landlord', 'おはよう！ きょうの しごと だよ。');
-      syncBoard(); showBoard(true);
+      syncBoard(); jobsNudge();
     });
   }
 
@@ -1371,7 +1371,7 @@
       after(0.6, st.night0 ? evening : dusk);
     } else {
       S.phase = 'day';
-      after(0.8, () => { say('landlord', 'おかえり！'); after(2, () => (Jobs.taken(board()).length ? startNextJob() : showBoard(true))); });
+      after(0.8, () => { say('landlord', 'おかえり！'); after(2, () => (Jobs.taken(board()).length ? startNextJob() : jobsNudge())); });
     }
     syncBoard();
   }
@@ -1421,6 +1421,8 @@
     SV().story.ch0done = true; Save.save(true);
     say('landlord', 'すごい！ 広場に 行ける ね。');
     after(3, () => { $('end').hidden = false; });
+    // nothing to click: the card fades after a while and the evening carries on (say おやすみ to sleep)
+    after(11, () => { $('end').hidden = true; if (S.phase === 'done') evening(); });
   }
 
   // ---------- understanding what was said ----------
@@ -1472,7 +1474,7 @@
         if (S.phase === 'greet') {
           success(); say('landlord', 'はじめまして。 よろしく ね。');
           SV().story.met = true; S.phase = 'day'; Save.friend('hana', 0); Save.save(true);
-          after(2.8, () => { say('landlord', 'しごと、ある よ。 ボードを 見て！'); showBoard(true); hint('Take a job on your phone (しごと) or press J'); });
+          after(2.8, () => { say('landlord', 'しごと、ある よ。 ボードを 見て！'); jobsNudge(); });
         } else say('landlord', S.night > 0.5 ? 'こんばんは。' : 'こんにちは！');
         break;
       case 'thanks': say('landlord', 'どういたしまして。'); break;
@@ -1980,7 +1982,55 @@
     else if (d.carry) drawItemAt(d.carry, cx, cy, true);
     if (d.mood) bubble(p.x, p.y - 20, d.mood);
   }
+  // ---------- speech bubbles on a sharp text layer ----------
+  // The game draws at 320x180 and is scaled up, which makes small kana and kanji blurry.
+  // Bubbles are drawn instead on a second canvas at the screen's real resolution, in game units.
+  const mainG = g, tl = $('textlayer'), tg = tl && tl.getContext('2d');
+  let textQ = [];
+  const BFONT = (px, w) => (w || 700) + ' ' + px + 'px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Noto Sans JP", sans-serif';
+  function drawTextLayer() {
+    if (!tg) return;
+    const r = tl.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+    if (tl.width !== w || tl.height !== h) { tl.width = w; tl.height = h; }
+    tg.setTransform(1, 0, 0, 1, 0, 0); tg.clearRect(0, 0, w, h);
+    const k = w / W; tg.setTransform(k, 0, 0, k, 0, 0);
+    placed = [];
+    textQ.forEach((f) => f(tg)); textQ = [];
+  }
+  function bubbleBox(c, x, y, w, h, tail) {
+    c.fillStyle = 'rgba(43,42,39,.25)'; c.beginPath(); c.roundRect(x + 0.8, y + 1, w, h, 3); c.fill();
+    c.fillStyle = '#fff8e7'; c.strokeStyle = C.ink; c.lineWidth = 0.9;
+    c.beginPath(); c.roundRect(x, y, w, h, 3); c.fill(); c.stroke();
+    if (tail) {
+      const { tx, up } = tail, ty = up ? y : y + h, d = up ? -3.2 : 3.2;
+      c.beginPath(); c.moveTo(tx - 2.6, ty); c.lineTo(tx, ty + d); c.lineTo(tx + 2.6, ty); c.closePath(); c.fill();
+      c.beginPath(); c.moveTo(tx - 2.6, ty); c.lineTo(tx, ty + d); c.lineTo(tx + 2.6, ty); c.stroke();
+      c.fillRect(tx - 2.2, ty - (up ? -0.5 : 1), 4.4, 1.2);
+    }
+  }
+  // break a line into rows that fit: at spaces first, then between characters for long runs,
+  // never starting a row with closing punctuation
+  const NO_START = /^[、。！？!?」』）)ー〜…ぁぃぅぇぉっゃゅょゎァィゥェォッャュョ]/;
+  function wrapText(c, text, maxW) {
+    const rows = [];
+    let cur = '';
+    const push = () => { if (cur) rows.push(cur); cur = ''; };
+    for (const word of String(text).split(/\s+/).filter(Boolean)) {
+      const t = cur ? cur + ' ' + word : word;
+      if (c.measureText(t).width <= maxW) { cur = t; continue; }
+      if (cur && c.measureText(word).width <= maxW) { push(); cur = word; continue; }
+      // too long for a row on its own: split by character
+      for (const ch of (cur ? ' ' : '') + word) {
+        const t2 = cur + ch;
+        if (c.measureText(t2).width > maxW && cur && !NO_START.test(ch)) { push(); cur = ch === ' ' ? '' : ch; } else cur = t2;
+      }
+    }
+    push();
+    return rows;
+  }
   function bubble(x, y, text) {
+    if (g === mainG && tg) { textQ.push((c) => smallBubble(c, x, y, text)); return; }
     g.font = '8px DotGothic16, monospace';
     const w = Math.max(9, Math.ceil(g.measureText(text).width) + 5);
     R(x - w / 2, y - 7, w, 10, '#fff8e7'); g.strokeStyle = C.ink; g.lineWidth = 1; g.strokeRect(Math.round(x - w / 2) + 0.5, y - 6.5, w - 1, 9);
@@ -1996,7 +2046,37 @@
     else if (n.bubble && n.bubbleT > S.t) lateDraw.push(() => bubble(p.x, p.y - 30, n.bubble));
   }
   // a speech bubble with a line of Japanese, wrapped to fit
+  function smallBubble(c, x, y, text) {
+    c.font = BFONT(6, 800);
+    const w = Math.max(9, c.measureText(text).width + 5.5), h = 8.5;
+    const bx = Math.max(1, Math.min(W - w - 1, x - w / 2));
+    bubbleBox(c, bx, y - 6.5, w, h, { tx: x, up: false });
+    c.fillStyle = C.ink; c.textBaseline = 'middle'; c.fillText(text, bx + 2.75, y - 2.1); c.textBaseline = 'alphabetic';
+  }
+  // bubbles placed this frame, so two people talking at once don't cover each other
+  let placed = [];
+  const hits = (r) => placed.some((q) => r.x < q.x + q.w + 2 && q.x < r.x + r.w + 2 && r.y < q.y + q.h + 2 && q.y < r.y + r.h + 2);
+  function talkBubbleHi(c, x, y, text) {
+    c.font = BFONT(5.6, 700);
+    const lines = wrapText(c, text, 88).slice(0, 5), lh = 7.4;
+    const w = Math.ceil(Math.max(...lines.map((l) => c.measureText(l).width))) + 8, h = lines.length * lh + 4.5;
+    let bx = Math.max(2, Math.min(W - w - 2, x - w / 2));
+    const below = y - h < 58;
+    let by = below ? y + 40 : y - h - 2;
+    // slide away from bubbles already drawn: up (or down, below the speaker), then sideways
+    for (let n = 0; n < 8 && hits({ x: bx, y: by, w, h }); n++) {
+      if (n < 4) by += below ? (h * 0.6 + 2) : -(h * 0.6 + 2);
+      else bx = Math.max(2, Math.min(W - w - 2, bx + (n % 2 ? -1 : 1) * (w * 0.6)));
+      by = Math.max(2, Math.min(H - h - 34, by));
+    }
+    placed.push({ x: bx, y: by, w, h });
+    bubbleBox(c, bx, by, w, h, { tx: Math.max(bx + 5, Math.min(bx + w - 5, x)), up: below });
+    c.fillStyle = C.ink; c.textBaseline = 'middle';
+    lines.forEach((l, i) => c.fillText(l, bx + 4, by + 2.3 + lh / 2 + i * lh));
+    c.textBaseline = 'alphabetic';
+  }
   function talkBubble(x, y, text) {
+    if (g === mainG && tg) { textQ.push((c) => talkBubbleHi(c, x, y, text)); return; }
     g.font = '8px DotGothic16, monospace';
     const words = text.split(' '), lines = [];
     let cur = '';
@@ -2142,6 +2222,7 @@
     }
     drawCameraCone();
     lateDraw.forEach((f) => f()); lateDraw = [];
+    if (g === mainG) drawTextLayer();
   }
 
   // ---------- loop ----------
@@ -2201,14 +2282,14 @@
     $('board-sub').textContent = b.day + '日目 · ' + Jobs.taken(b).length + '/3 taken · ' + Jobs.doneCount(b) + ' done';
     $('board-list').innerHTML = b.jobs.map(jobRow).join('');
   }
+  // the day's jobs are picked on the phone (しごと app); the TV only says so, nothing to click here
+  function jobsNudge() { syncBoard(); hint('📱 しごと: take a job on your phone'); }
   function showBoard(on) { $('board').hidden = !on; if (on) { renderBoard(); fitBox($('board'), 1); } }
   $('board').addEventListener('click', (e) => {
     const t = e.target.closest('button'); if (!t) return;
     if (t.dataset.take) takeJob(t.dataset.take);
     if (t.dataset.drop) dropJob(t.dataset.drop);
   });
-  $('jobsBtn').addEventListener('click', () => showBoard($('board').hidden));
-  $('nextday').addEventListener('click', nextDay);
   function boardMsg() {
     const b = board(); if (!b) return null;
     return {

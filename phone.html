@@ -106,6 +106,26 @@
   .bub .tx { max-width: 260px; border: 2px solid var(--ink); padding: 10px 14px; font-size: 17px; line-height: 1.4; background: #fff; border-radius: 18px 18px 18px 6px; -webkit-user-select: text; user-select: text; }
   .bub.me .tx { background: #9fe1cb; border-radius: 18px 18px 6px 18px; }
   .bub.playing .tx { outline: 3px solid var(--red); }
+  /* tap a word in a message to look it up */
+  .wd { border-radius: 6px; padding: 0 1px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .wd.known { background-image: linear-gradient(transparent 82%, rgba(29,158,117,.35) 82%); }
+  .wd.on { background: #ffe08a; }
+  #wordSheet { position: fixed; left: 8px; right: 8px; bottom: 8px; z-index: 50; background: #fff8e7; border: 3px solid var(--ink); border-radius: 22px; padding: 14px 16px 16px; box-shadow: 0 6px 0 rgba(43,31,51,.3); display: flex; flex-direction: column; gap: 10px; max-width: 520px; margin: 0 auto; }
+  #wordSheet[hidden] { display: none; }
+  body.wsOpen #thMsgs { padding-bottom: 210px; }
+  #wsTop { display: flex; align-items: center; gap: 10px; }
+  #wsWord { flex: 1; font-size: 34px; font-weight: 800; line-height: 1.5; }
+  #wsWord rt { font-size: 14px; font-weight: 700; color: var(--red); }
+  #wsWord .hide rt { visibility: hidden; }
+  .wsBtns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .wsBtn { border: 2px solid var(--ink); border-radius: 16px; background: #fff; min-height: 64px; padding: 6px; font-weight: 800; font-size: 13px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+  .wsBtn small { font-weight: 400; font-size: 11px; color: var(--ink2); }
+  .wsBtn.open { background: #fff1c9; }
+  .wsBtn:disabled { opacity: .35; }
+  .wsBtn .ans { font-size: 17px; font-weight: 800; color: var(--ink); line-height: 1.25; text-align: center; }
+  .wsBtn .ans img { image-rendering: pixelated; max-height: 44px; }
+  .wsBtn .ans .emo { font-size: 32px; line-height: 1; }
+  #wsRest { font-size: 13px; color: var(--ink2); }
   .daysep { align-self: center; font-size: 12px; color: var(--ink2); background: #fff; border: 2px solid var(--ink); border-radius: 999px; padding: 2px 10px; }
 
   /* map */
@@ -364,10 +384,17 @@
 </main>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script src="assets/atlas.js?v=20261116a"></script>
-<script src="js/net.js?v=20261116a"></script>
-<script src="js/speech.js?v=20261116a"></script>
-<script src="js/voice.js?v=20261116a"></script>
+<div id="wordSheet" hidden role="dialog" aria-label="Word">
+  <div id="wsTop"><div id="wsWord"></div><button class="play" id="wsPlay" type="button" aria-label="Play the word"><svg width="20" height="20" viewBox="0 0 24 24" fill="#3b3a36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg></button><button class="sm" id="wsClose" type="button" aria-label="Close">✕</button></div>
+  <div class="wsBtns"><button class="wsBtn" id="wsFuri" type="button"></button><button class="wsBtn" id="wsIcon" type="button"></button><button class="wsBtn" id="wsEn" type="button"></button></div>
+  <div id="wsRest"></div>
+</div>
+<script src="js/words.js?v=20261116c"></script>
+<script src="js/dict.js?v=20261116c"></script>
+<script src="assets/atlas.js?v=20261116c"></script>
+<script src="js/net.js?v=20261116c"></script>
+<script src="js/speech.js?v=20261116c"></script>
+<script src="js/voice.js?v=20261116c"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -417,7 +444,7 @@
     screen = id;
     SCREENS.forEach((s) => ($(s).hidden = s !== id));
     document.body.style.background = id === 'scrHome' && $('scrHome').classList.contains('night') ? '#2f3a52' : BG[id];
-    if (id !== 'scrMsgs') openThread(null);
+    if (id !== 'scrMsgs') { closeWord(); openThread(null); }
     if (id === 'scrHome') renderHome();
     if (id === 'scrMsgs') { if (arg) openThread(arg); else renderThreads(); }
     if (id === 'scrMap') renderMap();
@@ -565,13 +592,83 @@
       if (m.th !== curTh) return;
       if (m.day && m.day !== day) { day = m.day; html += '<span class="daysep">' + day + '日目</span>'; }
       html += '<div class="bub' + (m.me ? ' me' : '') + '" data-i="' + i + '">' + (m.me ? '' : '<button class="play s" type="button" data-say="' + i + '" aria-label="Play this line">' + PLAY + '</button>') +
-        '<div class="tx">' + esc(m.text) + '</div></div>';
+        '<div class="tx">' + wordsHtml(m.text) + '</div></div>';
     });
     $('thMsgs').innerHTML = html;
     window.scrollTo(0, document.body.scrollHeight);
   }
-  $('thBack').addEventListener('click', () => openThread(null));
+  // ---------- tap a word: furigana, picture and English, each hidden until you tap ----------
+  // Lines are split at their spaces; a run with no spaces (AI replies) is split by longest dictionary match.
+  function segment(chunk) {
+    if (!window.Dict || Dict.lookup(chunk)) return [chunk];
+    const out = []; let i = 0, plain = '';
+    while (i < chunk.length) {
+      let hit = 0;
+      for (let n = Math.min(10, chunk.length - i); n >= 2; n--) if (Dict.DICT[Dict.key(chunk.substr(i, n))]) { hit = n; break; }
+      if (hit) { if (plain) { out.push(plain); plain = ''; } out.push(chunk.substr(i, hit)); i += hit; }
+      else { plain += chunk[i]; i++; }
+    }
+    if (plain) out.push(plain);
+    return out;
+  }
+  function wordsHtml(text) {
+    return String(text).split(/(\s+)/).map((part) => {
+      if (!part.trim()) return part;
+      return segment(part).map((w) => {
+        const core = w.replace(/^[「『（(]+|[、。！？!?」』）)…〜ー♪]+$/g, '');
+        if (!core || !/[ぁ-ゖァ-ヺ一-龯]/.test(core)) return esc(w);
+        const pre = w.slice(0, w.indexOf(core)), post = w.slice(w.indexOf(core) + core.length);
+        const known = window.Dict && Dict.lookup(core);
+        return esc(pre) + '<span class="wd' + (known ? ' known' : '') + '" data-w="' + esc(core) + '">' + esc(core) + '</span>' + esc(post);
+      }).join('');
+    }).join('');
+  }
+  const KANJI_RE = /[一-龯々]/;
+  let wsCur = null;
+  function openWord(el) {
+    document.querySelectorAll('.wd.on').forEach((x) => x.classList.remove('on'));
+    el.classList.add('on'); buzz(8);
+    const word = el.dataset.w, r = window.Dict ? Dict.lookup(word) : null, e = r && r.entry;
+    wsCur = { word, r };
+    const rest = r && r.rest ? word.slice(word.length - r.rest.length) : '';
+    const base = rest ? word.slice(0, -rest.length) : word;
+    // the furigana button: readings over kanji; for a kana word, its usual kanji spelling instead
+    const written = KANJI_RE.test(base);
+    $('wsWord').innerHTML = written && e && e.kana ? '<ruby class="hide">' + esc(base) + '<rt>' + esc(e.kana) + '</rt></ruby>' + esc(rest) : esc(word);
+    const fb = $('wsFuri'), ib = $('wsIcon'), eb = $('wsEn');
+    [fb, ib, eb].forEach((b) => b.classList.remove('open'));
+    if (written) { fb.disabled = !(e && e.kana); fb.innerHTML = 'ふりがな<small>' + (e && e.kana ? 'tap to show the reading' : 'not in the word list') + '</small>'; }
+    else { fb.disabled = !(e && e.kanji); fb.innerHTML = '漢字<small>' + (e && e.kanji ? 'tap to see it in kanji' : 'no kanji: written in kana') + '</small>'; }
+    const hasIcon = e && ((e.sprite && window.ATLAS && window.ATLAS[e.sprite]) || e.icon);
+    ib.disabled = !hasIcon; ib.innerHTML = '🖼<small>' + (hasIcon ? 'tap for a picture' : 'no picture') + '</small>';
+    eb.disabled = !e; eb.innerHTML = 'English<small>' + (e ? 'tap to reveal' : 'not in the word list yet') + '</small>';
+    $('wsRest').innerHTML = r && r.rest ? '＋ <b>' + esc(rest) + '</b> ' + (r.restEntry ? esc(r.restEntry.en) : '(a small ending word)') : (e ? '' : 'This word isn\'t in the game\'s word list yet.');
+    $('wordSheet').hidden = false; document.body.classList.add('wsOpen');
+  }
+  function closeWord() { $('wordSheet').hidden = true; document.body.classList.remove('wsOpen'); wsCur = null; document.querySelectorAll('.wd.on').forEach((x) => x.classList.remove('on')); }
+  function reveal(which) {
+    if (!wsCur || !wsCur.r) return;
+    const e = wsCur.r.entry; buzz(8);
+    if (which === 'furi') {
+      const rb = $('wsWord').querySelector('ruby');
+      if (rb) rb.classList.remove('hide');
+      $('wsFuri').classList.add('open');
+      $('wsFuri').innerHTML = rb ? 'ふりがな<span class="ans">' + esc(e.kana) + '</span>' : '漢字<span class="ans">' + esc(e.kanji.split('・')[0]) + '</span>';
+    }
+    if (which === 'icon') {
+      $('wsIcon').classList.add('open');
+      $('wsIcon').innerHTML = '<span class="ans">' + (e.sprite && window.ATLAS && window.ATLAS[e.sprite] ? spriteCanvas(e.sprite, 44) : '<span class="emo">' + esc(e.icon) + '</span>') + '</span>';
+    }
+    if (which === 'en') { $('wsEn').classList.add('open'); $('wsEn').innerHTML = 'English<span class="ans">' + esc(e.en) + '</span>'; }
+  }
+  $('wsFuri').addEventListener('click', () => reveal('furi'));
+  $('wsIcon').addEventListener('click', () => reveal('icon'));
+  $('wsEn').addEventListener('click', () => reveal('en'));
+  $('wsClose').addEventListener('click', closeWord);
+  $('wsPlay').addEventListener('click', () => { if (wsCur) speak(wsCur.r && wsCur.r.entry ? (wsCur.r.entry.kana || wsCur.word) : wsCur.word, false); });
+  $('thBack').addEventListener('click', () => { closeWord(); openThread(null); });
   $('thMsgs').addEventListener('click', (e) => {
+    const w = e.target.closest('.wd'); if (w) { openWord(w); return; }
     const b = e.target.closest('[data-say]'); if (!b) return;
     stopPlaying(); const i = +b.dataset.say; mark(i); speak(D.log[i].text, slowChat, () => mark(-1), D.log[i].who);
   });

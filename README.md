@@ -138,6 +138,20 @@ https://192.168.5.158:50443 {
 
 Step types: `flag`, `go` (reach a map), `talk` (say hello to them: a short scene), `jobs`, `friends`, `say` (a new word for the dog, in the right area), `boss`. Bosses use a trust meter (shown at the top): exact answers +30, other replies +10, not understood −15 (もう一回 is free). Finish with enough trust and the required skill used, or they say また あした and you try again the next day.
 
+## Tap a word (phone messages)
+
+In the メッセージ app, every word in a message can be tapped. A card slides up with three buttons, each hidden until you tap it:
+
+- **ふりがな** — the reading over a kanji word (四時 → よじ); for a kana word, **漢字** shows how it's usually written (ふね → 船)
+- **🖼** — a picture, when there is one (the game's own sprite, or an emoji)
+- **English** — the meaning
+
+Small endings are explained under it (ふねは → ふね ＋ は, the topic marker). Words come from `js/dict.js` (every word in the game's lines) plus the camera's word list. Lines with no spaces, like AI replies, are split by the longest words the dictionary knows.
+
+## Nothing to click on the TV
+
+After the first setup (settings, scanning the QR code), everything is done from the phone or by voice: jobs are taken in the phone's しごと app (the TV just shows a hint), and the end-of-chapter card fades by itself. Speech bubbles are drawn on a separate full-resolution layer so kana and kanji stay sharp.
+
 ## ゾンビ図鑑 (zombie deck)
 
 At night, open the カメラ on the phone — zombies slow to a crawl while it's open — and photograph a zombie. Each new kind of zombie gets a card in the ゾンビ図鑑 app (phone, and the tablet panel on the TV):
