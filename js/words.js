@@ -309,7 +309,40 @@
     return ids.filter((i) => !drop.has(i));
   }
 
-  const api = { LEX, norm, parse, parseOne, parseDescription, zombieMatches, grammarWords, wordsIn, findNumber, findYen, findTime, kanaNumber };
+
+  // Dictionary entries for the phone's 言葉 app: kanji/kana as written, reading and English.
+  const GLOSS = {
+    'item:bucket': ['バケツ', '', 'bucket'], 'item:key': ['鍵', 'かぎ', 'key'], 'item:persimmon': ['柿', 'かき', 'persimmon'],
+    'item:ball': ['ボール', '', 'ball'], 'item:shoe': ['靴', 'くつ', 'shoe'], 'item:tomato': ['トマト', '', 'tomato'],
+    'item:carrot': ['人参', 'にんじん', 'carrot'], 'item:daikon': ['大根', 'だいこん', 'daikon radish'], 'item:shirt': ['シャツ', '', 'shirt'],
+    'item:towel': ['タオル', '', 'towel'], 'item:sock': ['靴下', 'くつした', 'sock'], 'item:dog': ['犬', 'いぬ', 'dog'],
+    'verb:fetch': ['持ってきて', 'もってきて', 'bring it'], 'verb:dig': ['掘って', 'ほって', 'dig'], 'verb:sit': ['お座り', 'おすわり', 'sit'],
+    'verb:wait': ['待って', 'まって', 'wait'], 'verb:come': ['おいで', '', 'come here'],
+    'color:red': ['赤', 'あか', 'red'], 'color:blue': ['青', 'あお', 'blue'], 'color:yellow': ['黄色', 'きいろ', 'yellow'],
+    'color:white': ['白', 'しろ', 'white'], 'color:black': ['黒', 'くろ', 'black'], 'color:green': ['緑', 'みどり', 'green'],
+    'color:purple': ['紫', 'むらさき', 'purple'], 'color:pink': ['ピンク', '', 'pink'],
+    'part:hat': ['帽子', 'ぼうし', 'hat'], 'part:glasses': ['眼鏡', 'めがね', 'glasses'], 'part:umbrella': ['傘', 'かさ', 'umbrella'],
+    'size:big': ['大きい', 'おおきい', 'big'], 'size:small': ['小さい', 'ちいさい', 'small'],
+    'name:tanaka': ['田中', 'たなか', 'Tanaka (name)'], 'name:suzuki': ['鈴木', 'すずき', 'Suzuki (name)'], 'name:sato': ['佐藤', 'さとう', 'Satō (name)'],
+    'name:yamamoto': ['山本', 'やまもと', 'Yamamoto (name)'], 'name:ito': ['伊藤', 'いとう', 'Itō (name)'], 'name:kimura': ['木村', 'きむら', 'Kimura (name)'],
+    'word:yen': ['円', 'えん', 'yen'], 'word:time': ['時', 'じ', "o'clock"],
+    'phrase:greet': ['おはよう', '', 'good morning / hello'], 'phrase:thanks': ['ありがとう', '', 'thank you'], 'phrase:repeat': ['もう一回', 'もういっかい', 'one more time'],
+    'phrase:slow': ['ゆっくり', '', 'slowly'], 'phrase:yes': ['はい', '', 'yes'], 'phrase:no': ['いいえ', '', 'no'], 'phrase:sleep': ['お休み', 'おやすみ', 'good night']
+  };
+  const NUM_JP = ['', '一つ', '二つ', '三つ', '四つ', '五つ', '六つ', '七つ', '八つ', '九つ', '十'];
+  const NUM_KANA = ['', 'ひとつ', 'ふたつ', 'みっつ', 'よっつ', 'いつつ', 'むっつ', 'ななつ', 'やっつ', 'ここのつ', 'とお'];
+  const CAT = { item: 'もの', verb: 'うごき', color: 'いろ', part: 'もの', size: 'ようす', number: 'かず', word: 'かず', name: 'ひと', phrase: 'あいさつ' };
+  function gloss(id) {
+    const kind = id.split(':')[0], cat = CAT[kind] || 'ほか';
+    if (kind === 'number') {
+      const n = +id.split(':')[1];
+      return n >= 1 && n <= 10 ? { id, jp: NUM_JP[n], kana: NUM_KANA[n], en: String(n), cat } : { id, jp: String(n), kana: '', en: String(n), cat };
+    }
+    const g = GLOSS[id];
+    return g ? { id, jp: g[0], kana: g[1], en: g[2], cat } : { id, jp: id.split(':')[1] || id, kana: '', en: '', cat };
+  }
+
+  const api = { gloss, LEX, norm, parse, parseOne, parseDescription, zombieMatches, grammarWords, wordsIn, findNumber, findYen, findTime, kanaNumber };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Words = api;
 })(typeof window !== 'undefined' ? window : globalThis);

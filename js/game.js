@@ -207,7 +207,10 @@
     if (!opts.quiet) speak(text, who === 'radio' ? 1.1 : 1);
     if (!opts.noRepeat) S.lastLine = { who, text };
     if (!opts.quiet && who !== 'you') Words.wordsIn(text).forEach((w) => Save.word(w, 'heard'));
-    net.broadcast({ t: 'line', who: NAMES[who] || who, text });
+    const name = NAMES[who] || who, th = who === 'phone' ? NAMES.landlord : name;
+    logLine({ th, who: name, text, day: SV().day });
+    if (who !== 'dog' && who !== 'you') S.lastTh = { th, t: S.t };
+    net.broadcast({ t: 'line', who: name, th, text, day: SV().day });
   }
   function replay(slow) {
     if (!S.lastLine) return;
@@ -222,10 +225,24 @@
   }
   function success() { S.misses = 0; hint(''); }
 
-  function heard(text, label, ok) {
+  const TO_DOG = { fetch: 1, dig: 1, sit: 1, wait: 1, come: 1, dogname: 1, item: 1, describe: 1 };
+  function heard(text, label, ok, type) {
     $('heard').textContent = text ? '「' + text + '」' : '';
     $('heard').className = ok ? 'ok' : 'no';
     net.broadcast({ t: 'heard', text, label, ok });
+    // understood lines go into the message thread of whoever spoke last (or the dog's)
+    if (ok && text) {
+      const th = !TO_DOG[type] && S.lastTh && S.t - S.lastTh.t < 20 ? S.lastTh.th : NAMES.dog;
+      const m = { th, who: NAMES.you, me: true, text, day: SV().day };
+      logLine(m); net.broadcast(Object.assign({ t: 'said' }, m));
+    }
+  }
+  // Message history for the phone's メッセージ app (kept for this session).
+  S.log = [];
+  function logLine(m) {
+    const l = S.log[S.log.length - 1];
+    if (l && l.th === m.th && l.text === m.text) return;
+    S.log.push(m); if (S.log.length > 200) S.log.shift();
   }
 
   // ---------- dog ----------
@@ -719,7 +736,7 @@
         break;
       default: ok = await unknownLine(text);
     }
-    heard(text, LABEL[r.type] || '', ok);
+    heard(text, LABEL[r.type] || '', ok, r.type);
     if (ok) { Words.wordsIn(text).forEach((w) => Save.word(w, 'said')); Save.skill('say:' + r.type); }
     sendDogStatus();
   }
@@ -1151,6 +1168,7 @@
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     update(dt); updateCamera(dt); draw();
     if ((S.hudT = (S.hudT || 0) + dt) > 0.25) { S.hudT = 0; updateHud(); }
+    if ((S.stT = (S.stT || 0) + dt) > 1) { S.stT = 0; pushState(); }
     requestAnimationFrame(frame);
   }
 
@@ -1208,6 +1226,45 @@
   }
   function broadcastBoard() { const m = boardMsg(); if (m) net.broadcast(m); }
 
+  // Everything the phone's home screen and apps show, sent whenever it changes.
+  const PHASE_JP = { title: '朝', greet: '朝', day: '昼', dusk: '夕方', night: '夜', morning: '朝', evening: '夜', sleeping: '夜', done: '朝' };
+  function npcNames() {
+    const n = { hana: NAMES.landlord, yamada: NAMES.yamada };
+    for (const m of Object.values(MAPS)) for (const p of m.npcs || []) if (p.id) n[p.id] = p.name;
+    return n;
+  }
+  function mapList() {
+    const open = (ex) => ex.to && (!ex.need || SV().story[ex.need] || SV().explore);
+    const seen = { home: true }, order = ['home'];
+    for (let i = 0; i < order.length; i++) for (const ex of MAPS[order[i]].exits || []) if (open(ex) && MAPS[ex.to] && !seen[ex.to]) { seen[ex.to] = true; order.push(ex.to); }
+    const all = order.concat(Object.keys(MAPS).filter((id) => !seen[id]));
+    const fr = SV().friends || {};
+    return all.map((id) => {
+      const m = MAPS[id], nm = m.name.split(' · ');
+      return { id, jp: nm[0], en: nm[1] || '', here: id === MAP.id, open: !!seen[id],
+        npcs: (m.npcs || []).filter((p) => p.id).map((p) => ({ name: p.name, stars: (fr[p.id] || {}).stars || 0 })) };
+    });
+  }
+  function phoneState() {
+    const d = SV(), names = npcNames(), nm = MAP.name.split(' · ');
+    return {
+      t: 'state', day: d.day, phase: S.phase, phaseJp: PHASE_JP[S.phase] || '昼', yen: d.yen, treats: Save.treatsLeft(),
+      map: { id: MAP.id, jp: nm[0], en: nm[1] || '' }, maps: mapList(),
+      job: S.cur ? { title: S.cur.title, goal: S.cur.goal } : null,
+      dog: { busy: dogBusy(), carry: dog.carry || null },
+      words: Object.entries(d.words || {}).map(([id, w]) => Object.assign(Words.gloss(id), { heard: w.heard, said: w.said, strength: Math.round(Save.fade(id)) })),
+      friends: Object.entries(d.friends || {}).map(([id, f]) => ({ id, name: names[id] || id, stars: f.stars, points: f.points })),
+      scraps: d.scraps || [], diary: (d.diary || []).slice(-10)
+    };
+  }
+  let lastState = '';
+  function pushState(force) {
+    if (!S.ready || !net.count()) return;
+    const m = phoneState(), j = JSON.stringify(m);
+    if (!force && j === lastState) return;
+    lastState = j; net.broadcast(m);
+  }
+
   // ---------- phones ----------
   const net = Net.host({
     onReady(code) {
@@ -1222,6 +1279,8 @@
       c.send({ t: 'hello', grammar: Words.grammarWords() });
       if (S.lastLine) c.send({ t: 'line', who: NAMES[S.lastLine.who], text: S.lastLine.text });
       const bm = boardMsg(); if (bm) c.send(bm);
+      c.send({ t: 'log', lines: S.log.slice(-120) });
+      if (S.ready) { c.send(phoneState()); lastState = ''; }
       if (S.phase === 'title') startGame();
     },
     onLeave() { $('phones').textContent = net.count() + ' phone connected'; },
@@ -1334,7 +1393,7 @@
   requestAnimationFrame(frame);
   // Handy for testing from the browser console: __game.skip('night') or __game.skip('morning')
   window.__game = {
-    S, handleSpeech, startGame, takeJob, dropJob, nextDay, Save, Jobs, changeMap, MAPS,
+    S, handleSpeech, startGame, takeJob, dropJob, nextDay, Save, Jobs, changeMap, MAPS, phoneState, boardMsg,
     goto(id) { const m = MAPS[id]; if (m) changeMap(id, m.start); },
     // Draws a whole map to an image (for checking map layouts); returns a data URL.
     overview(id) {

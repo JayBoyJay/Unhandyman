@@ -2,70 +2,176 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#dcebc4">
 <title>Un-Handy Man · Controller</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-  :root { --ink:#3b3a36; --paper:#fff8e7; }
+  :root { --ink:#3b3a36; --ink2:#4f4c45; --paper:#fff8e7; --paper2:#fffdf6; --red:#d9533c; --green:#1d9e75; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; height: 100%; background: #dcebc4; color: var(--ink); font-family: 'M PLUS Rounded 1c', system-ui, sans-serif; overscroll-behavior: none; -webkit-user-select: none; user-select: none; }
-  main { max-width: 480px; margin: 0 auto; min-height: 100%; padding: 16px 18px 24px; display: flex; flex-direction: column; gap: 12px; }
+  html, body { margin: 0; height: 100%; color: var(--ink); font-family: 'M PLUS Rounded 1c', system-ui, sans-serif; overscroll-behavior: none; -webkit-user-select: none; user-select: none; background: #dcebc4; }
+  body { transition: background .2s; }
+  button { font: inherit; color: var(--ink); cursor: pointer; }
   [hidden] { display: none !important; }
+  p { margin: 0; }
+  .scr { max-width: 480px; margin: 0 auto; min-height: 100dvh; padding: 18px 20px calc(24px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; }
+  .h1 { font-size: 22px; font-weight: 800; }
+  .sub { font-size: 13px; color: var(--ink2); }
   .card { background: #fff; border: 3px solid var(--ink); border-radius: 22px; padding: 12px 14px; }
   .row { display: flex; gap: 8px; align-items: center; }
-  .sm { border: 2px solid var(--ink); border-radius: 999px; background: #fff; padding: 8px 14px; font: inherit; font-size: 14px; font-weight: 700; color: var(--ink); min-height: 44px; }
-  .top { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #b5462e; margin-right: 6px; }
-  .dot.on { background: #1d9e75; }
-  select { font: inherit; font-size: 13px; border: 2px solid var(--ink); border-radius: 999px; padding: 4px 8px; background: #fff; color: var(--ink); }
-  #lastText { margin: 6px 0 10px; font-size: 22px; font-weight: 700; line-height: 1.35; }
+  .sm { border: 2px solid var(--ink); border-radius: 999px; background: #fff; padding: 8px 14px; font-size: 14px; font-weight: 700; min-height: 44px; }
+  .sm:disabled { opacity: .45; }
+  .pill { background: var(--ink); color: var(--paper); border-radius: 999px; padding: 6px 14px; font-size: 14px; font-weight: 700; white-space: nowrap; }
+  .badge { min-width: 22px; height: 22px; border-radius: 11px; background: var(--red); color: #fff; border: 2px solid var(--ink); font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; }
+  .play { flex: none; width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--ink); background: #ffe0cc; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+  .play.s { width: 36px; height: 36px; }
+  .stars { color: #b8860b; letter-spacing: 1px; }
+  .appbar { display: flex; align-items: center; gap: 10px; }
+  .back { width: 44px; height: 44px; flex: none; border-radius: 50%; border: 2px solid var(--ink); background: #fff; font-size: 24px; font-weight: 800; line-height: 1; padding: 0 0 3px; }
+  .appbar .grow { flex: 1; min-width: 0; }
+  .empty { text-align: center; padding: 28px 12px; border: 3px dashed #8a8578; border-radius: 20px; color: var(--ink2); font-size: 14px; }
+
+  /* join */
+  #joinView { justify-content: center; align-items: center; text-align: center; background: #ffe0cc; }
+  #joinView h1 { margin: 0; font-size: 44px; font-weight: 800; }
+  #codeInput { font: inherit; font-size: 32px; letter-spacing: .2em; text-transform: uppercase; text-align: center; width: 200px; padding: 10px; border: 3px solid var(--ink); border-radius: 18px; -webkit-user-select: text; user-select: text; }
+  .big { background: var(--ink); color: var(--paper); border: none; border-radius: 999px; padding: 16px 28px; font-size: 20px; font-weight: 800; }
+
+  /* controller */
+  .conn { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--ink2); }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #b5462e; margin-right: 6px; }
+  .dot.on { background: var(--green); }
+  select { font: inherit; font-size: 12px; border: 2px solid var(--ink); border-radius: 999px; padding: 3px 8px; background: #fff; color: var(--ink); }
+  #lastText { margin: 6px 0 12px; font-size: 22px; font-weight: 700; line-height: 1.35; }
   #you { font-size: 15px; padding: 8px 12px; border-radius: 14px; border: 2px dashed var(--ink); background: var(--paper); min-height: 44px; }
   #you.ok { background: #c6e0a8; border-style: solid; }
   #you.no { background: #e9e2d3; }
-  .controls { margin-top: auto; display: flex; justify-content: space-between; align-items: center; padding-top: 8px; }
-  #stick { width: 140px; height: 140px; border-radius: 50%; background: #c6e0a8; border: 3px solid var(--ink); position: relative; touch-action: none; }
-  #knob { position: absolute; left: 40px; top: 40px; width: 54px; height: 54px; border-radius: 50%; background: var(--paper); border: 3px solid var(--ink); }
-  #ptt { width: 170px; height: 170px; border-radius: 50%; border: 4px solid var(--ink); background: #ffe0cc; color: var(--ink); font: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; touch-action: none; }
-  #ptt.live { background: #d9533c; color: #fff; }
-  #ptt.busy { background: #fff1c9; }
-  #pttLabel { font-size: 22px; font-weight: 800; }
-  #pttSub { font-size: 12px; }
+  .chip { flex: 1; border: 3px solid var(--ink); border-radius: 16px; padding: 8px 6px; text-align: center; font-size: 13px; background: #fff; }
+  .chip.busy { background: #e9e2d3; }
+  .chip b { font-size: 15px; }
+  #jobNow { background: #fff1c9; border: 2px solid var(--ink); border-radius: 14px; padding: 8px 12px; font-size: 14px; font-weight: 700; }
   #status { font-size: 13px; min-height: 18px; }
   details summary { font-size: 13px; cursor: pointer; }
   details form { margin-top: 8px; display: flex; gap: 8px; }
   details input { flex: 1; font: inherit; font-size: 16px; padding: 8px 10px; border: 2px solid var(--ink); border-radius: 12px; -webkit-user-select: text; user-select: text; }
-  #joinView { justify-content: center; align-items: center; text-align: center; background: #ffe0cc; }
-  #joinView h1 { margin: 0; font-size: 44px; font-weight: 800; }
-  #codeInput { font: inherit; font-size: 32px; letter-spacing: 0.2em; text-transform: uppercase; text-align: center; width: 200px; padding: 10px; border: 3px solid var(--ink); border-radius: 18px; -webkit-user-select: text; user-select: text; }
-  .tabs { display: flex; gap: 6px; }
-  .tabs button { flex: 1; min-height: 44px; border: 2px solid var(--ink); border-radius: 999px; background: #fff; font: inherit; font-weight: 800; color: var(--ink); }
-  .tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper); }
-  #wallet { font-size: 14px; font-weight: 700; }
-  .job { background: #fff; border: 3px solid var(--ink); border-radius: 18px; padding: 10px 12px; display: flex; gap: 10px; align-items: center; }
+  .controls { margin-top: auto; display: flex; justify-content: space-between; align-items: center; padding-top: 8px; }
+  #stick { width: 140px; height: 140px; border-radius: 50%; background: #c6e0a8; border: 3px solid var(--ink); position: relative; touch-action: none; }
+  #knob { position: absolute; left: 37px; top: 37px; width: 60px; height: 60px; border-radius: 50%; background: var(--paper); border: 3px solid var(--ink); }
+  #ptt { width: 170px; height: 170px; border-radius: 50%; border: 4px solid var(--ink); background: #ffe0cc; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; touch-action: none; }
+  #ptt.live { background: var(--red); color: #fff; }
+  #ptt.busy { background: #fff1c9; }
+  #pttLabel { font-size: 20px; font-weight: 800; }
+  #pttSub { font-size: 12px; }
+  #phoneBtn { align-self: center; width: 210px; height: 52px; background: var(--paper); border: 3px solid var(--ink); border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 800; }
+  #phoneBtn.ring { animation: ring .5s ease-in-out 4; background: #ffe0cc; }
+  @keyframes ring { 0%,100% { transform: rotate(0) } 25% { transform: rotate(-4deg) } 75% { transform: rotate(4deg) } }
+
+  /* phone home */
+  #scrHome { background: #bfe0ec; }
+  #scrHome .grid { margin-bottom: 24px; }
+  .hill { position: absolute; border-radius: 50%; z-index: 0; }
+  .sun { position: absolute; right: 36px; top: 70px; width: 64px; height: 64px; border-radius: 50%; background: #fff1c9; border: 3px solid var(--ink); z-index: 0; }
+  #scrHome.night { background: #2f3a52; color: var(--paper); }
+  #scrHome.night .sun { background: #f2ecd2; box-shadow: inset -14px -6px 0 #2f3a52; border-color: #f2ecd2; }
+  #scrHome.night .hill.a { background: #3f5a4a; } #scrHome.night .hill.b { background: #33503f; }
+  #scrHome > * { position: relative; z-index: 1; }
+  #scrHome .hill, #scrHome .sun { position: absolute; z-index: 0; }
+  #clock { font-size: 64px; font-weight: 800; line-height: 1; margin-top: 36px; }
+  #homeLine { font-size: 17px; font-weight: 700; margin-top: 6px; }
+  #notif { margin-top: 18px; background: var(--paper2); border: 3px solid var(--ink); border-radius: 20px; padding: 12px 14px; display: flex; gap: 12px; align-items: center; text-align: left; width: 100%; color: var(--ink); }
+  #notif .ni { width: 40px; height: 40px; flex: none; border-radius: 12px; border: 2px solid var(--ink); display: flex; align-items: center; justify-content: center; }
+  #notif b { display: block; font-size: 14px; }
+  #notif span.tx { display: block; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .grid { margin-top: 20px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 22px; }
+  .app { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; position: relative; background: none; border: none; padding: 0; color: inherit; }
+  .app .ic { width: 68px; height: 68px; border-radius: 20px; border: 3px solid var(--ink); display: flex; align-items: center; justify-content: center; }
+  .app .badge { position: absolute; top: -6px; left: calc(50% + 20px); }
+  .app.soon .ic { opacity: .55; }
+  .dock { margin-top: auto; min-height: 96px; background: var(--paper2); border: 3px solid var(--ink); border-radius: 28px; display: flex; align-items: center; justify-content: space-around; color: var(--ink); }
+  .dock .ic { width: 60px; height: 60px; border-radius: 18px; }
+  .dock .app { font-size: 12px; }
+
+  /* messages */
+  #scrMsgs { background: #e6f2ec; }
+  .thr { width: 100%; display: flex; gap: 12px; align-items: center; text-align: left; background: #fff; border: 2px solid var(--ink); border-radius: 18px; padding: 10px 12px; min-height: 64px; }
+  .av { width: 44px; height: 44px; flex: none; border-radius: 50%; border: 2px solid var(--ink); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; }
+  .thr .nm { display: block; font-size: 16px; font-weight: 800; }
+  .thr .pv { display: block; font-size: 14px; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .unread { width: 14px; height: 14px; flex: none; border-radius: 50%; background: var(--red); border: 2px solid var(--ink); }
+  .msgs { display: flex; flex-direction: column; gap: 10px; padding-bottom: 12px; }
+  .bub { display: flex; align-items: center; gap: 8px; }
+  .bub.me { justify-content: flex-end; }
+  .bub .tx { max-width: 260px; border: 2px solid var(--ink); padding: 10px 14px; font-size: 17px; line-height: 1.4; background: #fff; border-radius: 18px 18px 18px 6px; -webkit-user-select: text; user-select: text; }
+  .bub.me .tx { background: #9fe1cb; border-radius: 18px 18px 6px 18px; }
+  .bub.playing .tx { outline: 3px solid var(--red); }
+  .daysep { align-self: center; font-size: 12px; color: var(--ink2); background: #fff; border: 2px solid var(--ink); border-radius: 999px; padding: 2px 10px; }
+
+  /* map */
+  #scrMap { background: #efe6cf; }
+  .mapbox { background: #dceBc4; border: 3px solid var(--ink); border-radius: 24px; padding: 14px; display: flex; flex-direction: column-reverse; gap: 10px; position: relative; }
+  .area { border: 3px solid var(--ink); border-radius: 16px; padding: 8px 12px; background: #fff; font-size: 15px; font-weight: 700; display: flex; align-items: flex-start; gap: 10px; }
+  .area.here { background: #fff1c9; }
+  .area.lk { background: #e4e1d8; color: #6b675e; border-style: dashed; }
+  .area .en { font-size: 12px; font-weight: 400; }
+  .area .who { font-size: 12px; font-weight: 400; margin-top: 2px; line-height: 1.5; }
+  .pin { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--ink); font-size: 12px; font-weight: 800; }
+
+  /* diary */
+  #scrDiary { background: #f3e9d6; }
+  .seg { display: flex; border: 3px solid var(--ink); border-radius: 999px; overflow: hidden; background: #fff; }
+  .seg button { flex: 1; padding: 10px; font-size: 15px; font-weight: 800; border: none; background: none; }
+  .seg button[aria-selected="true"] { background: var(--ink); color: var(--paper); }
+  .cats { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .cat { border: 2px solid var(--ink); border-radius: 999px; padding: 8px 12px; font-size: 14px; font-weight: 700; background: #fff; min-height: 40px; white-space: nowrap; }
+  .cat[aria-pressed="true"] { background: #ffe0cc; }
+  .words { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .wc { background: #fff; border: 3px solid var(--ink); border-radius: 20px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .wc .pic { height: 72px; border-radius: 12px; border: 2px dashed #8a8578; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--ink2); text-align: center; }
+  .wc .pic canvas { image-rendering: pixelated; height: 64px; }
+  .wc .w { display: flex; justify-content: space-between; align-items: center; gap: 4px; }
+  .wc b { font-size: 18px; line-height: 1.6; word-break: keep-all; }
+  .wc .pic { font-size: 14px !important; font-weight: 700; }
+  .wc rt { font-size: 10px; font-weight: 400; }
+  .wc .en { font-size: 12px; color: var(--ink2); }
+  .meter { height: 8px; border: 2px solid var(--ink); border-radius: 999px; background: #f3e9d6; overflow: hidden; }
+  .meter i { display: block; height: 100%; background: var(--green); }
+  .scrap { background: var(--paper2); border: 3px solid var(--ink); border-radius: 6px 22px 8px 20px; padding: 16px; transform: rotate(-1deg); }
+  .scrap:nth-child(even) { transform: rotate(1deg); }
+  .scrap .jp { font-size: 22px; line-height: 2.3; margin-top: 4px; }
+  .scrap rt { font-size: 11px; }
+  .tip { background: #fff1c9; border: 2px solid var(--ink); border-radius: 16px; padding: 10px 12px; font-size: 13px; }
+
+  /* jobs */
+  #scrJobs { background: #efe6cf; }
+  .job { display: flex; gap: 12px; align-items: center; background: #fff; border: 3px solid var(--ink); border-radius: 18px; padding: 10px 12px; }
   .job.taken { background: #fff1c9; }
   .job.done { background: #e4f0d2; }
-  .job .info { flex: 1; }
-  .job .t { font-size: 18px; font-weight: 800; }
-  .job .m { font-size: 13px; color: #4f4c45; }
+  .job.missed { border-style: dashed; background: #f6f1e4; }
+  .job .info { flex: 1; min-width: 0; }
+  .job .t { font-size: 16px; font-weight: 800; }
+  .job .m { font-size: 13px; color: var(--ink2); }
   .job .now { font-size: 12px; font-weight: 800; color: #b5462e; }
-  .stars { color: #b8860b; font-size: 18px; letter-spacing: 1px; }
-  .big { background: var(--ink); color: var(--paper); border: none; border-radius: 999px; padding: 16px 28px; font: inherit; font-size: 20px; font-weight: 800; }
+  .hd { font-size: 14px; font-weight: 700; margin-top: 6px; }
+
+  /* contacts + soon */
+  #scrCall { background: #e8edf5; }
+  #scrSoon { background: #f3eef8; }
 </style>
 </head>
 <body>
 
-<main id="joinView" hidden>
-  <p style="margin:0;font-size:14px;font-weight:700">UN-HANDY MAN</p>
+<main id="joinView" class="scr" hidden>
+  <p style="font-size:14px;font-weight:700">UN-HANDY MAN</p>
   <h1>手ぶら町</h1>
-  <p style="margin:0">Type the code shown on the TV.</p>
+  <p>Type the code shown on the TV.</p>
   <input id="codeInput" maxlength="4" autocomplete="off" aria-label="Room code">
   <button id="joinBtn" class="big" type="button">はじめる · Join</button>
 </main>
 
-<main id="padView" hidden>
-  <div class="top">
+<!-- ============ controller ============ -->
+<main id="scrPad" class="scr" hidden>
+  <div class="conn">
     <span><span id="dot" class="dot"></span><span id="conn">Connecting…</span></span>
     <label>Voice
       <select id="engine">
@@ -74,30 +180,23 @@
       </select>
     </label>
   </div>
-
-  <div class="tabs" role="tablist">
-    <button id="tabPad" role="tab" aria-selected="true" type="button">コントローラー</button>
-    <button id="tabJobs" role="tab" aria-selected="false" type="button">しごと</button>
+  <div class="row" style="justify-content:space-between">
+    <div><p class="h1" id="padArea">…</p><p class="sub" id="padAreaEn"></p></div>
+    <span class="pill" id="padPhase">…</span>
   </div>
 
-  <section id="jobsView" hidden>
-    <div class="row" style="justify-content:space-between;margin-bottom:8px"><strong id="jobsDay">しごと</strong><span id="wallet"></span></div>
-    <div id="jobList" style="display:flex;flex-direction:column;gap:8px"><p>Waiting for the TV…</p></div>
-    <p style="font-size:13px;color:#4f4c45">Take up to 3 jobs. The board changes every day, so some jobs will be missed.</p>
-  </section>
-
-  <div id="padBits" style="display:contents">
   <section class="card" aria-live="polite">
-    <div style="font-size:13px;color:#4f4c45">Last heard · <span id="lastWho">—</span></div>
-    <div id="lastText">…</div>
+    <p class="sub">Last heard · <span id="lastWho">—</span></p>
+    <p id="lastText">…</p>
     <div class="row">
       <button id="again" class="sm" type="button">もう一回 · replay</button>
       <button id="slow" class="sm" type="button">ゆっくり · slow</button>
     </div>
   </section>
 
+  <div id="jobNow" hidden></div>
+  <div class="row"><div class="chip" id="dogChip"><b>いぬ</b><br><span id="dogStatus">free</span></div><div class="chip"><b id="padYen">¥0</b><br>お金</div><div class="chip"><b id="padTreats">0</b><br>おやつ</div></div>
   <div id="you" aria-live="polite">Hold the button and speak</div>
-  <div class="row" style="font-size:14px"><strong>いぬ</strong><span id="dogStatus">free</span></div>
   <div id="status" role="status"></div>
 
   <details>
@@ -108,8 +207,6 @@
     </form>
   </details>
 
-  </div>
-
   <div class="controls">
     <div id="stick" role="img" aria-label="Walking joystick"><div id="knob"></div></div>
     <button id="ptt" type="button" aria-label="Hold to talk">
@@ -117,77 +214,440 @@
       <span id="pttLabel">話す</span><span id="pttSub">Hold to talk</span>
     </button>
   </div>
+  <button id="phoneBtn" type="button" data-go="home">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b3a36" stroke-width="2" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 18h4"/></svg>
+    スマホ · Phone <span class="badge" id="phoneBadge" hidden>0</span>
+  </button>
+</main>
+
+<!-- ============ phone home ============ -->
+<main id="scrHome" class="scr" hidden>
+  <div class="hill a" style="left:-40px;bottom:-60px;width:260px;height:260px;background:#a9cf94"></div>
+  <div class="hill b" style="right:-90px;bottom:-110px;width:320px;height:320px;background:#7fb36b"></div>
+  <div class="sun"></div>
+  <p id="clock">--:--</p>
+  <p id="homeLine">…</p>
+  <button id="notif" type="button" hidden>
+    <span class="ni" id="notifIc" style="background:#9fe1cb"></span>
+    <span style="min-width:0"><b id="notifWho"></b><span class="tx" id="notifText"></span></span>
+  </button>
+  <div class="grid" id="appGrid"></div>
+  <div class="dock" id="dock"></div>
+</main>
+
+<!-- ============ メッセージ ============ -->
+<main id="scrMsgs" class="scr" hidden>
+  <div id="msgList">
+    <div class="appbar"><button class="back" data-go="home" aria-label="Back">‹</button><div class="grow"><p class="h1">メッセージ</p><p class="sub">Every conversation, ready to listen to again</p></div></div>
+    <div id="threads" style="display:flex;flex-direction:column;gap:10px;margin-top:16px"></div>
+  </div>
+  <div id="msgThread" hidden style="display:flex;flex-direction:column;gap:12px">
+    <div class="appbar"><button class="back" id="thBack" aria-label="Back to conversations">‹</button><span class="av" id="thAv"></span><p class="h1 grow" id="thName" style="font-size:18px"></p></div>
+    <div class="row"><button class="sm" id="thAll" type="button">▶ 全部聞く · replay chat</button><button class="sm" id="thSlow" type="button" aria-pressed="false">ゆっくり</button></div>
+    <div class="msgs" id="thMsgs"></div>
+  </div>
+</main>
+
+<!-- ============ 地図 ============ -->
+<main id="scrMap" class="scr" hidden>
+  <div class="appbar"><button class="back" data-go="home" aria-label="Back">‹</button><div class="grow"><p class="h1">地図</p><p class="sub">手ぶら町 · Tebura-chō</p></div></div>
+  <div class="mapbox" id="mapBox"></div>
+  <div class="row sub" style="flex-wrap:wrap;gap:12px">
+    <span class="row" style="gap:6px"><span class="pin" style="background:#d9533c;color:#fff">私</span>You</span>
+    <span class="row" style="gap:6px"><span class="pin" style="background:#fff">犬</span><span id="mapDog">Dog</span></span>
+    <span class="row" style="gap:6px"><span class="pin" style="background:#c07a12;color:#fff">J</span>Job</span>
+  </div>
+</main>
+
+<!-- ============ 日記 ============ -->
+<main id="scrDiary" class="scr" hidden>
+  <div class="appbar"><button class="back" data-go="home" aria-label="Back">‹</button><div class="grow"><p class="h1">日記</p><p class="sub" id="diarySub"></p></div><span class="sm" style="display:inline-flex;align-items:center" id="diaryTreats">おやつ × 0</span></div>
+  <div class="seg" role="tablist">
+    <button id="segScraps" role="tab" aria-selected="false" type="button">かけら · Scraps</button>
+    <button id="segWords" role="tab" aria-selected="true" type="button">言葉 · Words</button>
+  </div>
+  <div id="scrapsView" hidden style="display:flex;flex-direction:column;gap:14px"></div>
+  <div id="wordsView" style="display:flex;flex-direction:column;gap:12px">
+    <div class="cats" id="cats"></div>
+    <div class="words" id="words"></div>
+    <p class="tip">The green bar is how well you know a word. Saying it raises it more than hearing it, and it fades if you don't use it for a few days.</p>
+  </div>
+</main>
+
+<!-- ============ 依頼 ============ -->
+<main id="scrJobs" class="scr" hidden>
+  <div class="appbar"><button class="back" data-go="home" aria-label="Back">‹</button><div class="grow"><p class="h1">依頼</p><p class="sub" id="jobsDay">Jobs</p></div><span class="sm" style="display:inline-flex;align-items:center" id="wallet">¥0</span></div>
+  <div id="jobList" style="display:flex;flex-direction:column;gap:8px"><p class="empty">Waiting for the TV…</p></div>
+  <p class="sub">Take up to 3 jobs. The board changes every day, so some jobs will be missed. Tap ▶ to hear the request.</p>
+</main>
+
+<!-- ============ 電話 (contacts / friendships) ============ -->
+<main id="scrCall" class="scr" hidden>
+  <div class="appbar"><button class="back" data-go="home" aria-label="Back">‹</button><div class="grow"><p class="h1">電話</p><p class="sub">People you know · friendship stars</p></div></div>
+  <div id="contacts" style="display:flex;flex-direction:column;gap:10px"></div>
+  <p class="sub">Say hello to people around town to get to know them. Calls come later.</p>
+</main>
+
+<!-- ============ coming soon ============ -->
+<main id="scrSoon" class="scr" hidden>
+  <div class="appbar"><button class="back" data-go="home" aria-label="Back">‹</button><div class="grow"><p class="h1" id="soonTitle"></p><p class="sub" id="soonSub"></p></div></div>
+  <div class="empty" id="soonText"></div>
 </main>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="assets/atlas.js"></script>
 <script src="js/net.js"></script>
 <script src="js/speech.js"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const params = new URLSearchParams(location.search);
   let room = (params.get('room') || '').toUpperCase();
   let link = null, grammar = [];
+  const send = (m) => link && link.send(m);
+  const buzz = (p) => { try { navigator.vibrate && navigator.vibrate(p); } catch (_) {} };
 
   const store = {
     get(k, d) { try { return localStorage.getItem('unhandyman.' + k) || d; } catch (_) { return d; } },
     set(k, v) { try { localStorage.setItem('unhandyman.' + k, v); } catch (_) {} }
   };
 
-  function show(view) { $('joinView').hidden = view !== 'join'; $('padView').hidden = view !== 'pad'; }
-  function status(t) { $('status').textContent = t || ''; }
+  // ---------- data from the TV ----------
+  const D = { state: null, board: null, log: [], read: {}, seenWords: +store.get('seenWords', '0'), seenBoardDay: 0, ringing: false };
 
-  function connect() {
-    show('pad');
-    $('conn').textContent = 'Connecting to ' + room + '…';
-    link = Net.join(room, {
-      onOpen() { $('dot').classList.add('on'); $('conn').textContent = 'Connected · ' + room; },
-      onClose() { $('dot').classList.remove('on'); $('conn').textContent = 'Disconnected. Reload to rejoin.'; },
-      onError(e) { $('conn').textContent = String(e); },
-      onMsg(d) {
-        if (!d || typeof d !== 'object') return;
-        if (d.t === 'hello') grammar = Array.isArray(d.grammar) ? d.grammar : [];
-        if (d.t === 'line') { $('lastWho').textContent = d.who; $('lastText').textContent = d.text; }
-        if (d.t === 'heard') {
-          $('you').textContent = d.text ? '聞こえた: 「' + d.text + '」' : '';
-          $('you').className = d.ok ? 'ok' : 'no';
-        }
-        if (d.t === 'dog') $('dogStatus').textContent = d.busy ? 'busy…' : 'free';
-        if (d.t === 'board') renderJobs(d);
-        if (d.t === 'buzz' && navigator.vibrate) navigator.vibrate([120, 80, 120, 80, 120]);
-      }
+  // ---------- speaking on the phone ----------
+  let jaVoice = null;
+  function pickVoice() { try { jaVoice = speechSynthesis.getVoices().find((v) => /^ja/i.test(v.lang)) || null; } catch (_) {} }
+  try { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; } catch (_) {}
+  function speak(text, slow, onend) {
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ja-JP'; if (jaVoice) u.voice = jaVoice; u.rate = slow ? 0.65 : 1;
+      if (onend) { u.onend = onend; u.onerror = onend; }
+      speechSynthesis.speak(u);
+    } catch (_) { onend && onend(); }
+  }
+
+  // ---------- screens ----------
+  const SCREENS = ['joinView', 'scrPad', 'scrHome', 'scrMsgs', 'scrMap', 'scrDiary', 'scrJobs', 'scrCall', 'scrSoon'];
+  const BG = { scrPad: '#dcebc4', scrHome: '#bfe0ec', scrMsgs: '#e6f2ec', scrMap: '#efe6cf', scrDiary: '#f3e9d6', scrJobs: '#efe6cf', scrCall: '#e8edf5', scrSoon: '#f3eef8', joinView: '#ffe0cc' };
+  let screen = 'scrPad';
+  function go(name, arg) {
+    const id = { pad: 'scrPad', home: 'scrHome', msgs: 'scrMsgs', map: 'scrMap', diary: 'scrDiary', jobs: 'scrJobs', call: 'scrCall', soon: 'scrSoon', join: 'joinView' }[name] || name;
+    screen = id;
+    SCREENS.forEach((s) => ($(s).hidden = s !== id));
+    document.body.style.background = id === 'scrHome' && $('scrHome').classList.contains('night') ? '#2f3a52' : BG[id];
+    if (id !== 'scrMsgs') openThread(null);
+    if (id === 'scrHome') renderHome();
+    if (id === 'scrMsgs') { if (arg) openThread(arg); else renderThreads(); }
+    if (id === 'scrMap') renderMap();
+    if (id === 'scrDiary') { D.seenWords = wordCount(); store.set('seenWords', String(D.seenWords)); renderDiary(); }
+    if (id === 'scrJobs') { if (D.board) D.seenBoardDay = D.board.day; renderJobs(); }
+    if (id === 'scrCall') renderContacts();
+    if (id === 'scrSoon') renderSoon(arg);
+    if (id !== 'scrPad') { send({ t: 'move', x: 0, y: 0 }); }
+    updateBadges();
+    window.scrollTo(0, 0);
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-go]'); if (!b) return;
+    buzz(8); go(b.dataset.go, b.dataset.arg);
+  });
+
+  // ---------- app icons ----------
+  const ICON = {
+    msgs: '<path d="M4 5h16v11H9l-5 4z"/>',
+    map: '<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"/>',
+    diary: '<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11M9 8h6"/>',
+    jobs: '<path d="M4 8h16v11H4zM9 8V5h6v3M4 13h16"/>',
+    call: '<path d="M6 3h4l2 5-3 2a11 11 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 4 5a2 2 0 0 1 2-2z"/>',
+    camera: '<path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="4"/>',
+    house: '<path d="M3 11l9-7 9 7v9H3zM10 20v-5h4v5"/>',
+    mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'
+  };
+  const svg = (k, n) => '<svg width="' + (n || 32) + '" height="' + (n || 32) + '" viewBox="0 0 24 24" fill="none" stroke="#3b3a36" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">' + ICON[k] + '</svg>';
+  const PLAY = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#3b3a36" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>';
+  const APPS = [
+    { k: 'msgs', go: 'msgs', jp: 'メッセージ', bg: '#9fe1cb' },
+    { k: 'map', go: 'map', jp: '地図', bg: '#c6e0a8' },
+    { k: 'diary', go: 'diary', jp: '日記', bg: '#fbe3b8' },
+    { k: 'jobs', go: 'jobs', jp: '依頼', bg: '#f7c9a8' },
+    { k: 'call', go: 'call', jp: '電話', bg: '#cbd6e8' },
+    { k: 'camera', go: 'soon', arg: 'camera', jp: 'カメラ', bg: '#d9d3e8', soon: true },
+    { k: 'house', go: 'soon', arg: 'house', jp: 'おうち', bg: '#ffe0cc', soon: true }
+  ];
+  function appBtn(a, badge, small) {
+    return '<button class="app' + (a.soon ? ' soon' : '') + '" type="button" data-go="' + a.go + '"' + (a.arg ? ' data-arg="' + a.arg + '"' : '') + '>' +
+      '<span class="ic" style="background:' + a.bg + '">' + svg(a.k, small ? 28 : 32) + '</span>' + a.jp +
+      (badge ? '<span class="badge">' + badge + '</span>' : '') + '</button>';
+  }
+
+  // ---------- badges ----------
+  function unreadIn(th) { return D.log.filter((m, i) => m.th === th && !m.me && i >= (D.read[th] || 0)).length; }
+  function threadNames() { const s = []; D.log.forEach((m) => { if (s.indexOf(m.th) === -1) s.push(m.th); }); return s; }
+  function unreadTotal() { return threadNames().reduce((n, th) => n + (unreadIn(th) ? 1 : 0), 0); }
+  function wordCount() { return D.state ? D.state.words.length : 0; }
+  function jobsBadge() {
+    const b = D.board; if (!b || b.day <= D.seenBoardDay) return 0;
+    return b.jobs.filter((j) => j.state === 'open').length;
+  }
+  function badges() { return { msgs: unreadTotal(), diary: Math.max(0, wordCount() - D.seenWords), jobs: jobsBadge() }; }
+  function updateBadges() {
+    const b = badges(), total = b.msgs + b.jobs;
+    $('phoneBadge').hidden = !total; $('phoneBadge').textContent = total;
+    if (screen === 'scrHome') renderHome();
+  }
+
+  // ---------- controller ----------
+  function renderPad() {
+    const s = D.state; if (!s) return;
+    $('padArea').textContent = s.map.jp; $('padAreaEn').textContent = s.map.en;
+    $('padPhase').textContent = s.phaseJp + ' · ' + s.day + '日目';
+    $('jobNow').hidden = !s.job; if (s.job) $('jobNow').textContent = 'いま · ' + s.job.title + ' — ' + s.job.goal;
+    setDog(s.dog.busy, s.dog.carry);
+    $('padYen').textContent = '¥' + s.yen; $('padTreats').textContent = s.treats;
+  }
+  function setDog(busy, carry) {
+    $('dogStatus').textContent = busy ? 'busy…' : carry ? 'carrying' : 'free';
+    $('dogChip').classList.toggle('busy', !!busy);
+  }
+
+  // ---------- home ----------
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function tick() { const d = new Date(); $('clock').textContent = d.getHours() + ':' + pad2(d.getMinutes()); }
+  setInterval(tick, 10000); tick();
+  function renderHome() {
+    const s = D.state, b = badges();
+    const night = !!s && ['夜'].indexOf(s.phaseJp) !== -1;
+    $('scrHome').classList.toggle('night', night);
+    if (screen === 'scrHome') document.body.style.background = night ? '#2f3a52' : BG.scrHome;
+    $('homeLine').textContent = s ? s.phaseJp + ' · ' + s.day + '日目 · ' + s.map.jp : 'TVを まってる…';
+    // notification: a ringing call, the newest unread message, or the job in progress
+    const last = [...D.log].reverse().find((m) => !m.me && unreadIn(m.th));
+    let n = null;
+    if (D.ringing) n = { who: 'ハナさん · 電話', text: 'でんわ だよ！ TVを 見て。', ic: 'call', bg: '#cbd6e8', go: 'msgs', arg: 'ハナさん' };
+    else if (last) n = { who: last.th, text: last.text, ic: 'msgs', bg: '#9fe1cb', go: 'msgs', arg: last.th };
+    else if (s && s.job) n = { who: 'いま · ' + s.job.title, text: s.job.goal, ic: 'jobs', bg: '#f7c9a8', go: 'jobs' };
+    $('notif').hidden = !n;
+    if (n) {
+      $('notifIc').innerHTML = svg(n.ic, 22); $('notifIc').style.background = n.bg;
+      $('notifWho').textContent = n.who; $('notifText').textContent = n.text;
+      $('notif').dataset.go = n.go; if (n.arg) $('notif').dataset.arg = n.arg; else delete $('notif').dataset.arg;
+    }
+    $('appGrid').innerHTML = APPS.map((a) => appBtn(a, b[a.k])).join('');
+    $('dock').innerHTML = '<button class="app" type="button" data-go="pad"><span class="ic" style="background:#ffe0cc">' + svg('mic', 28) + '</span><span lang="en">Back to game</span></button>' +
+      appBtn(APPS[4], 0, true) + appBtn(APPS[0], b.msgs, true);
+  }
+
+  // ---------- messages ----------
+  const AV = ['#ffe0cc', '#c6e0a8', '#cbd6e8', '#fbe3b8', '#d9d3e8', '#9fe1cb', '#f7c9a8'];
+  function avColor(name) { let h = 0; for (const c of name) h = (h * 31 + c.charCodeAt(0)) >>> 0; return AV[h % AV.length]; }
+  function initial(name) { return name.replace(/^(お|ご)/, '').charAt(0); }
+  function renderThreads() {
+    const names = threadNames();
+    if (!names.length) { $('threads').innerHTML = '<p class="empty">No messages yet. Everything people say to you will be kept here.</p>'; return; }
+    const lastIdx = (th) => { for (let i = D.log.length - 1; i >= 0; i--) if (D.log[i].th === th) return i; return -1; };
+    names.sort((a, b) => lastIdx(b) - lastIdx(a));
+    $('threads').innerHTML = names.map((th) => {
+      const l = D.log[lastIdx(th)];
+      return '<button class="thr" type="button" data-th="' + esc(th) + '"><span class="av" style="background:' + avColor(th) + '">' + esc(initial(th)) + '</span>' +
+        '<span style="flex:1;min-width:0"><span class="nm">' + esc(th) + '</span><span class="pv">' + (l.me ? 'あなた: ' : '') + esc(l.text) + '</span></span>' +
+        (unreadIn(th) ? '<span class="unread" aria-label="unread"></span>' : '') + '</button>';
+    }).join('');
+  }
+  $('threads').addEventListener('click', (e) => { const t = e.target.closest('[data-th]'); if (t) { buzz(8); openThread(t.dataset.th); } });
+  let curTh = null, slowChat = false, playing = null;
+  function openThread(th) {
+    stopPlaying();
+    curTh = th;
+    $('msgList').hidden = !!th; $('msgThread').hidden = !th;
+    if (!th) { if (screen === 'scrMsgs') renderThreads(); return; }
+    D.read[th] = D.log.length; updateBadges();
+    $('thAv').textContent = initial(th); $('thAv').style.background = avColor(th); $('thName').textContent = th;
+    renderThread();
+  }
+  function renderThread() {
+    let day = null, html = '';
+    D.log.forEach((m, i) => {
+      if (m.th !== curTh) return;
+      if (m.day && m.day !== day) { day = m.day; html += '<span class="daysep">' + day + '日目</span>'; }
+      html += '<div class="bub' + (m.me ? ' me' : '') + '" data-i="' + i + '">' + (m.me ? '' : '<button class="play s" type="button" data-say="' + i + '" aria-label="Play this line">' + PLAY + '</button>') +
+        '<div class="tx">' + esc(m.text) + '</div></div>';
+    });
+    $('thMsgs').innerHTML = html;
+    window.scrollTo(0, document.body.scrollHeight);
+  }
+  $('thBack').addEventListener('click', () => openThread(null));
+  $('thMsgs').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-say]'); if (!b) return;
+    stopPlaying(); const i = +b.dataset.say; mark(i); speak(D.log[i].text, slowChat, () => mark(-1));
+  });
+  function mark(i) { document.querySelectorAll('#thMsgs .bub').forEach((el) => el.classList.toggle('playing', +el.dataset.i === i)); }
+  function stopPlaying() { playing = null; try { speechSynthesis.cancel(); } catch (_) {} mark(-1); }
+  $('thAll').addEventListener('click', () => {
+    stopPlaying();
+    const lines = D.log.map((m, i) => i).filter((i) => D.log[i].th === curTh && !D.log[i].me);
+    const token = playing = {};
+    (function next(k) {
+      if (playing !== token || k >= lines.length) { mark(-1); return; }
+      mark(lines[k]); speak(D.log[lines[k]].text, slowChat, () => next(k + 1));
+    })(0);
+  });
+  $('thSlow').addEventListener('click', () => { slowChat = !slowChat; $('thSlow').setAttribute('aria-pressed', String(slowChat)); $('thSlow').style.background = slowChat ? '#ffe0cc' : '#fff'; });
+
+  // ---------- map ----------
+  function renderMap() {
+    const s = D.state;
+    if (!s) { $('mapBox').innerHTML = '<p class="empty">Waiting for the TV…</p>'; return; }
+    $('mapDog').textContent = s.dog.busy ? 'Dog · busy' : 'Dog · free';
+    $('mapBox').innerHTML = s.maps.map((m) => {
+      const pins = m.here ? '<span class="pin" style="background:#d9533c;color:#fff">私</span><span class="pin" style="background:#fff">犬</span>' + (s.job ? '<span class="pin" style="background:#c07a12;color:#fff">J</span>' : '') : '';
+      const who = m.open && m.npcs.length ? '<div class="who">' + m.npcs.map((p) => esc(p.name) + (p.stars ? ' <span class="stars">' + '★'.repeat(p.stars) + '</span>' : '')).join(' · ') + '</div>' : '';
+      return '<div class="area' + (m.here ? ' here' : '') + (m.open ? '' : ' lk') + '"><div style="flex:1;min-width:0">' + esc(m.jp) + ' <span class="en">' + (m.open ? esc(m.en) : 'locked') + '</span>' + who + '</div>' +
+        (pins ? '<div class="row" style="gap:4px">' + pins + '</div>' : '') + '</div>';
+    }).join('');
+  }
+
+  // ---------- diary: scraps and words ----------
+  let seg = 'words', cat = 'すべて';
+  const CATS = ['すべて', 'もの', 'うごき', 'いろ', 'ようす', 'かず', 'ひと', 'あいさつ'];
+  const PIC = { 'item:bucket': 'bucket', 'item:persimmon': 'persimmon', 'item:key': 'key', 'item:dog': 'dog' };
+  let atlasImg = null;
+  if (window.ATLAS) { atlasImg = new Image(); atlasImg.src = 'assets/atlas.png'; atlasImg.onload = () => { if (screen === 'scrDiary') renderDiary(); }; }
+  function setSeg(s) {
+    seg = s; $('segScraps').setAttribute('aria-selected', String(s === 'scraps')); $('segWords').setAttribute('aria-selected', String(s === 'words'));
+    $('scrapsView').hidden = s !== 'scraps'; $('wordsView').hidden = s !== 'words'; renderDiary();
+  }
+  $('segScraps').addEventListener('click', () => setSeg('scraps'));
+  $('segWords').addEventListener('click', () => setSeg('words'));
+  $('cats').addEventListener('click', (e) => { const b = e.target.closest('[data-cat]'); if (b) { cat = b.dataset.cat; renderDiary(); } });
+  function renderDiary() {
+    const s = D.state, words = s ? s.words : [];
+    $('diaryTreats').textContent = 'おやつ × ' + (s ? s.treats : 0);
+    $('diarySub').textContent = 'かけら ' + (s ? s.scraps.length : 0) + ' · 言葉 ' + words.length;
+    if (seg === 'scraps') {
+      const sc = s ? s.scraps : [];
+      $('scrapsView').innerHTML = sc.length ? sc.map((x, i) => '<div class="scrap"><p class="sub">Scrap #' + (i + 1) + (x.from ? ' · ' + esc(x.from) : '') + '</p><p class="jp">' + (x.html || esc(x.jp || x.text || '')) + '</p>' + (x.en ? '<p class="sub" lang="en">' + esc(x.en) + '</p>' : '') + '</div>').join('')
+        : '<p class="empty">No scraps yet.<br>Scraps of paper turn up as you make friends around town — each one has a joke and a new trick for the dog.</p>';
+      return;
+    }
+    const counts = {}; words.forEach((w) => (counts[w.cat] = (counts[w.cat] || 0) + 1));
+    $('cats').innerHTML = CATS.filter((c) => c === 'すべて' || counts[c]).map((c) => '<button class="cat" type="button" data-cat="' + c + '" aria-pressed="' + (c === cat) + '">' + c + (c === 'すべて' ? '' : ' ' + counts[c]) + '</button>').join('');
+    const list = words.filter((w) => cat === 'すべて' || w.cat === cat).sort((a, b) => b.strength - a.strength || (b.heard + b.said) - (a.heard + a.said));
+    if (!list.length) { $('words').innerHTML = '<p class="empty" style="grid-column:1/-1">No words yet. Words you hear and say in the game collect here.</p>'; return; }
+    $('words').innerHTML = list.map((w) => {
+      const jp = w.kana && w.kana !== w.jp ? '<ruby>' + esc(w.jp) + '<rt>' + esc(w.kana) + '</rt></ruby>' : esc(w.jp);
+      return '<div class="wc"><div class="pic" data-pic="' + (PIC[w.id] || '') + '">' + (PIC[w.id] ? '' : esc(w.en)) + '</div>' +
+        '<div class="w"><b>' + jp + '</b><button class="play s" type="button" data-word="' + esc(w.kana || w.jp) + '" aria-label="Play ' + esc(w.jp) + '">' + PLAY + '</button></div>' +
+        '<p class="en">' + (PIC[w.id] ? esc(w.en) + '<br>' : '') + '聞いた ' + w.heard + ' · 言った ' + w.said + '</p><div class="meter" title="' + w.strength + '"><i style="width:' + w.strength + '%"></i></div></div>';
+    }).join('');
+    if (atlasImg && atlasImg.complete && atlasImg.naturalWidth) document.querySelectorAll('#words [data-pic]').forEach((el) => {
+      const a = window.ATLAS[el.dataset.pic]; if (!a) return;
+      const c = document.createElement('canvas'); c.width = a[2]; c.height = a[3];
+      c.getContext('2d').drawImage(atlasImg, a[0], a[1], a[2], a[3], 0, 0, a[2], a[3]);
+      el.style.border = 'none'; el.appendChild(c);
     });
   }
+  $('words').addEventListener('click', (e) => { const b = e.target.closest('[data-word]'); if (b) speak(b.dataset.word, false); });
 
-  if (room) connect(); else show('join');
-
-  // Jobs app
-  function setTab(jobs) {
-    $('tabPad').setAttribute('aria-selected', String(!jobs)); $('tabJobs').setAttribute('aria-selected', String(jobs));
-    $('jobsView').hidden = !jobs; $('padBits').style.display = jobs ? 'none' : 'contents';
-  }
-  $('tabPad').addEventListener('click', () => setTab(false));
-  $('tabJobs').addEventListener('click', () => setTab(true));
-  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  function renderJobs(b) {
-    $('jobsDay').textContent = b.day + '日目のしごと';
+  // ---------- jobs ----------
+  function renderJobs() {
+    const b = D.board;
+    if (!b) return;
+    $('jobsDay').textContent = b.day + '日目のしごと · ' + b.jobs.filter((j) => j.state === 'taken').length + '/3 taken';
     $('wallet').textContent = '¥' + b.yen + ' · おやつ ' + b.treats;
     const taken = b.jobs.filter((j) => j.state === 'taken').length;
     $('jobList').innerHTML = b.jobs.map((j) => {
       const reward = '¥' + j.reward.yen + (j.reward.treats ? ' · おやつ ' + j.reward.treats : '');
       const act = j.state === 'open' ? '<button class="sm" data-act="take" data-id="' + esc(j.id) + '"' + (taken >= 3 ? ' disabled' : '') + '>受ける</button>'
         : j.state === 'taken' ? '<button class="sm" data-act="drop" data-id="' + esc(j.id) + '">やめる</button>'
-        : '<span class="stars">' + '★'.repeat(j.stars) + '☆'.repeat(3 - j.stars) + '</span>';
-      return '<div class="job ' + j.state + '"><div class="info"><div class="t">' + esc(j.title) + '</div><div class="m">' + esc(j.en) + ' · ' + esc(j.client) + '</div>' +
-        '<div class="m">' + esc(j.goal) + ' · ' + reward + '</div>' + (b.cur === j.id ? '<div class="now">いま · in progress</div>' : '') + '</div>' + act + '</div>';
+        : j.state === 'done' ? '<span class="stars">' + '★'.repeat(j.stars) + '☆'.repeat(3 - j.stars) + '</span>' : '';
+      return '<div class="job ' + esc(j.state) + '"><button class="play" type="button" data-req="' + esc(j.title) + '" aria-label="Play job request">' + PLAY + '</button>' +
+        '<div class="info"><div class="t">' + esc(j.client) + ' · ' + esc(j.title) + '</div><div class="m">' + esc(j.en) + ' · ' + reward + '</div>' +
+        '<div class="m">' + esc(j.goal) + '</div>' + (b.cur === j.id ? '<div class="now">いま · in progress</div>' : '') + '</div>' + act + '</div>';
     }).join('');
   }
-  window.__phone = { renderJobs, setTab };
   $('jobList').addEventListener('click', (e) => {
+    const r = e.target.closest('[data-req]'); if (r) { speak(r.dataset.req, false); return; }
     const t = e.target.closest('button[data-act]'); if (!t) return;
-    if (navigator.vibrate) navigator.vibrate(10);
-    link && link.send({ t: 'job', act: t.dataset.act, id: t.dataset.id });
+    buzz(10); send({ t: 'job', act: t.dataset.act, id: t.dataset.id });
   });
+
+  // ---------- contacts ----------
+  function renderContacts() {
+    const fr = D.state ? D.state.friends.slice().sort((a, b) => b.points - a.points) : [];
+    $('contacts').innerHTML = fr.length ? fr.map((f) => '<button class="thr" type="button" data-go="msgs" data-arg="' + esc(f.name) + '"><span class="av" style="background:' + avColor(f.name) + '">' + esc(initial(f.name)) + '</span>' +
+      '<span style="flex:1;min-width:0"><span class="nm">' + esc(f.name) + '</span><span class="pv"><span class="stars">' + '★'.repeat(f.stars) + '☆'.repeat(3 - f.stars) + '</span> · ' + f.points + ' pts</span></span></button>').join('')
+      : '<p class="empty">No contacts yet.</p>';
+  }
+
+  // ---------- coming soon ----------
+  const SOON = {
+    camera: ['カメラ', 'Camera', 'Point the phone at things in town to learn their names. Coming in a later chapter.'],
+    house: ['おうち', 'Your house', 'Place the furniture friends give you. Coming in a later chapter.']
+  };
+  function renderSoon(k) { const s = SOON[k] || SOON.camera; $('soonTitle').textContent = s[0]; $('soonSub').textContent = s[1]; $('soonText').textContent = s[2]; }
+
+  // ---------- messages from the TV ----------
+  function onMsg(d) {
+    if (!d || typeof d !== 'object') return;
+    switch (d.t) {
+      case 'hello': grammar = Array.isArray(d.grammar) ? d.grammar : []; break;
+      case 'log':
+        D.log = Array.isArray(d.lines) ? d.lines.slice() : [];
+        // history from before this phone joined counts as read
+        threadNames().forEach((th) => (D.read[th] = D.log.length));
+        break;
+      case 'line':
+        $('lastWho').textContent = d.who; $('lastText').textContent = d.text;
+        if (d.th) {
+          D.log.push({ th: d.th, who: d.who, text: d.text, day: d.day });
+          if (screen === 'scrMsgs' && curTh === d.th) { D.read[d.th] = D.log.length; renderThread(); }
+          else if (screen === 'scrMsgs' && !curTh) renderThreads();
+        }
+        if (/電話/.test(d.who)) D.ringing = false;
+        break;
+      case 'said':
+        D.log.push({ th: d.th, who: d.who, me: true, text: d.text, day: d.day });
+        if (screen === 'scrMsgs' && curTh === d.th) { D.read[d.th] = D.log.length; renderThread(); }
+        break;
+      case 'heard':
+        $('you').textContent = d.text ? '聞こえた: 「' + d.text + '」' : '';
+        $('you').className = d.ok ? 'ok' : 'no';
+        break;
+      case 'dog': setDog(d.busy, d.carry); break;
+      case 'board': D.board = d; if (screen === 'scrJobs') { D.seenBoardDay = d.day; renderJobs(); } break;
+      case 'state':
+        D.state = d; renderPad();
+        if (screen === 'scrMap') renderMap();
+        if (screen === 'scrDiary') { D.seenWords = wordCount(); renderDiary(); }
+        if (screen === 'scrCall') renderContacts();
+        break;
+      case 'buzz':
+        buzz([120, 80, 120, 80, 120]); D.ringing = true;
+        $('phoneBtn').classList.remove('ring'); void $('phoneBtn').offsetWidth; $('phoneBtn').classList.add('ring');
+        setTimeout(() => { D.ringing = false; updateBadges(); }, 15000);
+        break;
+    }
+    updateBadges();
+  }
+
+  // ---------- connecting ----------
+  function status(t) { $('status').textContent = t || ''; }
+  function connect() {
+    go('pad');
+    $('conn').textContent = 'Connecting to ' + room + '…';
+    link = Net.join(room, {
+      onOpen() { $('dot').classList.add('on'); $('conn').textContent = 'Connected · ' + room; },
+      onClose() { $('dot').classList.remove('on'); $('conn').textContent = 'Disconnected. Reload to rejoin.'; },
+      onError(e) { $('conn').textContent = String(e); },
+      onMsg
+    });
+  }
+  window.__phone = { onMsg, go, D, setSeg };
+  if (room) connect(); else go('join');
+
   $('joinBtn').addEventListener('click', () => {
     const v = $('codeInput').value.trim().toUpperCase();
     if (v.length !== 4) { $('codeInput').focus(); return; }
@@ -215,7 +675,7 @@
     if (talking) return;
     try { ptt.setPointerCapture(e.pointerId); } catch (_) {}
     talking = true; setPtt('live'); status('');
-    if (navigator.vibrate) navigator.vibrate(15);
+    buzz(15);
     starting = engine().start({ grammar, onStatus: status, onInterim: (t) => { $('you').textContent = t; $('you').className = ''; } })
       .catch((err) => { status(err.message); talking = false; setPtt(''); return 'failed'; });
   });
@@ -225,7 +685,7 @@
     try {
       if ((await starting) === 'failed') { setPtt(''); return; }
       const alts = await engine().stop();
-      if (alts.length) link && link.send({ t: 'speech', alts, source: engine().name });
+      if (alts.length) send({ t: 'speech', alts, source: engine().name });
       else { $('you').textContent = '聞こえなかった · didn\'t catch that, try again'; $('you').className = 'no'; if (engine().lastError) status(engine().lastError); }
     } catch (_) { /* status already shown */ }
     setPtt('');
@@ -234,13 +694,13 @@
   ptt.addEventListener('contextmenu', (e) => e.preventDefault());
 
   // replay buttons and typing
-  $('again').addEventListener('click', () => link && link.send({ t: 'replay', slow: false }));
-  $('slow').addEventListener('click', () => link && link.send({ t: 'replay', slow: true }));
+  $('again').addEventListener('click', () => send({ t: 'replay', slow: false }));
+  $('slow').addEventListener('click', () => send({ t: 'replay', slow: true }));
   $('typeForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const v = $('typeInput').value.trim();
     if (!v) return;
-    link && link.send({ t: 'speech', alts: [v], source: 'typed' });
+    send({ t: 'speech', alts: [v], source: 'typed' });
     $('typeInput').value = '';
   });
 
@@ -250,7 +710,7 @@
   function sendMove(x, y, force) {
     const now = Date.now();
     if (!force && now - lastSend < 50) return;
-    lastSend = now; link && link.send({ t: 'move', x: +x.toFixed(2), y: +y.toFixed(2) });
+    lastSend = now; send({ t: 'move', x: +x.toFixed(2), y: +y.toFixed(2) });
   }
   function moveStick(e) {
     const r = stick.getBoundingClientRect();
