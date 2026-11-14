@@ -149,7 +149,7 @@ When the phone is on any app except the controller and the camera, the TV shows 
 - **People:** everyone's card; a person's page with personality, quirk, friendship progress, their gift and wish.
 - **Home:** furniture and where it came from; dog tricks with the pun explained.
 
-Choose the layout in 設定: **Right side** (game visible) or **Centre** (game dimmed).
+The panel sits on the right of the TV, with the game still visible on the left.
 
 ## Known gaps
 

@@ -57,8 +57,6 @@
   /* the tablet: a bigger, more detailed copy of the phone app you have open */
   #tablet { z-index: 90 !important; font-family: 'M PLUS Rounded 1c', 'Hiragino Sans', 'Noto Sans JP', system-ui, sans-serif; position: absolute; z-index: 30; background: #fff8e7; border: .2em solid var(--ink); border-radius: 1.1em; box-shadow: 0 .6em 0 rgba(43,31,51,.35); display: flex; flex-direction: column; overflow: hidden; font-size: .95em; color: var(--ink); }
   #tablet.side { right: 2%; top: 4%; bottom: 4%; width: 38%; }
-  #tablet.centre { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 58%; height: 84%; }
-  #tablet-dim { position: absolute; inset: 0; z-index: 89; background: rgba(29,28,26,.55); }
   #tablet-head { display: flex; justify-content: space-between; align-items: center; padding: .55em .9em; background: var(--ink); color: #fff8e7; font-weight: 800; }
   #tablet-paused { font-size: .75em; font-weight: 400; opacity: .85; }
   #tablet-body { flex: 1; overflow: auto; padding: .9em 1em 1.2em; display: flex; flex-direction: column; gap: .8em; }
@@ -130,7 +128,6 @@
     <div id="phones">Waiting for a phone</div>
   </div>
 
-  <div id="tablet-dim" hidden></div>
   <section id="tablet" class="side" hidden aria-live="polite">
     <header id="tablet-head"><span id="tablet-app"></span><span id="tablet-paused">⏸ 一時停止 · paused</span></header>
     <div id="tablet-body"></div>
@@ -164,7 +161,6 @@
     </div>
     <div id="save-status" role="status">Progress saves automatically in this browser.</div>
     <div class="row"><label for="clock-speed" style="flex-direction:row;gap:.5em">時計 · Clock speed <select id="clock-speed"><option value="0.5">ゆっくり · slow (22 min a day)</option><option value="1" selected>ふつう · normal (11 min a day)</option><option value="2">はやい · fast (5½ min a day)</option><option value="0">とめる · stopped</option></select></label></div>
-    <div class="row"><label for="tablet-layout" style="flex-direction:row;gap:.5em">Tablet panel <select id="tablet-layout"><option value="side">Right side, game visible</option><option value="centre">Centre, game dimmed</option></select></label></div>
     <div class="row"><input id="explore" type="checkbox"><label for="explore" style="flex-direction:row">Unlock all areas (for testing the maps)</label></div>
     <strong>Voices</strong>
     <label>VOICEVOX engine on your Mac (for lines without a voice file; leave empty to skip) <input id="voice-url" type="text" placeholder="https://192.168.5.158:50443"></label>
@@ -216,17 +212,17 @@
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="js/words.js?v=20261115k"></script>
-<script src="js/net.js?v=20261115k"></script>
-<script src="js/ai.js?v=20261115k"></script>
-<script src="js/voice.js?v=20261115k"></script>
-<script src="assets/atlas.js?v=20261115k"></script>
-<script src="js/save.js?v=20261115k"></script>
-<script src="js/jobs.js?v=20261115k"></script>
-<script src="js/maps.js?v=20261115k"></script>
-<script src="js/rooms.js?v=20261115k"></script>
-<script src="js/characters.js?v=20261115k"></script>
-<script src="js/quests.js?v=20261115k"></script>
-<script src="js/game.js?v=20261115k"></script>
+<script src="js/words.js?v=20261115l"></script>
+<script src="js/net.js?v=20261115l"></script>
+<script src="js/ai.js?v=20261115l"></script>
+<script src="js/voice.js?v=20261115l"></script>
+<script src="assets/atlas.js?v=20261115l"></script>
+<script src="js/save.js?v=20261115l"></script>
+<script src="js/jobs.js?v=20261115l"></script>
+<script src="js/maps.js?v=20261115l"></script>
+<script src="js/rooms.js?v=20261115l"></script>
+<script src="js/characters.js?v=20261115l"></script>
+<script src="js/quests.js?v=20261115l"></script>
+<script src="js/game.js?v=20261115l"></script>
 </body>
 </html>

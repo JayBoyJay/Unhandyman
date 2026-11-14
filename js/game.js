@@ -640,8 +640,6 @@
   // The phone tells the TV which app is open and what's selected ({t:'view'}); the TV draws a
   // tablet-sized page with everything it knows about it. The controller and camera show none.
   const TABLET_APPS = { scrHome: 'スマホ · Overview', scrMsgs: 'メッセージ · Messages', scrMap: '地図 · Map', scrDiary: '日記 · Diary', scrJobs: '依頼 · Story and jobs', scrCall: '電話 · People', scrHouse: 'おうち · Home', scrSoon: '' };
-  let tabletLayout = 'side';
-  try { tabletLayout = localStorage.getItem('unhandyman.tablet') || 'side'; } catch (_) {}
   function tabletOpen() { return !!(S.view && TABLET_APPS[S.view.screen] && S.ready); }
   const tesc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const truby = (jp, kana) => (kana && kana !== jp ? '<ruby>' + tesc(jp) + '<rt>' + tesc(kana) + '</rt></ruby>' : tesc(jp));
@@ -660,10 +658,9 @@
   }
   const fmtDate = (ms) => (ms ? new Date(ms).toLocaleDateString() : '—');
   function renderTablet() {
-    const el = $('tablet'), dim = $('tablet-dim');
-    el.className = tabletLayout === 'centre' ? 'centre' : 'side';
-    if (!tabletOpen()) { el.hidden = true; dim.hidden = true; return; }
-    el.hidden = false; dim.hidden = tabletLayout !== 'centre';
+    const el = $('tablet');
+    if (!tabletOpen()) { el.hidden = true; return; }
+    el.hidden = false;
     const v = S.view, sel = v.sel || {};
     $('tablet-app').textContent = TABLET_APPS[v.screen] || '';
     let html = '';
@@ -2197,8 +2194,6 @@
   fillVoice();
   Voice.filesReady().then(() => { if (Voice.credits.length) { $('credits').textContent = '音声 · Voices: ' + Voice.credits.join('、'); $('credits').hidden = false; } });
 
-  $('tablet-layout').value = tabletLayout;
-  $('tablet-layout').addEventListener('change', () => { tabletLayout = $('tablet-layout').value; try { localStorage.setItem('unhandyman.tablet', tabletLayout); } catch (_) {} renderTablet(); });
   $('clock-speed').value = String(clockRate);
   $('clock-speed').addEventListener('change', () => { clockRate = +$('clock-speed').value; try { localStorage.setItem('unhandyman.clockRate', String(clockRate)); } catch (_) {} });
   $('explore').addEventListener('change', () => { SV().explore = $('explore').checked; Save.save(); });
@@ -2225,7 +2220,7 @@
     setClock(min) { setClock(min); },
     gainFriend, talkToNearby, get chat() { return S.chat; }, questCheck, questInfo, qs,
     camera(on) { S.camera = !!on; }, shoot, turnHero,
-    view(screen, sel) { S.view = { screen, sel: sel || {} }; renderTablet(); }, setTablet(l) { tabletLayout = l; renderTablet(); },
+    view(screen, sel) { S.view = { screen, sel: sel || {} }; renderTablet(); },
     get clock() { return S.clock; },
     hero: () => S.hero,
     // Draws a whole map to an image (for checking map layouts); returns a data URL.
