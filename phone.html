@@ -201,6 +201,10 @@
   <div id="status" role="status"></div>
 
   <details>
+    <summary>Voice log (for fixing problems)</summary>
+    <pre id="vlog" style="font-size:11px;white-space:pre-wrap;margin:8px 0 0;max-height:180px;overflow:auto;-webkit-user-select:text;user-select:text"></pre>
+  </details>
+  <details>
     <summary>Type instead (for testing)</summary>
     <form id="typeForm" autocomplete="off">
       <input id="typeInput" type="text" placeholder="いぬ、バケツを持ってきて" aria-label="Type a command">
@@ -296,9 +300,9 @@
 </main>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script src="assets/atlas.js"></script>
-<script src="js/net.js"></script>
-<script src="js/speech.js"></script>
+<script src="assets/atlas.js?v=20261114c"></script>
+<script src="js/net.js?v=20261114c"></script>
+<script src="js/speech.js?v=20261114c"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -595,7 +599,7 @@
     if (!d || typeof d !== 'object') return;
     switch (d.t) {
       case 'ack': gotAck(d.id); break;
-      case 'hello': grammar = Array.isArray(d.grammar) ? d.grammar : []; break;
+      case 'hello': grammar = Array.isArray(d.grammar) ? d.grammar : []; tvAcks = !!d.ack; vlog('TV linked' + (d.ack ? '' : ' (old TV page: reload it)')); break;
       case 'log':
         D.log = Array.isArray(d.lines) ? d.lines.slice() : [];
         // history from before this phone joined counts as read
@@ -637,6 +641,12 @@
 
   // ---------- connecting ----------
   function status(t) { $('status').textContent = t || ''; }
+  const vlines = [];
+  function vlog(t) {
+    const d = new Date();
+    vlines.push(d.toTimeString().slice(0, 8) + '  ' + t); if (vlines.length > 40) vlines.shift();
+    const el = $('vlog'); if (el) el.textContent = vlines.slice().reverse().join('\n');
+  }
   function connect() {
     go('pad');
     $('conn').textContent = 'Connecting to ' + room + '…';
@@ -679,7 +689,8 @@
     try { ptt.setPointerCapture(e.pointerId); } catch (_) {}
     talking = true; setPtt('live'); status('');
     buzz(15);
-    starting = engine().start({ grammar, onStatus: status, onInterim: (t) => { $('you').textContent = t; $('you').className = ''; } })
+    vlog('press');
+    starting = engine().start({ grammar, onStatus: status, onLog: vlog, onInterim: (t) => { $('you').textContent = t; $('you').className = ''; } })
       .catch((err) => { status(err.message); talking = false; setPtt(''); return 'failed'; });
   });
   async function release() {
@@ -688,6 +699,7 @@
     try {
       if ((await starting) === 'failed') { setPtt(''); return; }
       const alts = await engine().stop();
+      vlog('heard ' + (alts.length ? '「' + alts[0] + '」' : 'nothing') + (engine().lastError ? ' · ' + engine().lastError : ''));
       if (alts.length) sendSpeech(alts, engine().name);
       else { $('you').textContent = '聞こえなかった · didn\'t catch that, try again'; $('you').className = 'no'; if (engine().lastError) status(engine().lastError); }
     } catch (_) { /* status already shown */ }
@@ -698,12 +710,13 @@
 
   // Speech goes out with an id; the TV answers with a receipt. No receipt in 4s means the
   // link is stale, so we rejoin (the line waits in the queue and is sent again).
-  let sid0 = 0; const pending = {};
+  let sid0 = 0, tvAcks = false; const pending = {};
   function sendSpeech(alts, source) {
     const id = Date.now().toString(36) + (++sid0);
     if (!link || !link.ready()) { $('you').textContent = '「' + alts[0] + '」 · waiting for the TV link…'; $('you').className = ''; }
     else status('送信中 · sending…');
-    const live = link && link.ready();
+    const live = link && link.ready() && tvAcks;
+    vlog('send 「' + alts[0] + '」' + (link && link.ready() ? '' : ' (queued)'));
     send({ t: 'speech', id, alts, source });
     if (live) pending[id] = setTimeout(() => {
       delete pending[id];
@@ -713,6 +726,7 @@
     }, 4000);
   }
   function gotAck(id) {
+    vlog('TV got it');
     const k = String(id).replace(/r$/, '');
     if (pending[k]) { clearTimeout(pending[k]); delete pending[k]; }
     status('');

@@ -1276,7 +1276,7 @@
     onJoin(c) {
       $('phones').textContent = net.count() + ' phone connected';
       $('join').classList.add('small');
-      c.send({ t: 'hello', grammar: Words.grammarWords() });
+      c.send({ t: 'hello', ack: true, grammar: Words.grammarWords() });
       if (S.lastLine) c.send({ t: 'line', who: NAMES[S.lastLine.who], text: S.lastLine.text });
       const bm = boardMsg(); if (bm) c.send(bm);
       c.send({ t: 'log', lines: S.log.slice(-120) });
