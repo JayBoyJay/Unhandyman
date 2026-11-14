@@ -27,6 +27,7 @@ What's playable so far:
 | `js/jobs.js` | Job templates and the daily job board. |
 | `js/save.js` | Autosave (IndexedDB), save download and load, word and skill trackers. |
 | `js/maps.js` | The town square to the mountain forest, and the routes between them. |
+| `js/rooms.js` | Inside rooms: your room, Hana's house, the greengrocer, the café and the police box. |
 | `assets/` | `atlas.png` sprite sheet; `source/` holds every sprite and reference map at native size. |
 | `tools/build_atlas.py` | Rebuilds the atlas from `assets/source`. |
 | `design/` | The town-maps and phone-screen design canvas files. |
@@ -118,4 +119,6 @@ Click **AI** on the TV screen.
 - Each later area opens when the chapter before it is finished. For testing, tick 設定 → "Unlock all areas".
 - Every named NPC stands in their area. Say 「こんにちは」 next to someone and they answer with one line.
 - Map data lives in `js/maps.js`: ground is drawn from rectangles, and buildings, props, NPCs and exits are listed by tile position.
+- Rooms live in `js/rooms.js`. To give a building a room, add `room: '<id>', door: <0–1>` to it (door = how far along the front-left wall, from the front corner). Floors are drawn in code: `o` boards, `m` tatami, `q` tiles, `c` concrete.
+- The clock runs from 7:00 to 18:00 in the daytime (about 11 minutes at normal speed; change it in 設定). At 16:00 Hana warns you, at 18:00 the day ends and unfinished jobs are missed.
 - To check a whole map at once, run `__game.overview('square')` in the browser console. It returns an image of the full map.

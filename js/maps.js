@@ -27,7 +27,7 @@
       ['P', 9, 13, 13, 13],
       ['w', 0, 15, 23, 17], ['k', 10, 14, 11, 16]
     ]),
-    buildings: [P('hardware', 9.5, 4.6), P('grocer_shop', 14, 4.6), P('bakery', 19, 4.6), P('landlord_house', 5.5, 13.6)],
+    buildings: [P('hardware', 9.5, 4.6), P('grocer_shop', 14, 4.6, { room: 'grocer_in', door: 0.45 }), P('bakery', 19, 4.6), P('landlord_house', 5.5, 13.6)],
     props: [
       P('fountain', 12.6, 9.6, { r: 1 }), P('noticeboard', 7.6, 6.6), P('bench', 15.6, 11.8), P('bench', 9.2, 12.0),
       P('stone_lantern', 6.4, 12.6), P('stone_lantern', 17.6, 12.6), P('lamp', 17.6, 7.4), P('lamp', 6.4, 7.4),
@@ -79,7 +79,7 @@
     ground: grid(24, 18, 'g', [
       ['P', 0, 7, 23, 11], ['p', 0, 0, 4, 2], ['p', 19, 15, 23, 17], ['d', 10, 12, 11, 17]
     ]),
-    buildings: [P('cafe', 9, 6.6), P('small_bar', 15, 6.6), P('landlord_house', 21.5, 6.6), P('workshop', 6.5, 16.6)],
+    buildings: [P('cafe', 9, 6.6, { room: 'cafe_in', door: 0.2 }), P('small_bar', 15, 6.6), P('landlord_house', 21.5, 6.6), P('workshop', 6.5, 16.6)],
     props: [
       P('florist_shop', 17.2, 7.0), P('high_wall', 3.4, 6.6), P('high_wall', 2.0, 6.6),
       P('ramen_stall', 14.4, 13.2), P('cafe_table', 9.2, 8.8), P('cafe_table', 11.2, 9.4), P('vending_machine', 18.6, 12.4),
@@ -87,7 +87,6 @@
       P('cherry', 2.2, 14.2), P('cherry', 17.4, 16.6, { solid: false }), P('cherry', 12.6, 2.2), P('bush', 6.4, 3.2), P('bush', 21.8, 14.2)
     ],
     npcs: [
-      N('mika', 'ミカさん', 'cafe_owner', 8.2, 7.6, 'いらっしゃいませ！ なにに する？'),
       N('sakura', 'サクラさん', 'florist', 17.8, 8.0, '…あ、こんにちは。'),
       N('tetsu', '鉄さん', 'ramen_stall_owner', 14.8, 14.0, 'まいど！ ラーメン、めっちゃ うまいで！'),
       N('yuri', 'ユリママ', 'bar_owner', 14.0, 7.8, 'あら、いらっしゃい。 きいた？ あの うわさ…'),
@@ -128,7 +127,7 @@
     ground: grid(24, 18, 'g', [
       ['r', 0, 8, 23, 9], ['P', 4, 6, 9, 7], ['d', 11, 1, 21, 7], ['d', 13, 10, 20, 15], ['p', 0, 14, 3, 17], ['p', 22, 0, 23, 3]
     ]),
-    buildings: [P('police_box', 8.4, 6.6), P('old_school', 20.4, 5.4), P('landlord_house', 6.4, 15.6), P('workshop', 23.4, 16.4)],
+    buildings: [P('police_box', 8.4, 6.6, { room: 'police_in', door: 0.45 }), P('old_school', 20.4, 5.4), P('landlord_house', 6.4, 15.6), P('workshop', 23.4, 16.4)],
     props: [
       P('back_gate', 11.6, 2.6), P('police_bicycle', 9.6, 7.4, { solid: false }), P('sneaking_cat', 16.2, 12.4, { solid: false }),
       P('lamp', 10.6, 7.4), P('lamp', 2.4, 10.6), P('cherry', 21.6, 11.6), P('cherry', 1.8, 3.4), P('cherry', 11.4, 14.6),

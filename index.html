@@ -51,6 +51,9 @@
   #ai-status { font-size: 0.85em; min-height: 1.2em; }
   #hud { position: absolute; left: 3%; top: 11%; padding: 0.3em 0.8em; font-size: 0.95em; background: rgba(255,248,231,0.92); border: 0.15em solid var(--ink); border-radius: 0.5em; display: flex; flex-direction: column; gap: 0.15em; max-width: 34%; }
   #hud .now { font-size: 1.15em; }
+  #hud-clock { font-size: 1.25em; font-weight: 800; display: flex; align-items: center; gap: .35em; }
+  #hud-clock .sun { width: .9em; height: .9em; border-radius: 50%; border: .12em solid var(--ink); display: inline-block; }
+  #hud-clock small { font-weight: 400; font-size: .7em; }
   #toast { position: absolute; left: 50%; top: 12%; transform: translateX(-50%); padding: 0.4em 1.1em; font-size: 1.25em; background: #fff1c9; border: 0.2em solid var(--ink); border-radius: 0.6em; white-space: nowrap; z-index: 2; }
   #toast[hidden] { display: none; }
   #jobsBtn { position: absolute; right: 7%; bottom: 1.5%; height: 2.6em; padding: 0 1em; z-index: 3; }
@@ -93,7 +96,7 @@
     <div id="phones">Waiting for a phone</div>
   </div>
 
-  <div id="hud" hidden><div id="hud-day"></div><div id="hud-now" class="now"></div></div>
+  <div id="hud" hidden><div id="hud-clock"></div><div id="hud-day"></div><div id="hud-now" class="now"></div></div>
   <div id="toast" hidden></div>
   <div id="taskcard" class="box" hidden></div>
 
@@ -121,6 +124,7 @@
       <input id="save-file" type="file" accept="application/json,.json" hidden>
     </div>
     <div id="save-status" role="status">Progress saves automatically in this browser.</div>
+    <div class="row"><label for="clock-speed" style="flex-direction:row;gap:.5em">時計 · Clock speed <select id="clock-speed"><option value="0.5">ゆっくり · slow (22 min a day)</option><option value="1" selected>ふつう · normal (11 min a day)</option><option value="2">はやい · fast (5½ min a day)</option><option value="0">とめる · stopped</option></select></label></div>
     <div class="row"><input id="explore" type="checkbox"><label for="explore" style="flex-direction:row">Unlock all areas (for testing the maps)</label></div>
     <strong>AI conversation (optional)</strong>
     <div class="row"><input id="ai-enabled" type="checkbox"><label for="ai-enabled" style="flex-direction:row">Use AI for free chat</label></div>
@@ -160,13 +164,14 @@
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="js/words.js?v=20261114g"></script>
-<script src="js/net.js?v=20261114g"></script>
-<script src="js/ai.js?v=20261114g"></script>
-<script src="assets/atlas.js?v=20261114g"></script>
-<script src="js/save.js?v=20261114g"></script>
-<script src="js/jobs.js?v=20261114g"></script>
-<script src="js/maps.js?v=20261114g"></script>
-<script src="js/game.js?v=20261114g"></script>
+<script src="js/words.js?v=20261115a"></script>
+<script src="js/net.js?v=20261115a"></script>
+<script src="js/ai.js?v=20261115a"></script>
+<script src="assets/atlas.js?v=20261115a"></script>
+<script src="js/save.js?v=20261115a"></script>
+<script src="js/jobs.js?v=20261115a"></script>
+<script src="js/maps.js?v=20261115a"></script>
+<script src="js/rooms.js?v=20261115a"></script>
+<script src="js/game.js?v=20261115a"></script>
 </body>
 </html>

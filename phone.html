@@ -301,9 +301,9 @@
 </main>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script src="assets/atlas.js?v=20261114g"></script>
-<script src="js/net.js?v=20261114g"></script>
-<script src="js/speech.js?v=20261114g"></script>
+<script src="assets/atlas.js?v=20261115a"></script>
+<script src="js/net.js?v=20261115a"></script>
+<script src="js/speech.js?v=20261115a"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -409,7 +409,7 @@
   function renderPad() {
     const s = D.state; if (!s) return;
     $('padArea').textContent = s.map.jp; $('padAreaEn').textContent = s.map.en;
-    $('padPhase').textContent = s.phaseJp + ' · ' + s.day + '日目';
+    $('padPhase').textContent = (s.clockText || s.phaseJp) + ' · ' + s.day + '日目';
     $('jobNow').hidden = !s.job; if (s.job) $('jobNow').textContent = 'いま · ' + s.job.title + ' — ' + s.job.goal;
     setDog(s.dog.busy, s.dog.carry);
     $('padYen').textContent = '¥' + s.yen; $('padTreats').textContent = s.treats;
@@ -421,14 +421,20 @@
 
   // ---------- home ----------
   function pad2(n) { return String(n).padStart(2, '0'); }
-  function tick() { const d = new Date(); $('clock').textContent = d.getHours() + ':' + pad2(d.getMinutes()); }
+  function tick() {
+    const s = D.state;
+    if (s && s.clockText) { $('clock').textContent = s.clockText.replace(/^午[前後] /, ''); return; }
+    const d = new Date(); $('clock').textContent = d.getHours() + ':' + pad2(d.getMinutes());
+  }
   setInterval(tick, 10000); tick();
   function renderHome() {
     const s = D.state, b = badges();
-    const night = !!s && ['夜'].indexOf(s.phaseJp) !== -1;
+    const night = !!s && (s.part === 'よる' || s.phaseJp === '夜');
     $('scrHome').classList.toggle('night', night);
     if (screen === 'scrHome') document.body.style.background = night ? '#2f3a52' : BG.scrHome;
-    $('homeLine').textContent = s ? s.phaseJp + ' · ' + s.day + '日目 · ' + s.map.jp : 'TVを まってる…';
+    tick();
+    $('homeLine').textContent = s ? (s.clockText ? s.clockText.slice(0, 2) + ' · ' : '') + (s.part || s.phaseJp) + ' · ' + s.day + '日目 · ' + s.map.jp : 'TVを まってる…';
+    if (s && s.sky && !night) { $('scrHome').style.background = s.sky; if (screen === 'scrHome') document.body.style.background = s.sky; } else $('scrHome').style.background = '';
     // notification: a ringing call, the newest unread message, or the job in progress
     const last = [...D.log].reverse().find((m) => !m.me && unreadIn(m.th));
     let n = null;

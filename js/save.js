@@ -22,7 +22,8 @@
       house: { furniture: [] },
       scraps: [],
       diary: [],
-      explore: false
+      explore: false,
+      clock: 420         // minutes after midnight (7:00)
     };
   }
 

@@ -49,8 +49,8 @@
       'gggpggggggggggggggpggg'
     ],
     buildings: [
-      { sprite: 'workshop', x: 8, y: 6 },
-      { sprite: 'landlord_house', x: 16, y: 6 },
+      { sprite: 'workshop', x: 8, y: 6, room: 'room', door: 0.3 },
+      { sprite: 'landlord_house', x: 16, y: 6, room: 'hana_house', door: 0.36 },
       { sprite: 'tool_shed', x: 20, y: 10 }
     ],
     props: [
@@ -119,7 +119,17 @@
     ],
     start: { x: 28.4, y: 4.9 }
   };
-  const MAPS = Object.assign({ home: HOME, lane: LANE }, window.MAP_DEFS || {});
+  const MAPS = Object.assign({ home: HOME, lane: LANE }, window.MAP_DEFS || {}, window.ROOM_DEFS || {});
+  // Link each building door to its room: the door sits on the building's front-left wall.
+  // Inside, the way out is the middle of the room's front edge, back to just outside the door.
+  for (const map of Object.values(MAPS)) for (const b of map.buildings || []) {
+    const room = b.room && MAPS[b.room]; if (!room) continue;
+    const m = ATLAS[b.sprite]; b.doorX = b.x - m[6] * (b.door || 0.4);
+    const rw = room.ground[0].length, rh = room.ground.length;
+    room.parent = map.id;
+    room.exits = [{ side: 's', x0: rw / 2 - 1.1, x1: rw / 2 + 1.1, to: map.id, at: { x: b.doorX, y: b.y + 0.8 } }];
+    room.start = { x: rw / 2, y: rh - 0.8 };
+  }
 
   let MAP, MW, MH, BLOCK;
   function footprint(b) { const m = ATLAS[b.sprite]; return { x0: b.x - m[6], y0: b.y - m[7], x1: b.x, y1: b.y }; }
@@ -162,7 +172,7 @@
   }
 
   const S = {
-    phase: 'title', t: 0, night: 0, nightTarget: 0,
+    phase: 'title', t: 0, night: 0, nightTarget: 0, clock: 7 * 60, dayOver: false,
     hero: { x: 7.6, y: 8.4, dir: 'down', walk: 0, moving: false },
     dog: { x: 8.4, y: 9.0, face: 1, state: 'follow', tx: 0, ty: 0, carry: null, then: null, timer: 0, anim: 0, mood: null, moodT: 0 },
     items: Object.keys(ITEM_HOME).map((id) => ({ id, x: ITEM_HOME[id].x, y: ITEM_HOME[id].y, held: false, glow: false })),
@@ -343,6 +353,7 @@
   }
   function afterJob() {
     if (S.phase !== 'day' || S.cur) return;
+    if (S.dayOver) return endOfDay();
     const done = Jobs.doneCount(board());
     if (!SV().story.night0 && done >= 3) return dusk();
     if (done >= 3 || !board().jobs.some((j) => j.state !== 'done')) return evening();
@@ -351,20 +362,20 @@
     hint('Take a job on your phone (しごと) or press J');
   }
   function evening() {
-    S.phase = 'evening'; S.nightTarget = 0.45;
+    S.phase = 'evening'; S.nightTarget = 0.45; setClock(Math.max(S.clock, 18 * 60 + 30));
     say('landlord', 'おつかれさま！ きょうは おしまい。おやすみ！');
     after(5, () => { if (S.phase === 'evening') hint('おやすみ'); });
     syncBoard();
   }
   function nextDay() {
     S.phase = 'sleeping'; hint(''); $('end').hidden = true;
-    S.nightTarget = 1;
+    S.nightTarget = 1; setClock(23 * 60);
     SV().day++; SV().freeTreats = 3; SV().board = Jobs.makeBoard(SV().day, { lane: SV().story.ch0done });
     S.items.forEach((i) => { i.hidden = false; i.held = false; i.x = ITEM_HOME[i.id].x; i.y = ITEM_HOME[i.id].y; });
     S.hole = 0; S.barricade = 3;
     Save.save(true);
     after(2.2, () => {
-      S.nightTarget = 0; S.phase = 'day';
+      S.nightTarget = 0; S.phase = 'day'; S.dayOver = false; setClock(DAY_START); Save.save();
       say('landlord', 'おはよう！ きょうの しごと だよ。');
       syncBoard(); showBoard(true);
     });
@@ -483,6 +494,77 @@
     if (S.cur && S.cur.waiting && (S.cur.map || 'home') === MAP.id) after(0.9, () => S.cur && beginJob(S.cur));
   }
 
+  // ---------- the clock ----------
+  // Game time in minutes after midnight. It only runs in the daytime: 7:00 to 18:00 is about
+  // 11 minutes at normal speed. At 16:00 Hana warns you; at 18:00 the day ends (a job in
+  // progress may finish first). Evening, night and morning set the clock themselves.
+  const DAY_START = 7 * 60, WARN_AT = 16 * 60, DAY_END = 18 * 60;
+  let clockRate = 1;
+  try { const v = localStorage.getItem('unhandyman.clockRate'); if (v !== null) clockRate = +v; } catch (_) {}
+  function setClock(min) { S.clock = min; SV().clock = Math.round(min); }
+  function tickClock(dt) {
+    if (S.phase !== 'day' || !S.ready) return;
+    const before = S.clock;
+    S.clock = Math.min(DAY_END + 30, S.clock + dt * clockRate);
+    if ((S.saveClockT = (S.saveClockT || 0) + dt) > 5) { S.saveClockT = 0; SV().clock = Math.round(S.clock); Save.save(); }
+    if (before < WARN_AT && S.clock >= WARN_AT && board().jobs.some((j) => j.state === 'taken')) say('landlord', 'もう 四時 だよ！ いそいで！');
+    // late afternoon light comes in gradually
+    S.nightTarget = S.clock < 17 * 60 ? 0 : Math.min(0.4, ((S.clock - 17 * 60) / 60) * 0.4);
+    if (S.clock >= DAY_END && !S.dayOver) {
+      S.dayOver = true;
+      if (S.cur && !S.cur.waiting) { toast('六時 · 6 pm: finish this job, then the day is over'); return; }
+      endOfDay();
+    }
+  }
+  function endOfDay() {
+    if (S.cur) clearCurrent();
+    const missed = board().jobs.filter((j) => j.state === 'taken' || j.state === 'open').length;
+    if (missed) toast('六時 · the day is over' + (missed ? ' · ' + missed + ' job' + (missed > 1 ? 's' : '') + ' missed' : ''));
+    if (MAP.id !== 'home') changeMap('home', { x: 9.6, y: 9.4 });
+    if (!SV().story.night0) dusk(); else evening();
+  }
+  function clockText(min) {
+    const h = Math.floor(min / 60) % 24, m = Math.floor(min % 60);
+    return (h < 12 ? '午前' : '午後') + ' ' + ((h % 12) || 12) + ':' + String(m).padStart(2, '0');
+  }
+  function partOfDay(min) {
+    const h = min / 60;
+    return h < 5 ? 'よる' : h < 10 ? 'あさ' : h < 16 ? 'ひる' : h < 19 ? 'ゆうがた' : 'よる';
+  }
+  // sky colour seen through windows, and a colour wash over the whole scene
+  function mix(a, b, k) { return a.map((v, i) => Math.round(v + (b[i] - v) * k)); }
+  const SKY = [[0, [32, 36, 78]], [300, [40, 46, 96]], [360, [240, 170, 160]], [480, [190, 225, 240]], [900, [190, 225, 240]], [1020, [248, 196, 120]], [1110, [196, 120, 150]], [1170, [70, 64, 120]], [1260, [32, 36, 78]], [1440, [32, 36, 78]]];
+  function skyColor(min) {
+    min = ((min % 1440) + 1440) % 1440;
+    for (let i = 1; i < SKY.length; i++) if (min <= SKY[i][0]) {
+      const [t0, c0] = SKY[i - 1], [t1, c1] = SKY[i], c = mix(c0, c1, (min - t0) / (t1 - t0));
+      return 'rgb(' + c.join(',') + ')';
+    }
+    return 'rgb(32,36,78)';
+  }
+  function dayTint(min) {
+    const h = min / 60;
+    if (h >= 5.5 && h < 8) return 'rgba(255,170,150,' + (0.14 * (1 - (h - 5.5) / 2.5)).toFixed(3) + ')';
+    if (h >= 15 && h < 17.5) return 'rgba(255,190,90,' + (0.16 * ((h - 15) / 2.5)).toFixed(3) + ')';
+    if (h >= 17.5 && h < 19.5) return 'rgba(200,110,150,' + (0.16 + 0.04 * ((h - 17.5) / 2)).toFixed(3) + ')';
+    return null;
+  }
+
+  // ---------- rooms ----------
+  function doorAt(x, y) {
+    return (MAP.buildings || []).find((b) => b.room && MAPS[b.room] && Math.abs(x - b.doorX) < 0.85 && y - b.y > -0.2 && y - b.y < 1.2) || null;
+  }
+  function enterRoom(b) {
+    if (S.t < lockedT) return;
+    const no = (msg, wait) => { toast(msg); lockedT = S.t + (wait || 2.5); };
+    if (S.phase === 'dusk' || S.phase === 'night') return no('いまは だめ！ ゾンビが くる · not now, zombies are coming');
+    if (S.phase === 'title' || S.phase === 'greet') return;
+    if (S.cur && !S.cur.waiting) return no('しごと ちゅう · finish the job first');
+    if (dogBusy()) return no('いぬを まって · the dog is busy');
+    const room = MAPS[b.room];
+    changeMap(room.id, room.start);
+  }
+
   // Saying hello near someone gets a hello back (each NPC has one line for now).
   function talkToNearby() {
     let best = null, bd = 2.6;
@@ -599,6 +681,7 @@
   function startGame() {
     if (S.phase !== 'title' || !S.ready) return;
     $('title').hidden = true;
+    setClock(SV().clock || DAY_START); S.dayOver = false;
     const st = SV().story;
     if (!st.met) {
       S.phase = 'greet';
@@ -617,10 +700,10 @@
   }
 
   function dusk() {
-    S.phase = 'dusk'; S.items.forEach((i) => (i.glow = false)); showBoard(false);
+    S.phase = 'dusk'; S.items.forEach((i) => (i.glow = false)); showBoard(false); setClock(Math.max(S.clock, 18 * 60 + 30));
     say('landlord', 'よるに なると… ゾンビが くるよ。');
     S.nightTarget = 1;
-    after(4.5, () => { S.phase = 'night'; S.wave = 0; startWave(); });
+    after(4.5, () => { S.phase = 'night'; S.wave = 0; setClock(21 * 60); startWave(); });
   }
 
   function startWave() {
@@ -650,7 +733,7 @@
   }
 
   function morning() {
-    S.phase = 'morning'; S.nightTarget = 0; hint('');
+    S.phase = 'morning'; S.nightTarget = 0; hint(''); setClock(6 * 60 + 30);
     SV().story.night0 = true; Save.save(true);
     say('landlord', 'おはよう！ フェンスの 下… 掘って みて！');
     S.misses = 0;
@@ -812,6 +895,7 @@
     S.timers = S.timers.filter((x) => x.at > S.t);
     due.forEach((x) => x.fn());
 
+    tickClock(dt);
     S.night += (S.nightTarget - S.night) * Math.min(1, dt * 0.8);
 
     // hero: the stick and arrow keys push in screen directions; convert to tile space
@@ -828,6 +912,7 @@
       wx = (wx / wl) * sp * dt; wy = (wy / wl) * sp * dt;
       const ex = exitAt(h.x + wx, h.y + wy);
       if (ex) tryExit(ex);
+      else if (wy < 0 && !walkable(h.x, h.y + wy)) { const b = doorAt(h.x, h.y); if (b) enterRoom(b); }
       if (walkable(h.x + wx, h.y)) h.x += wx;
       if (walkable(h.x, h.y + wy)) h.y += wy;
       h.dir = Math.abs(ix) > Math.abs(iy) * 0.8 ? (ix > 0 ? 'right' : 'left') : (iy > 0 ? 'down' : 'up');
@@ -966,7 +1051,16 @@
     let tx = p.x - W / 2, ty = p.y - H * 0.42;
     const minX = iso(0, MH).x - 8, maxX = iso(MW, 0).x - W + 8;
     const minY = -40, maxY = iso(MW, MH).y + 26 - H;
-    tx = clamp(tx, minX, maxX); ty = clamp(ty, minY, maxY);
+    if (MAP.interior) {
+      // rooms: centred left to right; up and down it follows you between the wall tops and the
+      // front edge, keeping clear of the caption box at the bottom of the screen
+      const left = iso(0, MH).x, right = iso(MW, 0).x, top = -WALL_H - 8, bottom = iso(MW, MH).y + 14;
+      tx = right - left < W - 10 ? (left + right) / 2 - W / 2 : clamp(tx, left - 8, right - W + 8);
+      ty = bottom - top < H * 0.72 ? top - 6 : clamp(ty, top - 4, Math.min(top + 24, bottom - H * 0.72));
+    } else {
+      tx = maxX < minX ? (minX + maxX) / 2 : clamp(tx, minX, maxX);
+      ty = maxY < minY ? (minY + maxY) / 2 : clamp(ty, minY, maxY);
+    }
     const k = snap ? 1 : Math.min(1, dt * 6);
     S.cam.x += (tx - S.cam.x) * k; S.cam.y += (ty - S.cam.y) * k;
   }
@@ -976,9 +1070,16 @@
     // back to front so each tile's side (map edge only) is covered by the row in front
     for (let s = 0; s < MW + MH - 1; s++) {
       for (let y = Math.max(0, s - MW + 1); y <= Math.min(MH - 1, s); y++) {
-        const x = s - y, key = TILE[MAP.ground[y][x]];
-        const m = ATLAS['t_' + key], p = scr(x, y);
+        const x = s - y, ch = MAP.ground[y][x], key = TILE[ch];
+        const p = scr(x, y);
         if (p.x - 16 > W || p.y > H || p.x + 16 < 0 || p.y + 26 < 0) continue;
+        if (FLOOR[ch]) {
+          drawFloor(ch, x, y, p);
+          if (y === MH - 1) sideBand(scr(x, y + 1), scr(x + 1, y + 1), MAP.trim || C.woodD);
+          if (x === MW - 1) sideBand(scr(x + 1, y + 1), scr(x + 1, y), MAP.trim || C.woodD);
+          continue;
+        }
+        const m = ATLAS['t_' + key];
         if (TILE_FLIP[MAP.ground[y][x]]) { g.save(); g.translate(p.x + 16, p.y); g.scale(-1, 1); g.drawImage(atlas, m[0], m[1], m[2], m[3], 0, 0, m[2], m[3]); g.restore(); }
         else g.drawImage(atlas, m[0], m[1], m[2], m[3], p.x - 16, p.y, m[2], m[3]);
         // the island's base: one continuous band along the two front edges, no seams between tiles
@@ -987,10 +1088,76 @@
         if (x === MW - 1) sideBand(scr(x + 1, y + 1), scr(x + 1, y), e[7]);
       }
     }
+    if (MAP.interior) { drawWalls(); drawDoormat(); }
     // dig spot / hole by the fence
     if (MAP.id !== 'home') return;
     if (S.hole) spr('dig_spot', SPOTS.fenceHole.x, SPOTS.fenceHole.y + 0.2);
     else if (S.phase === 'morning') { const p = scr(SPOTS.fenceHole.x, SPOTS.fenceHole.y); R(p.x - 5, p.y - 2, 10, 3, '#8a6a45'); }
+  }
+
+  // ---------- inside floors and walls (drawn in code, no tiles needed) ----------
+  const FLOOR = {
+    o: { top: '#c89a64', line: '#a77945' },   // wooden boards
+    m: { top: '#d8cf8f', line: '#b3a865', edge: '#4e6b3a' },   // tatami
+    q: { top: '#e7e1d4', line: '#c9c0ae' },   // tiled stone
+    c: { top: '#cfcac0', line: '#b8b2a6' }    // shop concrete
+  };
+  function diamond(p) { g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(p.x + 16, p.y + 8); g.lineTo(p.x, p.y + 16); g.lineTo(p.x - 16, p.y + 8); g.closePath(); }
+  function drawFloor(ch, x, y, p) {
+    const f = FLOOR[ch];
+    diamond(p); g.fillStyle = f.top; g.fill();
+    g.strokeStyle = f.line; g.lineWidth = 1;
+    if (ch === 'o') {   // boards run along x
+      for (let i = 1; i < 4; i++) { const a = iso(x, y + i / 4), b = iso(x + 1, y + i / 4); g.beginPath(); g.moveTo(a.x - S.cam.x, a.y - S.cam.y + 0.5); g.lineTo(b.x - S.cam.x, b.y - S.cam.y + 0.5); g.stroke(); }
+    } else if (ch === 'm') {   // tatami mats: one seam and a dark cloth border on alternate mats
+      const a = iso(x + 0.5, y), b = iso(x + 0.5, y + 1);
+      g.beginPath(); g.moveTo(a.x - S.cam.x, a.y - S.cam.y); g.lineTo(b.x - S.cam.x, b.y - S.cam.y); g.stroke();
+      if ((x + y) % 2 === 0) { g.strokeStyle = f.edge; diamond({ x: p.x, y: p.y + 0.5 }); g.stroke(); }
+    } else {   // tiles: a grout cross
+      const a = iso(x + 0.5, y), b = iso(x + 0.5, y + 1), c = iso(x, y + 0.5), d = iso(x + 1, y + 0.5);
+      g.beginPath(); g.moveTo(a.x - S.cam.x, a.y - S.cam.y); g.lineTo(b.x - S.cam.x, b.y - S.cam.y); g.moveTo(c.x - S.cam.x, c.y - S.cam.y); g.lineTo(d.x - S.cam.x, d.y - S.cam.y); g.stroke();
+      diamond(p); g.stroke();
+    }
+  }
+  const WALL_H = 46;
+  // the two back walls: 'n' runs along x at y=0, 'w' runs along y at x=0
+  function wallQuad(a, b, col) {
+    g.fillStyle = col; g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.lineTo(b.x, b.y - WALL_H); g.lineTo(a.x, a.y - WALL_H); g.closePath(); g.fill();
+  }
+  function shade(hex, k) {
+    const n = parseInt(hex.slice(1), 16), f = (v) => Math.max(0, Math.min(255, Math.round(v * k)));
+    return 'rgb(' + f(n >> 16) + ',' + f((n >> 8) & 255) + ',' + f(n & 255) + ')';
+  }
+  function drawWalls() {
+    const o = scr(0, 0), n1 = scr(MW, 0), w1 = scr(0, MH), wall = MAP.wall || '#eadfca', trim = MAP.trim || C.woodD;
+    wallQuad(o, n1, wall); wallQuad(w1, o, shade(wall, 0.86));
+    // skirting and top edge
+    for (const [a, b] of [[o, n1], [w1, o]]) {
+      g.strokeStyle = trim; g.lineWidth = 3; g.beginPath(); g.moveTo(a.x, a.y - 1.5); g.lineTo(b.x, b.y - 1.5); g.stroke();
+      g.strokeStyle = C.ink; g.lineWidth = 1; g.beginPath(); g.moveTo(a.x, a.y - WALL_H + 0.5); g.lineTo(b.x, b.y - WALL_H + 0.5); g.stroke();
+    }
+    g.strokeStyle = C.ink; g.beginPath(); g.moveTo(o.x + 0.5, o.y); g.lineTo(o.x + 0.5, o.y - WALL_H); g.stroke();
+    // shoji: a thin wooden grid along the top of the walls
+    if (MAP.shoji) for (const [a, b] of [[o, n1], [w1, o]]) {
+      g.strokeStyle = shade(trim, 1.2); g.lineWidth = 1;
+      g.beginPath(); g.moveTo(a.x, a.y - WALL_H + 9); g.lineTo(b.x, b.y - WALL_H + 9); g.stroke();
+    }
+    // windows show the sky at this time of day
+    const sky = skyColor(S.clock);
+    for (const w of MAP.windows || []) {
+      const at = w.at, half = (w.w || 1.6) / 2;
+      const a = w.wall === 'n' ? scr(at - half, 0) : scr(0, at + half), b = w.wall === 'n' ? scr(at + half, 0) : scr(0, at - half);
+      const top = 34, bot = 14;
+      g.fillStyle = sky; g.beginPath(); g.moveTo(a.x, a.y - bot); g.lineTo(b.x, b.y - bot); g.lineTo(b.x, b.y - top); g.lineTo(a.x, a.y - top); g.closePath(); g.fill();
+      g.strokeStyle = trim; g.lineWidth = 2; g.stroke();
+      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      g.lineWidth = 1; g.beginPath(); g.moveTo(mx, my - bot); g.lineTo(mx, my - top); g.stroke();
+    }
+  }
+  function drawDoormat() {
+    const ex = (MAP.exits || [])[0]; if (!ex) return;
+    const a = scr((ex.x0 + ex.x1) / 2 - 0.7, MH - 0.55), b = scr((ex.x0 + ex.x1) / 2 + 0.7, MH - 0.55);
+    g.strokeStyle = '#8c3b2e'; g.lineWidth = 5; g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke();
   }
 
   const DEPTH = 10;
@@ -1150,7 +1317,14 @@
     list.push({ k: dog.x + dog.y, d: () => drawDog(dog) });
     list.sort((a, b) => a.k - b.k).forEach((e) => e.d());
     if (S.fade > 0) { g.fillStyle = 'rgba(29,28,26,' + S.fade.toFixed(3) + ')'; g.fillRect(0, 0, W, H); S.fade = Math.max(0, S.fade - 0.06); }
-    if (S.night > 0.02) {
+    // time-of-day colour: pink at dawn, gold in late afternoon, violet at dusk (softer indoors)
+    const tint = dayTint(S.clock);
+    if (tint) { g.fillStyle = MAP.interior ? tint.replace(/[\d.]+\)$/, (a) => (parseFloat(a) * 0.5).toFixed(3) + ')') : tint; g.fillRect(0, 0, W, H); }
+    if (S.night > 0.02 && MAP.interior) {
+      // indoors the lights are on: darker at the edges, warm in the middle
+      g.fillStyle = 'rgba(40,34,70,' + (0.22 * S.night).toFixed(3) + ')'; g.fillRect(0, 0, W, H);
+      g.fillStyle = 'rgba(255,200,120,' + (0.07 * S.night).toFixed(3) + ')'; g.fillRect(0, 0, W, H);
+    } else if (S.night > 0.02) {
       g.fillStyle = 'rgba(24,26,72,' + (0.55 * S.night).toFixed(3) + ')'; g.fillRect(0, 0, W, H);
       // lamp and window glow
       const lp = MAP.id === 'home' ? scr(13.1, 13.4) : scr(2.6, 6.3);
@@ -1183,6 +1357,8 @@
     if (!S.ready) return;
     const d = SV();
     $('hud').hidden = S.phase === 'title';
+    const night = S.clock >= 19 * 60 || S.clock < 5 * 60;
+    $('hud-clock').innerHTML = '<span class="sun" style="background:' + (night ? '#f2ecd2' : skyColor(S.clock)) + '"></span>' + clockText(S.clock) + ' <small>' + partOfDay(S.clock) + '</small>';
     $('hud-day').textContent = d.day + '日目 · ¥' + d.yen + ' · おやつ ' + Save.treatsLeft() + ' · ' + MAP.name.split(' · ')[0];
     const j = S.cur;
     let now = '';
@@ -1237,11 +1413,11 @@
     const open = (ex) => ex.to && (!ex.need || SV().story[ex.need] || SV().explore);
     const seen = { home: true }, order = ['home'];
     for (let i = 0; i < order.length; i++) for (const ex of MAPS[order[i]].exits || []) if (open(ex) && MAPS[ex.to] && !seen[ex.to]) { seen[ex.to] = true; order.push(ex.to); }
-    const all = order.concat(Object.keys(MAPS).filter((id) => !seen[id]));
+    const all = order.concat(Object.keys(MAPS).filter((id) => !seen[id])).filter((id) => !MAPS[id].interior);
     const fr = SV().friends || {};
     return all.map((id) => {
       const m = MAPS[id], nm = m.name.split(' · ');
-      return { id, jp: nm[0], en: nm[1] || '', here: id === MAP.id, open: !!seen[id],
+      return { id, jp: nm[0], en: nm[1] || '', here: id === MAP.id || id === MAP.parent, open: !!seen[id],
         npcs: (m.npcs || []).filter((p) => p.id).map((p) => ({ name: p.name, stars: (fr[p.id] || {}).stars || 0 })) };
     });
   }
@@ -1249,6 +1425,7 @@
     const d = SV(), names = npcNames(), nm = MAP.name.split(' · ');
     return {
       t: 'state', day: d.day, phase: S.phase, phaseJp: PHASE_JP[S.phase] || '昼', yen: d.yen, treats: Save.treatsLeft(),
+      clock: Math.floor(S.clock), clockText: clockText(S.clock), part: partOfDay(S.clock), sky: skyColor(S.clock),
       map: { id: MAP.id, jp: nm[0], en: nm[1] || '' }, maps: mapList(),
       job: S.cur ? { title: S.cur.title, goal: S.cur.goal } : null,
       dog: { busy: dogBusy(), carry: dog.carry || null },
@@ -1381,6 +1558,8 @@
     catch (e) { $('save-status').textContent = e.message; }
     $('save-file').value = '';
   });
+  $('clock-speed').value = String(clockRate);
+  $('clock-speed').addEventListener('change', () => { clockRate = +$('clock-speed').value; try { localStorage.setItem('unhandyman.clockRate', String(clockRate)); } catch (_) {} });
   $('explore').addEventListener('change', () => { SV().explore = $('explore').checked; Save.save(); });
   let newArmed = false;
   $('save-new').addEventListener('click', async () => {
@@ -1402,6 +1581,9 @@
   window.__game = {
     S, handleSpeech, startGame, takeJob, dropJob, nextDay, Save, Jobs, changeMap, MAPS, phoneState, boardMsg,
     goto(id) { const m = MAPS[id]; if (m) changeMap(id, m.start); },
+    setClock(min) { setClock(min); },
+    get clock() { return S.clock; },
+    hero: () => S.hero,
     // Draws a whole map to an image (for checking map layouts); returns a data URL.
     overview(id) {
       const keep = { g, W, H, cam: { ...S.cam }, map: MAP.id, hero: { ...S.hero }, dog: { x: dog.x, y: dog.y }, night: S.night, fade: S.fade };
