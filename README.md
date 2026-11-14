@@ -76,6 +76,9 @@ Click **AI** on the TV screen.
 - **Ollama (default):** install Ollama on the computer that opens the TV page and pull a model with good Japanese. Ollama has to allow the game's web address, so start it with `OLLAMA_ORIGINS` set, for example `OLLAMA_ORIGINS=https://jayboyjay.github.io,http://localhost:8000`. Then click "Find Ollama models".
 - **Claude, OpenAI or Gemini:** paste your own API key. It stays in that browser only and is never part of the repo.
 
+
+**Townsfolk answer anything** (設定 → AI, needs AI on): anything the game doesn't understand goes to whoever you're standing next to. The AI is told who they are (role, personality, quirk, a few of their own lines so it copies how they talk), how well they know you (friendship stars), the time and place, and that they may not care to answer. They reply in their own voice, in simple Japanese, or brush you off or ignore you (「…」). A real answer counts towards friendship, at most twice a day per person. Each person remembers the last few things you said to them this session. With nobody nearby, Hana answers as before.
+
 ## Voices (VOICEVOX)
 
 Lines are spoken with, in order: a ready-made voice file in `assets/voice/`, the VOICEVOX engine running live on your Mac, or the browser's own voice.

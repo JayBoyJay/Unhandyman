@@ -1435,6 +1435,11 @@
   // Off-script lines: ask the AI landlord when it is on, otherwise a puzzled look.
   async function unknownLine(text) {
     const cfg = AI.load();
+    // with "townsfolk answer anything" on, whoever you're next to answers in character
+    if (cfg.enabled && cfg.npcChat && S.phase !== 'night' && S.phase !== 'title') {
+      const n = nearestPerson(3.2);
+      if (n) return personAI(cfg, n, text);
+    }
     if (!cfg.enabled || S.phase === 'night' || S.phase === 'title') {
       dogMood('?'); say('landlord', 'ん？', { noRepeat: true, quiet: true });
       return false;
@@ -1452,6 +1457,55 @@
     } catch (e) {
       console.warn('AI failed', e);
       say('landlord', 'ん？ もう一回？', { noRepeat: true });
+      return false;
+    }
+  }
+
+  function nearestPerson(range) {
+    let best = null, bd = range;
+    for (const n of MAP.npcs || []) { if (!n.id || !CH[n.id]) continue; const d = Math.hypot(n.x - S.hero.x, n.y - S.hero.y); if (d < bd) { bd = d; best = n; } }
+    return best;
+  }
+  // Who they are, for the AI: role, personality, quirk, how they talk (their own lines), how well
+  // they know you, and where and when this is. They may not want to answer at all.
+  function personPrompt(id) {
+    const c = CH[id], d = SV(), f = d.friends[id] || { stars: 0 };
+    const samples = [].concat(...(c.chats || []).map((ch) => ch.map((t) => t.say)), ...Object.values(c.idle || {})).slice(0, 8);
+    const know = ['you have only just met the player', 'you know the player a little', 'you are friendly with the player', 'the player is one of your closest friends'][f.stars || 0];
+    return [
+      'You are ' + c.name + ', the ' + c.role + ' in 手ぶら町 (Tebura-chō), a small Japanese town in a language-learning game.',
+      'Personality: ' + (c.personality || '') + '. Quirk: ' + (c.quirk || '') + '.',
+      'This is how you talk (your own lines): ' + samples.map((s) => '「' + s + '」').join(' '),
+      'Right now: ' + clockText(S.clock) + ' (' + partOfDay(S.clock) + '), at ' + MAP.name + '. ' + know + ' (friendship ' + (f.stars || 0) + ' of 3).',
+      'The player is a beginner learning Japanese; he has no arms, and his dog fetches things for him. He just said something to you.',
+      'Decide, as your character would, whether you even want to answer. If it is something you would not care about, would not know, or find rude or weird, you may brush it off, change the subject, give a short non-answer, or ignore it (reply "…").',
+      'Reply ONLY with a JSON object: {"reply": "<what you say>", "interested": true or false}.',
+      'The reply: one or two short sentences, under 40 characters, in simple casual Japanese the way you talk above, mostly hiragana with spaces between phrases like your lines. Never English or romaji. Never mention being an AI or a game.'
+    ].join('\n');
+  }
+  async function personAI(cfg, n, text) {
+    const c = CH[n.id], who = n.id === 'hana' ? 'landlord' : c.name;
+    n.bubble = '…'; n.bubbleT = S.t + 8;
+    S.aiLog = S.aiLog || {};
+    const log = (S.aiLog[n.id] = (S.aiLog[n.id] || []).concat({ role: 'user', content: text }).slice(-8));
+    try {
+      const raw = await AI.chat(cfg, personPrompt(n.id), log, { json: true, tokens: 140, temperature: 0.8 });
+      let reply = '', interested = true;
+      try { const j = JSON.parse(String(raw).replace(/^[^{]*/, '').replace(/[^}]*$/, '')); reply = String(j.reply || ''); interested = j.interested !== false; }
+      catch (_) { reply = String(raw || ''); }
+      reply = reply.replace(/\s*\n\s*/g, ' ').trim().slice(0, 70) || '…';
+      log.push({ role: 'assistant', content: JSON.stringify({ reply, interested }) });
+      n.bubble = interested ? '♪' : '…'; n.bubbleT = S.t + 2;
+      say(who, reply);
+      // a real answer counts towards friendship, at most twice a day each
+      const d = SV(); d.aiTalk = d.aiTalk || {};
+      const k = n.id + ':' + d.day;
+      if (interested && reply !== '…' && (d.aiTalk[k] || 0) < 2) { d.aiTalk[k] = (d.aiTalk[k] || 0) + 1; gainFriend(n.id, 1); }
+      return interested;
+    } catch (e) {
+      console.warn('AI failed', e);
+      n.bubble = '？'; n.bubbleT = S.t + 2;
+      say(who, '…ん？', { noRepeat: true });
       return false;
     }
   }
@@ -2167,6 +2221,7 @@
   function fillSettings() {
     const c = AI.load();
     $('ai-enabled').checked = c.enabled;
+    $('ai-npc').checked = !!c.npcChat;
     $('ai-provider').value = c.provider;
     $('ai-url').value = c.ollamaUrl;
     $('ai-model').value = c.model;
@@ -2178,6 +2233,7 @@
   function readSettings() {
     const c = AI.load();
     c.enabled = $('ai-enabled').checked;
+    c.npcChat = $('ai-npc').checked;
     const prev = c.provider;
     c.provider = $('ai-provider').value;
     c.ollamaUrl = $('ai-url').value.trim() || 'http://localhost:11434';

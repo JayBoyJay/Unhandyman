@@ -7,6 +7,7 @@
     provider: 'ollama',
     ollamaUrl: 'http://localhost:11434',
     model: '',
+    npcChat: false,      // townsfolk answer anything you say, in character (needs AI on)
     keys: { claude: '', openai: '', gemini: '' }
   };
   const MODEL_HINT = { ollama: '', claude: 'claude-haiku-5-5', openai: '', gemini: '' };
@@ -39,25 +40,29 @@
   }
 
   // messages: [{role: 'user'|'assistant', content}]
-  async function chat(cfg, system, messages) {
+  // opts: { json: true } asks for a JSON object back (Ollama enforces it), { tokens: n } caps the length
+  async function chat(cfg, system, messages, opts) {
+    opts = opts || {};
     const model = cfg.model || MODEL_HINT[cfg.provider];
     if (!model) throw new Error('Pick a model in AI settings first.');
     if (cfg.provider === 'ollama') {
       const d = await postJSON(cfg.ollamaUrl.replace(/\/$/, '') + '/api/chat', {
         model, stream: false, messages: [{ role: 'system', content: system }, ...messages],
-        options: { temperature: 0.6, num_predict: 80 }
+        format: opts.json ? 'json' : undefined,
+        options: { temperature: opts.temperature || 0.6, num_predict: opts.tokens || 80 }
       }, {}, true);
       return d.message && d.message.content;
     }
     if (cfg.provider === 'claude') {
-      const d = await postJSON('https://api.anthropic.com/v1/messages', { model, max_tokens: 120, system, messages }, {
+      const d = await postJSON('https://api.anthropic.com/v1/messages', { model, max_tokens: opts.tokens || 120, system, messages }, {
         'x-api-key': cfg.keys.claude, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true'
       });
       return d.content && d.content[0] && d.content[0].text;
     }
     if (cfg.provider === 'openai') {
       const d = await postJSON('https://api.openai.com/v1/chat/completions', {
-        model, max_tokens: 120, messages: [{ role: 'system', content: system }, ...messages]
+        model, max_tokens: opts.tokens || 120, messages: [{ role: 'system', content: system }, ...messages],
+        response_format: opts.json ? { type: 'json_object' } : undefined
       }, { Authorization: 'Bearer ' + cfg.keys.openai });
       return d.choices && d.choices[0].message.content;
     }
