@@ -65,11 +65,28 @@
       conns.delete(c); try { c.close(); } catch (_) {}
       h.onLeave && h.onLeave(c);
     }
+    // The TV keeps one room code for the whole session. If the signalling server drops us
+    // (common with the free PeerJS server, or when the tab is in the background), phones that
+    // are already connected keep working; we just rejoin the server so new phones can find us.
+    let wait = 1000, retryT = null, lost = 0;
+    function retry(why) {
+      if (retryT) return;
+      h.onSignal && h.onSignal('reconnecting', why);
+      retryT = setTimeout(() => {
+        retryT = null;
+        if (peer && !peer.destroyed && peer.disconnected && lost < 3) { lost++; try { peer.reconnect(); } catch (_) { lost = 3; } }
+        else { lost = 0; try { peer && peer.destroy(); } catch (_) {} open(); }   // start fresh with the same code
+        // if that attempt goes nowhere, try again
+        const p = peer;
+        setTimeout(() => { if (p === peer && !p.open) retry('no answer'); }, 6000);
+      }, wait);
+      wait = Math.min(wait * 2, 15000);
+    }
     function open() {
       code = code || randomCode();
-      peer = new Peer(PREFIX + code, peerOptions());
-      peer.on('open', () => { tries = 0; h.onReady && h.onReady(code); });
-      peer.on('connection', (c) => {
+      const p = peer = new Peer(PREFIX + code, peerOptions());
+      p.on('open', () => { if (p !== peer) return; tries = 0; wait = 1000; lost = 0; h.onReady && h.onReady(code); h.onSignal && h.onSignal('ok'); });
+      p.on('connection', (c) => {
         c.on('open', () => { conns.add(c); c.lastSeen = Date.now(); h.onJoin && h.onJoin(c); });
         c.on('data', (d) => {
           c.lastSeen = Date.now();
@@ -79,15 +96,19 @@
         c.on('close', () => drop(c));
         watchIce(c, () => drop(c));
       });
-      peer.on('error', (e) => {
-        if (e.type === 'unavailable-id' && tries++ < 5) { peer.destroy(); code = null; open(); }
-        else if (e.type === 'network' || e.type === 'server-error' || e.type === 'socket-error') {
-          // lost the signalling server: keep the same code and try again shortly
-          setTimeout(() => { try { if (peer.disconnected && !peer.destroyed) peer.reconnect(); } catch (_) {} }, 2000);
+      p.on('error', (e) => {
+        if (p !== peer) return;
+        if (e.type === 'unavailable-id') {
+          // the server still holds our old code for a moment after a drop; brand-new sessions pick another
+          if (conns.size) { lost = 3; retry('code still held'); }
+          else if (tries++ < 5) { p.destroy(); code = null; open(); }
+          else h.onError && h.onError(e.type);
         }
+        else if (e.type === 'network' || e.type === 'server-error' || e.type === 'socket-error' || e.type === 'socket-closed') retry(e.type);
+        else if (e.type === 'peer-unavailable') { /* a phone left mid-handshake; ignore */ }
         else h.onError && h.onError(e.type || String(e));
       });
-      peer.on('disconnected', () => setTimeout(() => { try { if (!peer.destroyed) peer.reconnect(); } catch (_) {} }, 1000));
+      p.on('disconnected', () => { if (p === peer) retry('disconnected'); });
     }
     open();
     // phones ping every few seconds; forget any that went quiet

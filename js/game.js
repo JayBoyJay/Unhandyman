@@ -1291,7 +1291,11 @@
       else if (d.t === 'replay') replay(!!d.slow);
       else if (d.t === 'job' && typeof d.id === 'string') { if (d.act === 'take') takeJob(d.id); else if (d.act === 'drop') dropJob(d.id); }
     },
-    onError(e) { $('phones').textContent = 'Phone link: ' + e; }
+    onError(e) { $('phones').textContent = 'Phone link: ' + e; },
+    onSignal(st) {
+      const n = net.count() + ' phone connected';
+      $('phones').textContent = st === 'ok' ? n : n + ' · reconnecting to the server…';
+    }
   });
 
   // ---------- keyboard and test box ----------
