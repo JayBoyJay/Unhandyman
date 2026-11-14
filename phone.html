@@ -346,7 +346,7 @@
     if (id === 'scrJobs') { if (D.board) D.seenBoardDay = D.board.day; renderJobs(); }
     if (id === 'scrCall') renderContacts();
     if (id === 'scrSoon') renderSoon(arg);
-    if (id !== 'scrPad') { send({ t: 'move', x: 0, y: 0 }); }
+    if (id !== 'scrPad') link && link.send({ t: 'move', x: 0, y: 0 }, { drop: true });
     updateBadges();
     window.scrollTo(0, 0);
   }
@@ -640,7 +640,8 @@
     $('conn').textContent = 'Connecting to ' + room + '…';
     link = Net.join(room, {
       onOpen() { $('dot').classList.add('on'); $('conn').textContent = 'Connected · ' + room; },
-      onClose() { $('dot').classList.remove('on'); $('conn').textContent = 'Disconnected. Reload to rejoin.'; },
+      onClose() { $('dot').classList.remove('on'); $('conn').textContent = 'Link dropped · rejoining…'; },
+      onStatus(t) { if (t) $('conn').textContent = t; },
       onError(e) { $('conn').textContent = String(e); },
       onMsg
     });
@@ -685,7 +686,10 @@
     try {
       if ((await starting) === 'failed') { setPtt(''); return; }
       const alts = await engine().stop();
-      if (alts.length) send({ t: 'speech', alts, source: engine().name });
+      if (alts.length) {
+        if (!link || !link.ready()) { $('you').textContent = '「' + alts[0] + '」 · waiting for the TV link, will send when it reconnects'; $('you').className = ''; }
+        send({ t: 'speech', alts, source: engine().name });
+      }
       else { $('you').textContent = '聞こえなかった · didn\'t catch that, try again'; $('you').className = 'no'; if (engine().lastError) status(engine().lastError); }
     } catch (_) { /* status already shown */ }
     setPtt('');
@@ -710,7 +714,7 @@
   function sendMove(x, y, force) {
     const now = Date.now();
     if (!force && now - lastSend < 50) return;
-    lastSend = now; send({ t: 'move', x: +x.toFixed(2), y: +y.toFixed(2) });
+    lastSend = now; link && link.send({ t: 'move', x: +x.toFixed(2), y: +y.toFixed(2) }, { drop: true });
   }
   function moveStick(e) {
     const r = stick.getBoundingClientRect();
