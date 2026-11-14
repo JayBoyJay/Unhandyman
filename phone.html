@@ -300,9 +300,9 @@
 </main>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script src="assets/atlas.js?v=20261114c"></script>
-<script src="js/net.js?v=20261114c"></script>
-<script src="js/speech.js?v=20261114c"></script>
+<script src="assets/atlas.js?v=20261114d"></script>
+<script src="js/net.js?v=20261114d"></script>
+<script src="js/speech.js?v=20261114d"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -670,7 +670,7 @@
   // voice engine switch
   $('engine').value = store.get('engine', 'phone');
   $('engine').addEventListener('change', () => {
-    store.set('engine', $('engine').value);
+    store.set('engine', $('engine').value); setPtt('');
     if ($('engine').value === 'vosk') Speech.engines.vosk.prepare(status).catch((e) => status(e.message));
   });
   const engine = () => Speech.engines[$('engine').value];
@@ -678,20 +678,35 @@
   // push to talk
   const ptt = $('ptt');
   let talking = false, starting = null;
+  // Hold-to-talk on Android/desktop. Tap-to-talk on iPhone, where speech can only start from a
+  // finished tap: tap to listen, then tap again (or just pause) to send.
+  const tapMode = () => !!engine().tapToTalk;
   function setPtt(mode) {
     ptt.className = mode === 'live' ? 'live' : mode === 'busy' ? 'busy' : '';
     $('pttLabel').textContent = mode === 'live' ? '聞いてる…' : mode === 'busy' ? '…' : '話す';
-    $('pttSub').textContent = mode === 'live' ? 'Listening' : mode === 'busy' ? 'Sending' : 'Hold to talk';
+    $('pttSub').textContent = mode === 'live' ? (tapMode() ? 'Tap to send' : 'Listening') : mode === 'busy' ? 'Sending' : (tapMode() ? 'Tap to talk' : 'Hold to talk');
   }
-  ptt.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    if (talking) return;
-    try { ptt.setPointerCapture(e.pointerId); } catch (_) {}
+  setPtt('');
+  function begin() {
     talking = true; setPtt('live'); status('');
     buzz(15);
     vlog('press');
-    starting = engine().start({ grammar, onStatus: status, onLog: vlog, onInterim: (t) => { $('you').textContent = t; $('you').className = ''; } })
-      .catch((err) => { status(err.message); talking = false; setPtt(''); return 'failed'; });
+    starting = engine().start({
+      grammar, onStatus: status, onLog: vlog,
+      onInterim: (t) => { $('you').textContent = t; $('you').className = ''; },
+      onAutoEnd: () => { if (talking) { vlog('pause → send'); release(); } }
+    }).catch((err) => { status(err.message); talking = false; setPtt(''); return 'failed'; });
+  }
+  ptt.addEventListener('pointerdown', (e) => {
+    if (tapMode()) return;
+    e.preventDefault();
+    if (talking) return;
+    try { ptt.setPointerCapture(e.pointerId); } catch (_) {}
+    begin();
+  });
+  ptt.addEventListener('click', () => {
+    if (!tapMode()) return;
+    if (talking) release(); else begin();   // begin() starts the recognizer right here, inside the tap
   });
   async function release() {
     if (!talking) return;
@@ -705,7 +720,8 @@
     } catch (_) { /* status already shown */ }
     setPtt('');
   }
-  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((ev) => ptt.addEventListener(ev, release));
+  const holdEnd = () => { if (!tapMode()) release(); };
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((ev) => ptt.addEventListener(ev, holdEnd));
   ptt.addEventListener('contextmenu', (e) => e.preventDefault());
 
   // Speech goes out with an id; the TV answers with a receipt. No receipt in 4s means the

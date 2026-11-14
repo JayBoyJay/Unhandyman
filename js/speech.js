@@ -4,71 +4,57 @@
 (function () {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  // Android: a fresh recognizer per press; the old one is shut down first and its late events
-  // ignored (Android allows only one at a time).
-  // iPhone/iPad (Safari, Edge, Chrome there are all WebKit): new recognizers after the first
-  // often never hear anything, so we keep ONE recognizer and restart it each press, waiting
-  // for the last press to end fully. If it doesn't start hearing within 2 s, we rebuild it.
+  // One fresh recognizer per press, started straight away inside the tap (no waiting first):
+  // iPhone only allows speech recognition that starts directly from a real tap, and cancels
+  // it ("aborted") otherwise. Any recognizer from the last press is aborted and its late
+  // events ignored. On iPhone the talk button is tap-to-talk (see phone.html), because only
+  // a finished tap counts there, not a finger going down.
   const ANDROID = /Android/i.test(navigator.userAgent);
   const IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const PhoneRec = {
     name: 'phone',
+    tapToTalk: IOS,
     available: () => !!SR,
-    sess: null, shared: null, log: () => {},
-    build(sessRef, reuse) {
-      const r = reuse || new SR();
+    sess: null, log: () => {},
+    build(sess) {
+      const r = new SR();
       r.lang = 'ja-JP'; r.interimResults = true; r.maxAlternatives = 5;
-      r.continuous = !ANDROID;   // continuous mode is unreliable on Android
-      r.onaudiostart = () => { const s = sessRef(r); if (s) { s.hearing = true; this.log('mic on'); } };
+      r.continuous = !ANDROID && !IOS;   // continuous mode is unreliable on phones
+      const mine = () => this.sess === sess && sess.rec === r;
+      r.onaudiostart = () => { if (mine()) this.log('mic on'); };
       r.onresult = (e) => {
-        const s = sessRef(r); if (!s) return;
-        s.results = Array.from(e.results).slice(s.from || 0);
-        s.opts && s.opts.onInterim && s.opts.onInterim(s.results.map((x) => x[0].transcript).join(''));
+        if (!mine()) return;
+        sess.results = Array.from(e.results);
+        sess.opts && sess.opts.onInterim && sess.opts.onInterim(sess.results.map((x) => x[0].transcript).join(''));
       };
-      r.onerror = (e) => { const s = sessRef(r); this.log('error: ' + e.error); if (s) s.error = e.error; };
-      r.onend = () => { r._running = false; this.log('end'); const s = r._sess; if (s) { s.ended = true; s.onEnd && s.onEnd(); } };
+      r.onerror = (e) => { if (mine()) { this.log('error: ' + e.error); sess.error = e.error; } };
+      r.onend = () => {
+        if (sess.rec !== r) return;
+        sess.ended = true; this.log('end');
+        if (sess.onEnd) sess.onEnd();
+        else if (this.sess === sess && sess.opts && sess.opts.onAutoEnd) sess.opts.onAutoEnd();   // stopped by itself after a pause
+      };
       return r;
     },
-    async start(opts) {
-      if (!SR) throw new Error("This browser has no built-in speech recognition. Use Chrome on Android or Safari on iPhone, or switch to Vosk.");
+    // Not async on purpose: r.start() must run inside the tap's own event handler.
+    start(opts) {
+      if (!SR) return Promise.reject(new Error("This browser has no built-in speech recognition. Use Safari or Chrome."));
       this.log = (opts && opts.onLog) || (() => {});
       this.lastError = null;
-      await this.shutdown();
-      const sess = this.sess = { results: [], error: null, ended: false, onEnd: null, rec: null, opts, hearing: false };
-      const mine = (r) => (this.sess === sess && sess.rec === r ? sess : null);
-      let r = IOS && this.shared ? this.shared : this.build(mine);
-      if (IOS) {
-        // re-point the shared recognizer's handlers at this press
-        if (r !== this.shared) this.shared = r;
-        else this.build(mine, r);
+      const old = this.sess;
+      if (old && old.rec && !old.ended) { try { old.rec.abort(); } catch (_) {} }
+      const sess = this.sess = { results: [], error: null, ended: false, onEnd: null, rec: null, opts };
+      sess.rec = this.build(sess);
+      try { sess.rec.start(); this.log('start'); return Promise.resolve(); }
+      catch (e) {
+        // the old one hadn't let go yet: try once more shortly (may not work on iPhone)
+        this.log('start failed: ' + (e.name || e.message) + ', retrying');
+        return new Promise((res, rej) => setTimeout(() => {
+          if (this.sess !== sess) return res();
+          sess.rec = this.build(sess);
+          try { sess.rec.start(); this.log('start'); res(); } catch (e2) { rej(new Error('Speech could not start: ' + (e2.message || e2.name))); }
+        }, 400));
       }
-      sess.rec = r; r._sess = sess;
-      const go = () => { r._running = true; r.start(); this.log('start'); };
-      try { go(); }
-      catch (e) {   // "already started": give the old one a moment, then rebuild once
-        this.log('start failed: ' + (e.name || e.message));
-        await new Promise((res) => setTimeout(res, 400));
-        r = sess.rec = this.build(mine); r._sess = sess; if (IOS) this.shared = r; sess.ended = false; go();
-      }
-      if (IOS) setTimeout(() => {
-        // never heard anything: throw the shared recognizer away and use a new one
-        if (this.sess === sess && !sess.hearing && !sess.ended) {
-          this.log('no mic, rebuilding');
-          try { r.abort(); } catch (_) {}
-          const n = this.build(mine); this.shared = n; sess.rec = n; n._sess = sess;
-          try { n._running = true; n.start(); } catch (_) {}
-        }
-      }, 2000);
-    },
-    // stop any recognizer still running and wait for it to finish
-    shutdown() {
-      const old = this.sess; this.sess = null;
-      if (!old || !old.rec || old.ended || !old.rec._running) return Promise.resolve();
-      return new Promise((resolve) => {
-        old.onEnd = resolve;
-        try { IOS ? old.rec.stop() : old.rec.abort(); } catch (_) { resolve(); }
-        setTimeout(resolve, IOS ? 1500 : 700);
-      });
     },
     stop() {
       const sess = this.sess;
@@ -92,7 +78,6 @@
         if (sess.error && sess.error !== 'no-speech' && sess.error !== 'aborted') this.lastError = 'Speech error: ' + sess.error;
         return [];
       }
-      // join every piece, then offer the alternatives for the last piece
       const head = res.slice(0, -1).map((r) => r[0].transcript).join('');
       const lastRes = res[res.length - 1];
       const alts = [];
