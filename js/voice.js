@@ -27,13 +27,19 @@
   function save(c) { try { localStorage.setItem(KEY, JSON.stringify(c)); } catch (_) {} }
   let cfg = load();
 
-  // the voice files' own settings (from tools/voices.json) win, so lookups match the files
-  let roles = DEFAULT_VOICES, names = BY_NAME;
-  function speakerFor(who) {
-    const role = roles[who] !== undefined ? who : names[who] || 'default';
-    const v = cfg.voices[role];
-    return v !== undefined && v !== '' ? +v : +(roles[role] !== undefined ? roles[role] : roles.default);
+  // Each character's voice. The voice files' own casting (assets/voice/index.json, made from
+  // tools/voices.json) wins, so lookups match the files: { id, key, params } per character, where
+  // key = "id:pitch:speed:intonation" and params are the acting settings sent to VOICEVOX.
+  let roles = {}, names = BY_NAME;
+  Object.keys(DEFAULT_VOICES).forEach((r) => (roles[r] = { id: DEFAULT_VOICES[r], key: String(DEFAULT_VOICES[r]), params: {} }));
+  function roleOf(who) { return roles[who] ? who : roles[names[who]] ? names[who] : 'default'; }
+  // a voice picked in 設定 replaces that role's casting (used live; the files keep their voices)
+  function voiceFor(who) {
+    const role = roleOf(who), v = cfg.voices[role], cast = roles[role] || roles.default;
+    if (v !== undefined && v !== '') return { id: +v, key: String(+v), params: cast.params || {} };
+    return cast;
   }
+  function speakerFor(who) { return voiceFor(who).id; }
   // FNV-1a 32-bit over the UTF-8 bytes of "speaker|text", as 8 hex digits
   function hash(speaker, text) {
     const bytes = new TextEncoder().encode(speaker + '|' + text);
@@ -49,17 +55,17 @@
     .then((j) => {
       index = (j && j.files) || {};
       Voice.credits = (j && j.credits) || [];
-      if (j && j.voices) { roles = Object.assign({}, DEFAULT_VOICES, j.voices); names = Object.assign({}, BY_NAME, j.byName || {}); }
+      if (j && j.roles) { Object.assign(roles, j.roles); names = Object.assign({}, BY_NAME, j.byName || {}); }
     }, () => (index = {}));
 
   // lines spoken this session that had no file yet (the Mac tool can make files for them)
   const missing = new Map();
   function noteMissing(who, speaker, text) {
-    const k = hash(speaker, text);
+    const k = speaker + '|' + text;
     if (!missing.has(k)) missing.set(k, { who, speaker, text });
     try { localStorage.setItem('unhandyman.voice.missing', JSON.stringify([...missing.values()].slice(-500))); } catch (_) {}
   }
-  try { (JSON.parse(localStorage.getItem('unhandyman.voice.missing') || '[]')).forEach((m) => missing.set(hash(m.speaker, m.text), m)); } catch (_) {}
+  try { (JSON.parse(localStorage.getItem('unhandyman.voice.missing') || '[]')).forEach((m) => missing.set(m.speaker + '|' + m.text, m)); } catch (_) {}
 
   let audio = null, liveCache = new Map(), token = 0;
   function stop() {
@@ -81,14 +87,15 @@
   }
   // VOICEVOX: POST /audio_query then POST /synthesis. The body is sent as a typeless Blob so the
   // browser makes a "simple" request (no CORS preflight); the engine still reads it as JSON.
-  async function live(speaker, text, slow) {
-    const base = cfg.engineUrl.replace(/\/$/, '');
-    const k = speaker + '|' + text + (slow ? '|slow' : '');
+  async function live(voice, text, slow) {
+    const base = cfg.engineUrl.replace(/\/$/, ''), speaker = voice.id;
+    const k = voice.key + '|' + text + (slow ? '|slow' : '');
     if (liveCache.has(k)) return liveCache.get(k);
     const q = await fetch(base + '/audio_query?speaker=' + speaker + '&text=' + encodeURIComponent(text), { method: 'POST' });
     if (!q.ok) throw new Error('audio_query ' + q.status);
     const query = await q.json();
-    if (slow) query.speedScale = 0.75;
+    Object.assign(query, voice.params || {});
+    if (slow) query.speedScale = (query.speedScale || 1) * 0.75;
     const s = await fetch(base + '/synthesis?speaker=' + speaker, { method: 'POST', body: new Blob([JSON.stringify(query)]) });
     if (!s.ok) throw new Error('synthesis ' + s.status);
     const url = URL.createObjectURL(await s.blob());
@@ -114,17 +121,17 @@
   async function speak(who, text, opts) {
     opts = opts || {};
     stop();
-    const my = token, slow = !!opts.slow, speaker = speakerFor(who);
+    const my = token, slow = !!opts.slow;
     text = String(text || '').trim();
     if (!text) return;
     if (!index) await Promise.race([indexReady, new Promise((r) => setTimeout(r, 400))]);
     if (my !== token) return;
-    const k = hash(speaker, text);
+    const voice = voiceFor(who), k = hash(voice.key, text);
     if (cfg.useFiles && index && index[k]) { if (await playUrl('assets/voice/' + index[k], slow, my)) return 'file'; }
     if (my !== token) return;
-    noteMissing(who, speaker, text);
+    noteMissing(who, voice.key, text);
     if (cfg.engineUrl) {
-      try { const url = await live(speaker, text, slow); if (my !== token) return; if (await playUrl(url, false, my)) return 'live'; }
+      try { const url = await live(voice, text, slow); if (my !== token) return; if (await playUrl(url, false, my)) return 'live'; }
       catch (e) { Voice.lastError = e.message; }
     }
     if (my !== token) return;
@@ -139,7 +146,7 @@
   }
 
   const Voice = {
-    speak, stop, hash, speakerFor, speakers, DEFAULT_VOICES,
+    speak, stop, hash, speakerFor, voiceFor, speakers, DEFAULT_VOICES,
     get config() { return cfg; },
     setConfig(c) { cfg = Object.assign(load(), c); save(cfg); liveCache.clear(); },
     missingLines: () => [...missing.values()],

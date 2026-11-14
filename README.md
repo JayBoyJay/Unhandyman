@@ -88,7 +88,7 @@ python3 tools/voicegen.py --speakers   # list voices and their ids
 python3 tools/voicegen.py              # make the files (m4a via afconvert)
 git add assets/voice && git commit -m "Voice files" && git push
 ```
-Which voice each character uses is set in `tools/voices.json`. Re-run after changing it, or after adding lines; existing files are kept.
+Casting is in `tools/voices.json`: every character has a gender, a ranked list of VOICEVOX voices and styles to try (e.g. Hana: もち子さん（のんびり）, the ferryman: 青山龍星（不機嫌）), and acting settings: `pitch` (-0.15 to 0.15), `speed` and `intonation` (1 = normal). If a voice isn't installed, the character gets another of the same gender, preferring one nobody else uses. Check the casting with `python3 tools/voicegen.py --cast`. Re-run after changing it or adding lines; unchanged lines keep their files, changed characters get new ones (`--prune` deletes the old).
 
 **3. Lines that change** (job requests with numbers, AI replies) can't be made ahead of time. Either:
 - play the game for a while, then 設定 → Voices → **Save missing lines**, and run `python3 tools/voicegen.py --lines missing-lines.json`, or
