@@ -347,10 +347,10 @@
 </main>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script src="assets/atlas.js?v=20261115p"></script>
-<script src="js/net.js?v=20261115p"></script>
-<script src="js/speech.js?v=20261115p"></script>
-<script src="js/voice.js?v=20261115p"></script>
+<script src="assets/atlas.js?v=20261115r"></script>
+<script src="js/net.js?v=20261115r"></script>
+<script src="js/speech.js?v=20261115r"></script>
+<script src="js/voice.js?v=20261115r"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -576,7 +576,7 @@
     $('mapHidden').textContent = s.mapsHidden ? '？？？ まだ ' + s.mapsHidden + 'つの ばしょが ある… · ' + s.mapsHidden + ' places still to discover' : 'ぜんぶ みつけた！ · You\'ve been everywhere!';
     $('mapBox').innerHTML = s.maps.map((m) => {
       const pins = m.here ? '<span class="pin" style="background:#d9533c;color:#fff">私</span><span class="pin" style="background:#fff">犬</span>' + (s.job ? '<span class="pin" style="background:#c07a12;color:#fff">J</span>' : '') : '';
-      const who = m.open && m.npcs.length ? '<div class="who">' + m.npcs.map((p) => esc(p.name) + (p.stars ? ' <span class="stars">' + '★'.repeat(p.stars) + '</span>' : '')).join(' · ') + '</div>' : '';
+      const who = m.open && (m.npcs.length || m.unmet) ? '<div class="who">' + m.npcs.map((p) => esc(p.name) + (p.stars ? ' <span class="stars">' + '★'.repeat(p.stars) + '</span>' : '')).join(' · ') + (m.unmet ? (m.npcs.length ? ' · ' : '') + '？？？ ×' + m.unmet : '') + '</div>' : '';
       return '<div class="area' + (m.here ? ' here' : '') + (m.open ? '' : ' lk') + (viewSel.area === m.id ? ' picked' : '') + '" data-area="' + esc(m.id) + '"><div style="flex:1;min-width:0">' + esc(m.jp) + ' <span class="en">' + (m.open ? esc(m.en) : 'locked') + '</span>' + who + '</div>' +
         (pins ? '<div class="row" style="gap:4px">' + pins + '</div>' : '') + '</div>';
     }).join('');
@@ -675,7 +675,8 @@
     const fr = D.state ? D.state.friends.slice().sort((a, b) => b.points - a.points) : [];
     $('contacts').innerHTML = fr.length ? fr.map((f) => '<div class="thr' + (viewSel.person === f.id ? ' picked' : '') + '" role="button" tabindex="0" data-person="' + esc(f.id) + '"><span class="av" style="background:' + avColor(f.name) + '">' + esc(initial(f.name)) + '</span>' +
       '<span style="flex:1;min-width:0"><span class="nm">' + esc(f.name) + '</span><span class="pv"><span class="stars">' + '★'.repeat(f.stars) + '☆'.repeat(3 - f.stars) + '</span>' + (f.role ? ' · ' + esc(f.role) : '') + (f.chatted ? ' · talked today ✓' : '') + '</span>' + (f.personality ? '<span class="pv" style="white-space:normal;font-size:12px">' + esc(f.personality) + (f.quirk && f.stars >= 1 ? '. <i>' + esc(f.quirk) + '</i>' : '') + '</span>' : '') + '</span><button class="play s" type="button" data-go="msgs" data-arg="' + esc(f.name) + '" aria-label="Messages with ' + esc(f.name) + '">💬</button></div>').join('')
-      : '<p class="empty">No contacts yet.</p>';
+      : '<p class="empty">No contacts yet. Say こんにちは to people around town.</p>';
+    if (D.state && D.state.unmetPeople) $('contacts').insertAdjacentHTML('beforeend', '<p class="sub" style="text-align:center">？？？ まだ ' + D.state.unmetPeople + '人に あって いない · ' + D.state.unmetPeople + ' people still to meet</p>');
   }
 
   $('houseList').addEventListener('click', (e) => { const c = e.target.closest('[data-fur]'); if (c) { buzz(8); sendView({ furniture: +c.dataset.fur }); renderHouse(); } });

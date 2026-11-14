@@ -584,6 +584,7 @@
     if (!best) return false;
     best.bubble = '♪'; best.bubbleT = S.t + 1.5;
     const c = CH[best.id];
+    if (best.id && !SV().friends[best.id]) { Save.friend(best.id, 0); }   // you've met them now
     if (questTalk(best)) return true;
     if (!c) { say(best.name, best.hello); if (best.id) gainFriend(best.id, 1); return true; }
     const who = best.id === 'hana' ? 'landlord' : c.name, d = SV(), st = (d.friends[best.id] || {}).stars || 0;
@@ -636,6 +637,9 @@
     gainFriend(ch.id, 3);
     Save.save();
   }
+
+  // people you've spoken with (friendship entries start the first time you talk; Hana from the first morning)
+  function hasMet(id) { const d = SV(); return !!d.friends[id] || (id === 'hana' && d.story.met); }
 
   // ---------- the tablet: a bigger, more detailed copy of the phone app you have open ----------
   // The phone tells the TV which app is open and what's selected ({t:'view'}); the TV draws a
@@ -736,7 +740,8 @@
   function tMap(sel) {
     const been = visited(), id = sel.area && MAPS[sel.area] && been[sel.area] ? sel.area : (MAP.parent || MAP.id), m = MAPS[id], fr = SV().friends, d = SV();
     const nm = m.name.split(' · ');
-    const people = (m.npcs || []).filter((n) => n.id).map((n) => { const f = fr[n.id] || {}, c = CH[n.id] || {}; return '<tr><td>' + tsprite(n.sprite, 2) + '</td><td><b>' + tesc(n.name || c.name) + '</b><br><span class="tsub">' + tesc(c.role || '') + '</span></td><td>' + tstars(f.stars) + (d.chatDay[n.id] === d.day ? '<br><span class="tsub">talked today ✓</span>' : '') + '</td></tr>'; }).join('');
+    const unmetHere = (m.npcs || []).filter((n) => n.id && !hasMet(n.id)).length;
+    const people = (m.npcs || []).filter((n) => n.id && hasMet(n.id)).map((n) => { const f = fr[n.id] || {}, c = CH[n.id] || {}; return '<tr><td>' + tsprite(n.sprite, 2) + '</td><td><b>' + tesc(n.name || c.name) + '</b><br><span class="tsub">' + tesc(c.role || '') + '</span></td><td>' + tstars(f.stars) + (d.chatDay[n.id] === d.day ? '<br><span class="tsub">talked today ✓</span>' : '') + '</td></tr>'; }).join('');
     const rooms = (m.buildings || []).filter((b) => b.room && MAPS[b.room]).map((b) => '<span class="chip2">' + tesc(MAPS[b.room].name) + '</span>').join('');
     // roads to places you haven't been yet stay a mystery
     const exits = (m.exits || []).filter((e) => MAPS[e.to]).map((e) => {
@@ -744,7 +749,7 @@
       return '<li>' + (open ? '→ ' : '🔒 ') + name + (open || been[e.to] ? '' : ' <span class="tsub">(opens later in the story)</span>') + '</li>';
     }).join('');
     return '<h3>' + tesc(nm[0]) + ' <span class="tsub">' + tesc(nm[1] || '') + '</span></h3>' + (id === (MAP.parent || MAP.id) ? '<p class="tsub">📍 You are here' + (MAP.parent ? ' (inside ' + tesc(MAP.name) + ')' : '') + '</p>' : '') +
-      tmapImage(id) + (people ? '<div class="tcard"><b>ひと · People</b><table>' + people + '</table></div>' : '') +
+      tmapImage(id) + (people || unmetHere ? '<div class="tcard"><b>ひと · People</b>' + (people ? '<table>' + people + '</table>' : '') + (unmetHere ? '<p class="tsub">？？？ ' + unmetHere + ' ' + (unmetHere > 1 ? 'people' : 'person') + ' you haven\'t met yet</p>' : '') + '</div>' : '') +
       (rooms ? '<div class="tcard"><b>なか · Inside</b><div class="chips" style="margin-top:.3em">' + rooms + '</div></div>' : '') +
       (exits ? '<div class="tcard"><b>みち · Roads</b><ul style="margin:.3em 0 0;padding-left:1.1em">' + exits + '</ul></div>' : '');
   }
@@ -812,7 +817,7 @@
   const NEXT = [5, 15, 30];
   function tPeople(sel) {
     const d = SV(), ids = Object.keys(CH);
-    if (sel.person && CH[sel.person]) {
+    if (sel.person && CH[sel.person] && hasMet(sel.person)) {
       const id = sel.person, c = CH[id], f = d.friends[id] || { points: 0, stars: 0 }, nx = NEXT[f.stars], prev = f.stars ? NEXT[f.stars - 1] : 0;
       const where = Object.values(MAPS).find((m) => (m.npcs || []).some((n) => n.id === id)), npc = where && where.npcs.find((n) => n.id === id);
       const gift = c.gift, wish = c.wish, giftFor = gift && gift.extra ? ' + ' + gift.extra.en + ' (for ' + npcName(gift.extra.for) + ')' : '';
@@ -825,10 +830,12 @@
         (wish ? '<div class="tcard"><b>ねがい · Their wish</b><p>' + (d.wishes[id] ? '✓ ' + tesc(wish.item_en) + ' delivered · 「' + tesc(wish.scrap.jp) + '」' : f.stars >= 3 ? tesc(wish.item_en) + ' · ' + (hasItem(wish.item) ? 'you have it: say hello to give it!' : 'one of the townsfolk gives it at ★★★') : '<span class="tsub">??? (they\'ll tell you at ★★★)</span>') + '</p></div>' : '') +
         '<div class="tcard"><b>さいきん · Recently said</b>' + (heard.length ? heard.map((m) => '<div class="line">' + tesc(m.text) + '</div>').join('') : '<p class="tsub">Nothing yet this session.</p>') + '</div>';
     }
-    return '<h3>まちの ひと · Townsfolk</h3><div class="tgrid">' + ids.map((id) => {
+    const met = ids.filter(hasMet), unmet = ids.length - met.length;
+    return '<h3>まちの ひと · Townsfolk <span class="tsub">' + met.length + ' met</span></h3><div class="tgrid">' + met.map((id) => {
       const c = CH[id], f = d.friends[id] || { stars: 0 }, where = Object.values(MAPS).find((m) => (m.npcs || []).some((n) => n.id === id)), npc = where && where.npcs.find((n) => n.id === id);
       return '<div class="tstat" style="text-align:center">' + (npc ? tsprite(npc.sprite, 3) : '') + '<br><b style="font-size:1em">' + tesc(c.name) + '</b>' + tstars(f.stars) + '<br><span class="tsub">' + tesc(c.role) + '</span></div>';
-    }).join('') + '</div><p class="tsub">Tap someone on your phone to see their page here.</p>';
+    }).join('') + (unmet ? '<div class="tstat" style="text-align:center;opacity:.6"><b>？？？</b><span class="tsub">' + unmet + ' more people to meet</span></div>' : '') + '</div>' +
+      (met.length ? '<p class="tsub">Tap someone on your phone to see their page here.</p>' : '<p class="tsub">Say こんにちは to people around town to meet them.</p>');
   }
   // --- home: furniture and tricks ---
   function tHouse(sel) {
@@ -1355,7 +1362,7 @@
         if (S.phase !== 'greet' && talkToNearby()) break;
         if (S.phase === 'greet') {
           success(); say('landlord', 'はじめまして。 よろしく ね。');
-          SV().story.met = true; S.phase = 'day'; Save.save(true);
+          SV().story.met = true; S.phase = 'day'; Save.friend('hana', 0); Save.save(true);
           after(2.8, () => { say('landlord', 'しごと、ある よ。 ボードを 見て！'); showBoard(true); hint('Take a job on your phone (しごと) or press J'); });
         } else say('landlord', S.night > 0.5 ? 'こんばんは。' : 'こんにちは！');
         break;
@@ -2064,7 +2071,7 @@
     return all.map((id) => {
       const m = MAPS[id], nm = m.name.split(' · ');
       return { id, jp: nm[0], en: nm[1] || '', here: id === MAP.id || id === MAP.parent, open: !!seen[id],
-        npcs: (m.npcs || []).filter((p) => p.id).map((p) => ({ name: p.name, stars: (fr[p.id] || {}).stars || 0 })) };
+        npcs: (m.npcs || []).filter((p) => p.id && hasMet(p.id)).map((p) => ({ name: p.name || npcName(p.id), stars: (fr[p.id] || {}).stars || 0 })), unmet: (m.npcs || []).filter((p) => p.id && !hasMet(p.id)).length };
     });
   }
   function phoneState() {
@@ -2079,7 +2086,8 @@
       dog: { busy: dogBusy(), carry: dog.carry || null },
       words: Object.entries(d.words || {}).map(([id, w]) => Object.assign(Words.gloss(id), { heard: w.heard, said: w.said, strength: Math.round(Save.fade(id)) })),
       camera: !!S.camera, photoCount: (d.photos || []).length,
-      friends: Object.entries(d.friends || {}).map(([id, f]) => ({ id, name: names[id] || id, role: (CH[id] && CH[id].role) || '', personality: (CH[id] && CH[id].personality) || '', quirk: (CH[id] && CH[id].quirk) || '', stars: f.stars, points: f.points, chatted: d.chatDay[id] === d.day })),
+      unmetPeople: Object.keys(CH).filter((id) => !hasMet(id)).length,
+      friends: Object.entries(d.friends || {}).filter(([id]) => hasMet(id)).map(([id, f]) => ({ id, name: names[id] || id, role: (CH[id] && CH[id].role) || '', personality: (CH[id] && CH[id].personality) || '', quirk: (CH[id] && CH[id].quirk) || '', stars: f.stars, points: f.points, chatted: d.chatDay[id] === d.day })),
       furniture: (d.house.furniture || []).map((f) => ({ sprite: f.sprite, en: f.en, from: npcName(f.from), for: f.for ? npcName(f.for) : '', given: !!f.given })),
       tricks: (d.tricks || []).map((id) => { const c = Object.values(CH).find((x) => x.wish && x.wish.trick.id === id); return c ? { id, say: c.wish.scrap.jp, en: c.wish.trick.en } : { id }; }),
       scraps: d.scraps || [], diary: (d.diary || []).slice(-10)
