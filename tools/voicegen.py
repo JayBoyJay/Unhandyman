@@ -97,6 +97,22 @@ def collect_lines():
         # N('id', 'name', 'sprite', x, y, 'hello')
         for name, hello in re.findall(r"N\('[^']*',\s*'([^']*)',\s*'[^']*',\s*[\d.]+,\s*[\d.]+,\s*'([^'\\]*)'\)", text):
             lines.append((name, hello))
+    # every character's chats, gift and wish lines (js/characters.js is JSON after the '=')
+    p = os.path.join(ROOT, 'js', 'characters.js')
+    if os.path.exists(p):
+        with open(p, encoding='utf-8') as f:
+            src = f.read()
+        chars = json.loads(src[src.index('window.CHARACTERS =') + len('window.CHARACTERS ='):src.rindex(';')])
+        for cid, c in chars.items():
+            who = 'landlord' if cid == 'hana' else c['name']
+            said = [c.get('again', ''), c['gift']['line'], c['gift'].get('extra', {}).get('line', '')]
+            for chat in c['chats']:
+                for turn in chat:
+                    said.append(turn['say'])
+                    said.extend(turn.get('want', {}).values())
+            if 'wish' in c:
+                said += [c['wish']['ask'], c['wish']['deliver'], c['wish']['scrap']['jp']]
+            lines += [(who, s) for s in said if s]
     return lines
 
 

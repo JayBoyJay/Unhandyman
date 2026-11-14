@@ -109,6 +109,14 @@ https://192.168.5.158:50443 {
 
 **Credit:** VOICEVOX voices must be credited as `VOICEVOX:<character name>` wherever the game is shared, and each character has its own terms of use (see the VOICEVOX site).
 
+## Characters and friendships (new)
+
+`js/characters.js` holds every character's daily chats, parting line, three-star gift, and for the five core characters (Hana, Gen, Mika, Tanaka, Kon) their wish, pun scrap and dog trick. It's plain JSON after `window.CHARACTERS =`, so tools/voicegen.py voices it too.
+
+- **Daily chat:** say こんにちは near someone. They say one thing and wait for your answer (はい / いいえ / a number / …); each turn's `want` lists what they react to, `any` catches everything else. Commands for the dog still go to the dog mid-chat. One chat per person per day: +3 friendship. Jobs add 2 per job star.
+- **Stars** at 5 / 15 / 30 points pay ¥100 / ¥200 / ¥300 and 1 / 2 / 3 treats. Three stars also gives that person's furniture (it goes to おうち on the phone).
+- **Wishes:** at three stars a core character asks for something. Five townsfolk include it with their own three-star gift (ネムさん → Hana's futon, 金子さん → Gen's bell, 鉄さん → Mika's curry pot, ユリママ → Tanaka's phone, 熊田さん → Kon's fox). Say hello to the core character while you have it to hand it over: you get a pun scrap (日記 → かけら) and a trick. Saying the pun to the dog makes it do the trick.
+
 ## Known gaps
 
 - Voices use the browser's Japanese text-to-speech; VOICEVOX recordings come later.

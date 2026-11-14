@@ -23,6 +23,9 @@
       scraps: [],
       diary: [],
       explore: false,
+      chatDay: {},       // npc id -> the day you last had their daily chat
+      tricks: [],        // dog tricks learned from wish scraps
+      wishes: {},        // core npc id -> true once their wish is delivered
       clock: 420         // minutes after midnight (7:00)
     };
   }

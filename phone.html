@@ -294,6 +294,14 @@
   <p class="sub">Say hello to people around town to get to know them. Calls come later.</p>
 </main>
 
+<!-- ============ おうち (furniture from friends) ============ -->
+<main id="scrHouse" class="scr" hidden style="background:#fbeee2">
+  <div class="appbar"><button class="back" data-go="home" aria-label="Back">‹</button><div class="grow"><p class="h1">おうち</p><p class="sub">Furniture from friends · placing it in your room comes later</p></div></div>
+  <div id="houseList" class="words"></div>
+  <p class="hd">いぬの とくぎ · Dog tricks</p>
+  <div id="trickList" style="display:flex;flex-direction:column;gap:8px"></div>
+</main>
+
 <!-- ============ coming soon ============ -->
 <main id="scrSoon" class="scr" hidden>
   <div class="appbar"><button class="back" data-go="home" aria-label="Back">‹</button><div class="grow"><p class="h1" id="soonTitle"></p><p class="sub" id="soonSub"></p></div></div>
@@ -301,10 +309,10 @@
 </main>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script src="assets/atlas.js?v=20261115d"></script>
-<script src="js/net.js?v=20261115d"></script>
-<script src="js/speech.js?v=20261115d"></script>
-<script src="js/voice.js?v=20261115d"></script>
+<script src="assets/atlas.js?v=20261115f"></script>
+<script src="js/net.js?v=20261115f"></script>
+<script src="js/speech.js?v=20261115f"></script>
+<script src="js/voice.js?v=20261115f"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -339,11 +347,11 @@
   }
 
   // ---------- screens ----------
-  const SCREENS = ['joinView', 'scrPad', 'scrHome', 'scrMsgs', 'scrMap', 'scrDiary', 'scrJobs', 'scrCall', 'scrSoon'];
-  const BG = { scrPad: '#dcebc4', scrHome: '#bfe0ec', scrMsgs: '#e6f2ec', scrMap: '#efe6cf', scrDiary: '#f3e9d6', scrJobs: '#efe6cf', scrCall: '#e8edf5', scrSoon: '#f3eef8', joinView: '#ffe0cc' };
+  const SCREENS = ['joinView', 'scrPad', 'scrHome', 'scrMsgs', 'scrMap', 'scrDiary', 'scrJobs', 'scrCall', 'scrHouse', 'scrSoon'];
+  const BG = { scrPad: '#dcebc4', scrHome: '#bfe0ec', scrMsgs: '#e6f2ec', scrMap: '#efe6cf', scrDiary: '#f3e9d6', scrJobs: '#efe6cf', scrCall: '#e8edf5', scrHouse: '#fbeee2', scrSoon: '#f3eef8', joinView: '#ffe0cc' };
   let screen = 'scrPad';
   function go(name, arg) {
-    const id = { pad: 'scrPad', home: 'scrHome', msgs: 'scrMsgs', map: 'scrMap', diary: 'scrDiary', jobs: 'scrJobs', call: 'scrCall', soon: 'scrSoon', join: 'joinView' }[name] || name;
+    const id = { pad: 'scrPad', home: 'scrHome', msgs: 'scrMsgs', map: 'scrMap', diary: 'scrDiary', jobs: 'scrJobs', call: 'scrCall', house: 'scrHouse', soon: 'scrSoon', join: 'joinView' }[name] || name;
     screen = id;
     SCREENS.forEach((s) => ($(s).hidden = s !== id));
     document.body.style.background = id === 'scrHome' && $('scrHome').classList.contains('night') ? '#2f3a52' : BG[id];
@@ -354,6 +362,7 @@
     if (id === 'scrDiary') { D.seenWords = wordCount(); store.set('seenWords', String(D.seenWords)); renderDiary(); }
     if (id === 'scrJobs') { if (D.board) D.seenBoardDay = D.board.day; renderJobs(); }
     if (id === 'scrCall') renderContacts();
+    if (id === 'scrHouse') renderHouse();
     if (id === 'scrSoon') renderSoon(arg);
     if (id !== 'scrPad') link && link.send({ t: 'move', x: 0, y: 0 }, { drop: true });
     updateBadges();
@@ -384,7 +393,7 @@
     { k: 'jobs', go: 'jobs', jp: '依頼', bg: '#f7c9a8' },
     { k: 'call', go: 'call', jp: '電話', bg: '#cbd6e8' },
     { k: 'camera', go: 'soon', arg: 'camera', jp: 'カメラ', bg: '#d9d3e8', soon: true },
-    { k: 'house', go: 'soon', arg: 'house', jp: 'おうち', bg: '#ffe0cc', soon: true }
+    { k: 'house', go: 'house', jp: 'おうち', bg: '#ffe0cc' }
   ];
   function appBtn(a, badge, small) {
     return '<button class="app' + (a.soon ? ' soon' : '') + '" type="button" data-go="' + a.go + '"' + (a.arg ? ' data-arg="' + a.arg + '"' : '') + '>' +
@@ -529,7 +538,7 @@
   const CATS = ['すべて', 'もの', 'うごき', 'いろ', 'ようす', 'かず', 'ひと', 'あいさつ'];
   const PIC = { 'item:bucket': 'bucket', 'item:persimmon': 'persimmon', 'item:key': 'key', 'item:dog': 'dog' };
   let atlasImg = null;
-  if (window.ATLAS) { atlasImg = new Image(); atlasImg.src = 'assets/atlas.png'; atlasImg.onload = () => { if (screen === 'scrDiary') renderDiary(); }; }
+  if (window.ATLAS) { atlasImg = new Image(); atlasImg.src = 'assets/atlas.png'; atlasImg.onload = () => { if (screen === 'scrDiary') renderDiary(); if (screen === 'scrHouse') renderHouse(); }; }
   function setSeg(s) {
     seg = s; $('segScraps').setAttribute('aria-selected', String(s === 'scraps')); $('segWords').setAttribute('aria-selected', String(s === 'words'));
     $('scrapsView').hidden = s !== 'scraps'; $('wordsView').hidden = s !== 'words'; renderDiary();
@@ -543,7 +552,10 @@
     $('diarySub').textContent = 'かけら ' + (s ? s.scraps.length : 0) + ' · 言葉 ' + words.length;
     if (seg === 'scraps') {
       const sc = s ? s.scraps : [];
-      $('scrapsView').innerHTML = sc.length ? sc.map((x, i) => '<div class="scrap"><p class="sub">Scrap #' + (i + 1) + (x.from ? ' · ' + esc(x.from) : '') + '</p><p class="jp">' + (x.html || esc(x.jp || x.text || '')) + '</p>' + (x.en ? '<p class="sub" lang="en">' + esc(x.en) + '</p>' : '') + '</div>').join('')
+      $('scrapsView').innerHTML = sc.length ? sc.map((x, i) => '<div class="scrap"><p class="sub">Scrap #' + (i + 1) + (x.from ? ' · ' + esc(x.from) : '') + '</p>' +
+        '<div class="row" style="justify-content:space-between"><p class="jp">' + (x.html || esc(x.jp || x.text || '')) + '</p><button class="play s" type="button" data-word="' + esc(x.jp || '') + '" aria-label="Play">' + PLAY + '</button></div>' +
+        (x.en ? '<p class="sub" lang="en">' + esc(x.en) + '</p>' : '') + (x.note ? '<p class="sub" lang="en" style="margin-top:4px">' + esc(x.note) + '</p>' : '') +
+        (x.trick ? '<p class="sub" lang="en" style="margin-top:6px"><b>Dog trick:</b> say it to the dog and it ' + esc(x.trick) + '.</p>' : '') + '</div>').join('')
         : '<p class="empty">No scraps yet.<br>Scraps of paper turn up as you make friends around town — each one has a joke and a new trick for the dog.</p>';
       return;
     }
@@ -565,6 +577,7 @@
     });
   }
   $('words').addEventListener('click', (e) => { const b = e.target.closest('[data-word]'); if (b) speak(b.dataset.word, false); });
+  $('scrapsView').addEventListener('click', (e) => { const b = e.target.closest('[data-word]'); if (b) speak(b.dataset.word, false); });
 
   // ---------- jobs ----------
   function renderJobs() {
@@ -593,8 +606,25 @@
   function renderContacts() {
     const fr = D.state ? D.state.friends.slice().sort((a, b) => b.points - a.points) : [];
     $('contacts').innerHTML = fr.length ? fr.map((f) => '<button class="thr" type="button" data-go="msgs" data-arg="' + esc(f.name) + '"><span class="av" style="background:' + avColor(f.name) + '">' + esc(initial(f.name)) + '</span>' +
-      '<span style="flex:1;min-width:0"><span class="nm">' + esc(f.name) + '</span><span class="pv"><span class="stars">' + '★'.repeat(f.stars) + '☆'.repeat(3 - f.stars) + '</span> · ' + f.points + ' pts</span></span></button>').join('')
+      '<span style="flex:1;min-width:0"><span class="nm">' + esc(f.name) + '</span><span class="pv"><span class="stars">' + '★'.repeat(f.stars) + '☆'.repeat(3 - f.stars) + '</span>' + (f.role ? ' · ' + esc(f.role) : '') + (f.chatted ? ' · talked today ✓' : '') + '</span></span></button>').join('')
       : '<p class="empty">No contacts yet.</p>';
+  }
+
+  // ---------- おうち ----------
+  function spriteCanvas(name, h) {
+    const a = window.ATLAS && window.ATLAS[name];
+    if (!a || !atlasImg || !atlasImg.complete) return '';
+    const c = document.createElement('canvas'); c.width = a[2]; c.height = a[3];
+    c.getContext('2d').drawImage(atlasImg, a[0], a[1], a[2], a[3], 0, 0, a[2], a[3]);
+    return '<img alt="" src="' + c.toDataURL() + '" style="image-rendering:pixelated;max-height:' + (h || 64) + 'px;max-width:100%">';
+  }
+  function renderHouse() {
+    const s = D.state, f = s ? s.furniture || [] : [], t = s ? s.tricks || [] : [];
+    $('houseList').innerHTML = f.length ? f.map((x) => '<div class="wc"' + (x.given ? ' style="opacity:.5"' : '') + '><div class="pic" style="border:none">' + spriteCanvas(x.sprite) + '</div>' +
+      '<b style="font-size:14px;line-height:1.3">' + esc(x.en) + '</b><p class="en">from ' + esc(x.from) + (x.for ? ' · for ' + esc(x.for) + (x.given ? ' ✓ given' : ' — take it to them!') : '') + '</p></div>').join('')
+      : '<p class="empty" style="grid-column:1/-1">Nothing yet. Friends give you furniture when you reach ★★★ with them. Say こんにちは to people every day!</p>';
+    $('trickList').innerHTML = t.length ? t.map((x) => '<div class="card"><b>「' + esc(x.say || x.id) + '」</b><p class="sub">The dog ' + esc(x.en || '') + '.</p></div>').join('')
+      : '<p class="sub">Deliver a friend\'s wish to learn a trick. The pun on the scrap is the command.</p>';
   }
 
   // ---------- coming soon ----------
@@ -639,6 +669,7 @@
         if (screen === 'scrMap') renderMap();
         if (screen === 'scrDiary') { D.seenWords = wordCount(); renderDiary(); }
         if (screen === 'scrCall') renderContacts();
+        if (screen === 'scrHouse') renderHouse();
         break;
       case 'buzz':
         buzz([120, 80, 120, 80, 120]); D.ringing = true;

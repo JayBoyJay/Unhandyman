@@ -345,11 +345,10 @@
     const pay = Jobs.payout(j, stars);
     SV().yen += pay.yen; SV().treats += pay.treats;
     SV().stats.jobsDone++; SV().stats.starsEarned += stars;
-    const up = Save.friend(j.client, stars * 2);
+    gainFriend(j.client, stars * 2);
     Save.skill('job:' + j.kind);
     say('landlord', line);
     toast(j.en + '  ' + '★'.repeat(stars) + '☆'.repeat(3 - stars) + '  +¥' + pay.yen + (pay.treats ? '  +おやつ ' + pay.treats : ''));
-    if (up) after(2.6, () => toast(Jobs.NPC[j.client] + 'と なかよし ★' + up));
     clearCurrent(); syncBoard();
     after(3, afterJob);
   }
@@ -488,6 +487,7 @@
     changeMap(ex.to, ex.at);
   }
   function changeMap(id, at) {
+    if (S.chat) endChat(false);
     useMap(id);
     S.hero.x = at.x; S.hero.y = at.y;
     dog.x = at.x + 0.5; dog.y = at.y + 0.5; dog.state = 'follow'; dog.then = null; dog.chase = null;
@@ -568,18 +568,123 @@
   }
 
   // Saying hello near someone gets a hello back (each NPC has one line for now).
+  // Saying hello to someone nearby starts today's chat with them (see js/characters.js):
+  // a short exchange where they say something and you answer (はい / いいえ / a number / …).
+  // One chat per person per day; finishing it raises your friendship.
+  const CH = window.CHARACTERS || {};
   function talkToNearby() {
     let best = null, bd = 2.6;
     for (const n of MAP.npcs || []) {
-      if (!n.hello) continue;
+      if (!n.hello && !CH[n.id]) continue;
       const d = Math.hypot(n.x - S.hero.x, n.y - S.hero.y);
       if (d < bd) { bd = d; best = n; }
     }
     if (!best) return false;
-    say(best.name, best.hello);
     best.bubble = '♪'; best.bubbleT = S.t + 1.5;
-    if (best.id) Save.friend(best.id, 1);
+    const c = CH[best.id];
+    if (!c) { say(best.name, best.hello); if (best.id) gainFriend(best.id, 1); return true; }
+    const who = best.id === 'hana' ? 'landlord' : c.name, d = SV(), st = (d.friends[best.id] || {}).stars || 0;
+    // a core friend at three stars asks for their wish, or receives it
+    if (c.wish && st >= 3 && !d.wishes[best.id]) {
+      if (hasItem(c.wish.item)) return deliverWish(best.id, who), true;
+      if (d.chatDay[best.id] === d.day) { say(who, c.wish.ask, { noRepeat: false }); return true; }
+    }
+    if (d.chatDay[best.id] === d.day) { say(who, c.again); return true; }
+    const stage = st >= 3 ? d.day % 3 : Math.min(st, 2), turns = c.chats[stage] || c.chats[0];
+    S.chat = { id: best.id, npc: best, who, turns, i: 0, wait: false, until: S.t + 40 };
+    if (best.hello) { say(who, best.hello); after(2.6, () => chatTurn()); } else chatTurn();
     return true;
+  }
+  function chatTurn() {
+    const ch = S.chat; if (!ch) return;
+    const t = ch.turns[ch.i];
+    if (!t) return endChat(true);
+    say(ch.who, t.say); ch.npc.bubble = '？'; ch.npc.bubbleT = S.t + 2;
+    ch.wait = !!t.want; ch.until = S.t + 30; ch.tries = 0;
+    if (!t.want) after(2.6, () => { if (S.chat === ch) { ch.i++; chatTurn(); } });
+  }
+  // what you said, as a chat answer; returns false to let the dog hear it instead
+  const CHAT_TYPES = { unknown: 1, none: 1, greet: 1, thanks: 1, yes: 1, no: 1, dunno: 1, number: 1, time: 1, name: 1, describe: 1, item: 1 };
+  function chatAnswer(r) {
+    const ch = S.chat, t = ch && ch.turns[ch.i];
+    if (!t || !ch.wait) return false;
+    if (Math.hypot(ch.npc.x - S.hero.x, ch.npc.y - S.hero.y) > 4.5 || S.t > ch.until) { endChat(false); return false; }
+    const w = t.want, reply = w[r.type] !== undefined ? w[r.type] : CHAT_TYPES[r.type] ? w.any : undefined;
+    if (reply === undefined) {
+      if (!CHAT_TYPES[r.type]) return false;   // a command for the dog
+      if (++ch.tries >= 2) hint(Object.keys(w).filter((k) => k !== 'any').map((k) => ({ yes: 'はい', no: 'いいえ', greet: 'こんにちは', thanks: 'ありがとう', dunno: 'わからない', number: 'a number', time: 'a time' }[k] || k)).join(' / '));
+      say(ch.who, '…ん？', { noRepeat: true });
+      return true;
+    }
+    ch.wait = false; success();
+    say(ch.who, reply);
+    after(2.8, () => { if (S.chat === ch) { ch.i++; chatTurn(); } });
+    return true;
+  }
+  function endChat(done) {
+    const ch = S.chat; S.chat = null; if (!ch) return;
+    if (!done) return;
+    SV().chatDay[ch.id] = SV().day;
+    ch.npc.bubble = '♥'; ch.npc.bubbleT = S.t + 2;
+    gainFriend(ch.id, 3);
+    Save.save();
+  }
+
+  // ---------- friendship rewards ----------
+  const STAR_PAY = { 1: { yen: 100, treats: 1 }, 2: { yen: 200, treats: 2 }, 3: { yen: 300, treats: 3 } };
+  function npcName(id) { return (CH[id] && CH[id].name) || Jobs.NPC[id] || id; }
+  function gainFriend(id, pts) {
+    const up = Save.friend(id, pts);
+    if (up) after(3.2, () => levelUp(id, up));
+    return up;
+  }
+  function levelUp(id, stars) {
+    const pay = STAR_PAY[stars] || STAR_PAY[1], c = CH[id];
+    SV().yen += pay.yen; SV().treats += pay.treats;
+    toast(npcName(id) + 'と なかよし ' + '★'.repeat(stars) + '  +¥' + pay.yen + '  +おやつ ' + pay.treats);
+    if (stars >= 3 && c && c.gift) {
+      const who = id === 'hana' ? 'landlord' : c.name;
+      addFurniture(c.gift.sprite, c.gift.en, id);
+      say(who, c.gift.line);
+      if (c.gift.extra) after(3.4, () => { addFurniture(c.gift.extra.sprite, c.gift.extra.en, id, c.gift.extra.for); say(who, c.gift.extra.line); });
+      after(c.gift.extra ? 7 : 3.4, () => toast('🎁 ' + c.gift.en + (c.gift.extra ? ' + ' + c.gift.extra.en : '') + ' → おうち'));
+    }
+    Save.save(); syncBoard();
+  }
+  function addFurniture(sprite, en, from, wishFor) {
+    SV().house.furniture.push({ sprite, en, from, for: wishFor || null, day: SV().day, given: false });
+  }
+  function hasItem(sprite) { return SV().house.furniture.some((f) => f.sprite === sprite && !f.given); }
+  function deliverWish(id, who) {
+    const c = CH[id], w = c.wish, d = SV();
+    d.house.furniture.find((f) => f.sprite === w.item && !f.given).given = true;
+    d.wishes[id] = true;
+    say(who, w.deliver);
+    after(3.5, () => {
+      d.scraps.push(Object.assign({ from: c.name, trick: w.trick.en, trickId: w.trick.id, day: d.day }, w.scrap));
+      if (!d.tricks.includes(w.trick.id)) d.tricks.push(w.trick.id);
+      toast('かけら: 「' + w.scrap.jp + '」 · say it to the dog for a new trick!');
+      Save.save(true);
+    });
+  }
+
+  // ---------- dog tricks (say a wish scrap's pun) ----------
+  const TRICK_MOOD = { futon: 'zZz', dolphin: '≈≈', latte: '☕', traffic: 'ピッ', vanish: '…' };
+  function trickIn(text) {
+    const t = Words.norm(text);
+    for (const c of Object.values(CH)) {
+      const tr = c.wish && c.wish.trick;
+      if (tr && tr.say.some((s) => t.includes(Words.norm(s)))) return tr;
+    }
+    return null;
+  }
+  function doTrick(tr) {
+    if (!SV().tricks.includes(tr.id)) { dogMood('？'); toast('いぬは まだ しらない · the dog doesn\'t know that trick yet'); return; }
+    if (dogBusy()) { dogMood('…'); return; }
+    dog.trick = { id: tr.id, until: S.t + 4, from: { x: dog.x, y: dog.y } };
+    dogMood(TRICK_MOOD[tr.id] || '!', 3.5);
+    toast('いぬは ' + tr.en + '!');
+    Save.skill('trick:' + tr.id);
   }
 
   // ---------- task card (the letter, the price sign, the timetable) ----------
@@ -760,6 +865,11 @@
     const text = r.text || (alts && alts[0]) || '';
     let ok = r.type !== 'unknown' && r.type !== 'none';
     if (r.type === 'none') return;
+    // a pun from a wish scrap makes the dog do its trick
+    const tr = trickIn(text);
+    if (tr) { doTrick(tr); heard(text, 'trick', true, 'trick'); return; }
+    // in the middle of a chat, answers go to the person you're talking to
+    if (S.chat && r.type !== 'repeat' && r.type !== 'slow' && chatAnswer(r)) { heard(text, LABEL[r.type] || '', true, r.type); return; }
     const J = S.cur;
 
     switch (r.type) {
@@ -925,7 +1035,8 @@
     if (dog.moodT > 0) dog.moodT -= dt; else dog.mood = null;
     dog.anim += dt * 10;
     if (dog.state === 'idle') dog.state = 'follow';
-    if (dog.state === 'follow') moveToward(dog, h.x + 0.7, h.y + 0.7, 3.4, dt, 0.5);
+    if (S.chat && S.t > S.chat.until) endChat(false);
+    if (dog.state === 'follow' && !(dog.trick && S.t < dog.trick.until)) moveToward(dog, h.x + 0.7, h.y + 0.7, 3.4, dt, 0.5);
     else if (dog.state === 'go') {
       if (dog.chase) { dog.tx = dog.chase.x; dog.ty = dog.chase.y; }
       if (moveToward(dog, dog.tx, dog.ty, 5, dt, dog.chase ? 0.25 : 0.08)) { const fn = dog.then; dog.then = null; dog.chase = null; dog.state = 'idle'; fn && fn(); }
@@ -1185,10 +1296,27 @@
   }
   function shadow(x, y, r) { const p = scr(x, y); g.fillStyle = 'rgba(40,30,50,0.22)'; g.fillRect(p.x - r, p.y - 1, r * 2, 2); g.fillRect(p.x - r + 2, p.y - 2, r * 2 - 4, 4); }
 
+  function drawTrick(d) {
+    const tr = d.trick, k = 1 - (tr.until - S.t) / 4, p = scr(d.x, d.y);
+    if (tr.id === 'vanish') {
+      // a swirl of leaves, gone, then back a little way off
+      for (let i = 0; i < 8; i++) { const a = S.t * 6 + i * 0.8, r = 6 + k * 10; R(p.x + Math.cos(a) * r, p.y - 6 + Math.sin(a) * r * 0.5, 2, 2, i % 2 ? '#d98a3a' : '#7fb36b'); }
+      if (k > 0.25 && k < 0.7) return true;
+      if (k >= 0.7 && !tr.moved) { tr.moved = true; d.x = tr.from.x + 1.4; d.y = tr.from.y - 0.8; if (!walkable(d.x, d.y)) { d.x = tr.from.x; d.y = tr.from.y; } }
+      return false;
+    }
+    if (tr.id === 'traffic') { spr('dog', d.x, d.y, { flip: Math.sin(S.t * 4) > 0, lift: 5 }); R(p.x - 1, p.y - 22, 2, 5, '#d9533c'); return true; }
+    if (tr.id === 'dolphin') { for (let i = 0; i < 5; i++) R(p.x - 12 + i * 6, p.y + 1 + Math.sin(S.t * 5 + i) * 1.5, 4, 1, '#7ec3e6'); spr('dog', d.x, d.y, { flip: d.face > 0, lift: 2 + Math.round(Math.sin(S.t * 3)) }); return true; }
+    if (tr.id === 'futon') { for (let i = 0; i < 4; i++) { R(p.x - 9, p.y - 4 - i * 3, 18, 3, C.ink); R(p.x - 8, p.y - 3 - i * 3, 16, 2, i % 2 ? '#f2b6c6' : '#f6f3ea'); } spr('dog', d.x, d.y, { flip: d.face > 0, lift: 13 }); return true; }
+    if (tr.id === 'latte') { R(p.x + 8, p.y - 10, 9, 8, C.ink); R(p.x + 9, p.y - 9, 7, 6, '#c89a64'); R(p.x + 11, p.y - 8, 3, 3, '#f6f3ea'); spr('dog', d.x, d.y, { flip: false, lift: Math.abs(Math.round(Math.sin(S.t * 8))) }); return true; }
+    return false;
+  }
   function drawDog(d) {
     const moving = d.state === 'go' || d.state === 'follow';
     const hop = moving && Math.sin(d.anim) > 0.3 ? 1 : 0;
     shadow(d.x, d.y, 6);
+    if (d.trick && S.t < d.trick.until) { if (drawTrick(d)) { if (d.mood) { const p = scr(d.x, d.y); bubble(p.x, p.y - 24, d.mood); } return; } }
+    else if (d.trick) d.trick = null;
     spr('dog', d.x, d.y, { flip: d.face > 0, lift: d.state === 'dig' || d.state === 'harvest' ? 0 : hop });
     const p = scr(d.x, d.y);
     if (d.state === 'dig' || d.state === 'harvest') for (let i = 0; i < 3; i++) R(p.x - 10 - i * 3, p.y - 4 - ((S.t * 20 + i * 5) % 8), 2, 2, '#8a6a45');
@@ -1408,7 +1536,8 @@
   const PHASE_JP = { title: '朝', greet: '朝', day: '昼', dusk: '夕方', night: '夜', morning: '朝', evening: '夜', sleeping: '夜', done: '朝' };
   function npcNames() {
     const n = { hana: NAMES.landlord, yamada: NAMES.yamada };
-    for (const m of Object.values(MAPS)) for (const p of m.npcs || []) if (p.id) n[p.id] = p.name;
+    for (const [id, c] of Object.entries(CH)) n[id] = c.name;
+    for (const m of Object.values(MAPS)) for (const p of m.npcs || []) if (p.id && p.name) n[p.id] = p.name;
     return n;
   }
   function mapList() {
@@ -1432,7 +1561,9 @@
       job: S.cur ? { title: S.cur.title, goal: S.cur.goal } : null,
       dog: { busy: dogBusy(), carry: dog.carry || null },
       words: Object.entries(d.words || {}).map(([id, w]) => Object.assign(Words.gloss(id), { heard: w.heard, said: w.said, strength: Math.round(Save.fade(id)) })),
-      friends: Object.entries(d.friends || {}).map(([id, f]) => ({ id, name: names[id] || id, stars: f.stars, points: f.points })),
+      friends: Object.entries(d.friends || {}).map(([id, f]) => ({ id, name: names[id] || id, role: (CH[id] && CH[id].role) || '', stars: f.stars, points: f.points, chatted: d.chatDay[id] === d.day })),
+      furniture: (d.house.furniture || []).map((f) => ({ sprite: f.sprite, en: f.en, from: npcName(f.from), for: f.for ? npcName(f.for) : '', given: !!f.given })),
+      tricks: (d.tricks || []).map((id) => { const c = Object.values(CH).find((x) => x.wish && x.wish.trick.id === id); return c ? { id, say: c.wish.scrap.jp, en: c.wish.trick.en } : { id }; }),
       scraps: d.scraps || [], diary: (d.diary || []).slice(-10)
     };
   }
@@ -1622,6 +1753,7 @@
     S, handleSpeech, startGame, takeJob, dropJob, nextDay, Save, Jobs, changeMap, MAPS, phoneState, boardMsg,
     goto(id) { const m = MAPS[id]; if (m) changeMap(id, m.start); },
     setClock(min) { setClock(min); },
+    gainFriend, talkToNearby, get chat() { return S.chat; },
     get clock() { return S.clock; },
     hero: () => S.hero,
     // Draws a whole map to an image (for checking map layouts); returns a data URL.
