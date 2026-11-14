@@ -301,9 +301,10 @@
 </main>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script src="assets/atlas.js?v=20261115a"></script>
-<script src="js/net.js?v=20261115a"></script>
-<script src="js/speech.js?v=20261115a"></script>
+<script src="assets/atlas.js?v=20261115c"></script>
+<script src="js/net.js?v=20261115c"></script>
+<script src="js/speech.js?v=20261115c"></script>
+<script src="js/voice.js?v=20261115c"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -326,7 +327,9 @@
   let jaVoice = null;
   function pickVoice() { try { jaVoice = speechSynthesis.getVoices().find((v) => /^ja/i.test(v.lang)) || null; } catch (_) {} }
   try { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; } catch (_) {}
-  function speak(text, slow, onend) {
+  // voice files when the game has them (same files as the TV), else the phone's own voice
+  function speak(text, slow, onend, who) {
+    if (window.Voice) { Voice.speak(who || 'default', text, { slow }).then(() => onend && onend()); return; }
     try {
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'ja-JP'; if (jaVoice) u.voice = jaVoice; u.rate = slow ? 0.65 : 1;
@@ -493,17 +496,17 @@
   $('thBack').addEventListener('click', () => openThread(null));
   $('thMsgs').addEventListener('click', (e) => {
     const b = e.target.closest('[data-say]'); if (!b) return;
-    stopPlaying(); const i = +b.dataset.say; mark(i); speak(D.log[i].text, slowChat, () => mark(-1));
+    stopPlaying(); const i = +b.dataset.say; mark(i); speak(D.log[i].text, slowChat, () => mark(-1), D.log[i].who);
   });
   function mark(i) { document.querySelectorAll('#thMsgs .bub').forEach((el) => el.classList.toggle('playing', +el.dataset.i === i)); }
-  function stopPlaying() { playing = null; try { speechSynthesis.cancel(); } catch (_) {} mark(-1); }
+  function stopPlaying() { playing = null; try { window.Voice ? Voice.stop() : speechSynthesis.cancel(); } catch (_) {} mark(-1); }
   $('thAll').addEventListener('click', () => {
     stopPlaying();
     const lines = D.log.map((m, i) => i).filter((i) => D.log[i].th === curTh && !D.log[i].me);
     const token = playing = {};
     (function next(k) {
       if (playing !== token || k >= lines.length) { mark(-1); return; }
-      mark(lines[k]); speak(D.log[lines[k]].text, slowChat, () => next(k + 1));
+      mark(lines[k]); speak(D.log[lines[k]].text, slowChat, () => next(k + 1), D.log[lines[k]].who);
     })(0);
   });
   $('thSlow').addEventListener('click', () => { slowChat = !slowChat; $('thSlow').setAttribute('aria-pressed', String(slowChat)); $('thSlow').style.background = slowChat ? '#ffe0cc' : '#fff'; });
@@ -581,7 +584,7 @@
     }).join('');
   }
   $('jobList').addEventListener('click', (e) => {
-    const r = e.target.closest('[data-req]'); if (r) { speak(r.dataset.req, false); return; }
+    const r = e.target.closest('[data-req]'); if (r) { speak(r.dataset.req, false, null, 'landlord'); return; }
     const t = e.target.closest('button[data-act]'); if (!t) return;
     buzz(10); send({ t: 'job', act: t.dataset.act, id: t.dataset.id });
   });

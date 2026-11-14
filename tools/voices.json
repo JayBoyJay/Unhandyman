@@ -1,0 +1,21 @@
+{
+  "_note": "VOICEVOX speaker ids for each role. Run `python3 tools/voicegen.py --speakers` to see every voice. After changing these, run voicegen again; the game reads the ids from assets/voice/index.json.",
+  "voices": {
+    "landlord": 20,
+    "radio": 13,
+    "yamada": 11,
+    "crow": 3,
+    "house": 12,
+    "child": 3,
+    "default": 8
+  },
+  "byName": {
+    "ハナさん": "landlord",
+    "ハナさん · 電話": "landlord",
+    "phone": "landlord",
+    "山田さん": "yamada",
+    "ハルちゃん": "child",
+    "カラス": "crow",
+    "ラジオ": "radio"
+  }
+}

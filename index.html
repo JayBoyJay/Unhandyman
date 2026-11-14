@@ -126,6 +126,17 @@
     <div id="save-status" role="status">Progress saves automatically in this browser.</div>
     <div class="row"><label for="clock-speed" style="flex-direction:row;gap:.5em">時計 · Clock speed <select id="clock-speed"><option value="0.5">ゆっくり · slow (22 min a day)</option><option value="1" selected>ふつう · normal (11 min a day)</option><option value="2">はやい · fast (5½ min a day)</option><option value="0">とめる · stopped</option></select></label></div>
     <div class="row"><input id="explore" type="checkbox"><label for="explore" style="flex-direction:row">Unlock all areas (for testing the maps)</label></div>
+    <strong>Voices</strong>
+    <label>VOICEVOX engine on your Mac (for lines without a voice file; leave empty to skip) <input id="voice-url" type="text" placeholder="https://192.168.5.158:50443"></label>
+    <div class="row"><input id="voice-files" type="checkbox" checked><label for="voice-files" style="flex-direction:row">Use the ready-made voice files</label></div>
+    <label>Hana's voice <select id="voice-hana"><option value="">default</option></select></label>
+    <label>Everyone else <select id="voice-default"><option value="">default</option></select></label>
+    <div class="row">
+      <button id="voice-list" class="btn" type="button">Find voices</button>
+      <button id="voice-test" class="btn" type="button">Test</button>
+      <button id="voice-missing" class="btn" type="button">Save missing lines</button>
+    </div>
+    <div id="voice-status" role="status"></div>
     <strong>AI conversation (optional)</strong>
     <div class="row"><input id="ai-enabled" type="checkbox"><label for="ai-enabled" style="flex-direction:row">Use AI for free chat</label></div>
     <label>Provider
@@ -153,6 +164,7 @@
     <p>Un-Handy Man · Chapter 0</p>
     <p style="font-size:0.9em;opacity:0.8">Scan the code with your phone to start, or press Start to try it with the test box.</p>
     <button id="start" class="btn" type="button">Start</button>
+    <p id="credits" style="font-size:0.75em;opacity:0.7" hidden></p>
   </div>
 
   <div id="end" class="overlay" hidden>
@@ -164,14 +176,15 @@
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="js/words.js?v=20261115a"></script>
-<script src="js/net.js?v=20261115a"></script>
-<script src="js/ai.js?v=20261115a"></script>
-<script src="assets/atlas.js?v=20261115a"></script>
-<script src="js/save.js?v=20261115a"></script>
-<script src="js/jobs.js?v=20261115a"></script>
-<script src="js/maps.js?v=20261115a"></script>
-<script src="js/rooms.js?v=20261115a"></script>
-<script src="js/game.js?v=20261115a"></script>
+<script src="js/words.js?v=20261115c"></script>
+<script src="js/net.js?v=20261115c"></script>
+<script src="js/ai.js?v=20261115c"></script>
+<script src="js/voice.js?v=20261115c"></script>
+<script src="assets/atlas.js?v=20261115c"></script>
+<script src="js/save.js?v=20261115c"></script>
+<script src="js/jobs.js?v=20261115c"></script>
+<script src="js/maps.js?v=20261115c"></script>
+<script src="js/rooms.js?v=20261115c"></script>
+<script src="js/game.js?v=20261115c"></script>
 </body>
 </html>

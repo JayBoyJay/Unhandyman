@@ -198,7 +198,9 @@
     try { jaVoice = speechSynthesis.getVoices().find((v) => /^ja/i.test(v.lang)) || null; } catch (_) {}
   }
   if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
-  function speak(text, rate) {
+  // lines go through js/voice.js: a voice file if there is one, else VOICEVOX live, else the browser
+  function speak(text, rate, who) {
+    if (window.Voice) { Voice.speak(who || 'default', text, { slow: rate && rate < 1, rate }); return; }
     if (!('speechSynthesis' in window)) return;
     try {
       speechSynthesis.cancel();
@@ -214,7 +216,7 @@
     $('who').textContent = NAMES[who] || who;
     $('line').textContent = text;
     $('caption').classList.toggle('radio', who === 'radio');
-    if (!opts.quiet) speak(text, who === 'radio' ? 1.1 : 1);
+    if (!opts.quiet) speak(text, who === 'radio' ? 1.1 : 1, who);
     if (!opts.noRepeat) S.lastLine = { who, text };
     if (!opts.quiet && who !== 'you') Words.wordsIn(text).forEach((w) => Save.word(w, 'heard'));
     const name = NAMES[who] || who, th = who === 'phone' ? NAMES.landlord : name;
@@ -226,7 +228,7 @@
     if (!S.lastLine) return;
     $('who').textContent = NAMES[S.lastLine.who] || S.lastLine.who;
     $('line').textContent = S.lastLine.text;
-    speak(S.lastLine.text, slow ? 0.65 : 1);
+    speak(S.lastLine.text, slow ? 0.65 : 1, S.lastLine.who);
   }
   function hint(text) { $('hint').textContent = text || ''; $('hint').hidden = !text; }
   function miss(hintText) {
@@ -932,7 +934,7 @@
       if (!H) dog.state = 'follow';
       else if ((H.next -= dt) <= 0) {
         H.count++; H.pile.push(H.wrongVeg || S.cur.params.veg);
-        speak(COUNTER[H.count] || String(H.count), 1.1);
+        speak(COUNTER[H.count] || String(H.count), 1.1, 'landlord');
         dogMood(String(H.count), 1.1); H.next = 1.35;
         if ((H.target && H.count >= H.target) || H.count >= 10) stopHarvest();
       }
@@ -1558,6 +1560,44 @@
     catch (e) { $('save-status').textContent = e.message; }
     $('save-file').value = '';
   });
+  // ---------- voice settings ----------
+  function fillVoice() {
+    const c = Voice.config;
+    $('voice-url').value = c.engineUrl || ''; $('voice-files').checked = c.useFiles !== false;
+    Voice.filesReady().then((n) => { if (!$('voice-status').textContent) $('voice-status').textContent = n ? n + ' voice files ready.' : 'No voice files yet: lines use VOICEVOX live (if set) or the browser voice.'; });
+  }
+  function readVoice() {
+    const c = Voice.config, voices = Object.assign({}, c.voices);
+    voices.landlord = $('voice-hana').value; voices.default = $('voice-default').value;
+    Voice.setConfig({ engineUrl: $('voice-url').value.trim(), useFiles: $('voice-files').checked, voices });
+  }
+  ['voice-url', 'voice-files', 'voice-hana', 'voice-default'].forEach((id) => $(id).addEventListener('change', readVoice));
+  $('voice-list').addEventListener('click', async () => {
+    readVoice(); $('voice-status').textContent = 'Asking VOICEVOX for its voices…';
+    try {
+      const list = await Voice.speakers(), c = Voice.config.voices;
+      const opts = '<option value="">default</option>' + list.map((v) => '<option value="' + v.id + '">' + v.id + ' · ' + v.name + '</option>').join('');
+      $('voice-hana').innerHTML = opts; $('voice-default').innerHTML = opts;
+      $('voice-hana').value = c.landlord || ''; $('voice-default').value = c.default || '';
+      $('voice-status').textContent = list.length + ' voices. Voices picked here are used live; to make files with them, put the same ids in tools/voices.json.';
+    } catch (e) { $('voice-status').textContent = "Couldn't reach VOICEVOX at that address (" + e.message + '). Is the engine running, and has this browser accepted its certificate?'; }
+  });
+  $('voice-test').addEventListener('click', async () => {
+    readVoice(); $('voice-status').textContent = 'Playing…';
+    const how = await Voice.speak('landlord', 'こんにちは！ きょうも いい てんき だね。');
+    $('voice-status').textContent = { file: 'Played a voice file.', live: 'Played live from VOICEVOX.', browser: 'Played with the browser voice' + (Voice.lastError ? ' (VOICEVOX: ' + Voice.lastError + ')' : '') + '.' }[how] || '';
+  });
+  $('voice-missing').addEventListener('click', () => {
+    const lines = Voice.missingLines();
+    if (!lines.length) { $('voice-status').textContent = 'Every line heard so far has a voice file.'; return; }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(lines, null, 1)], { type: 'application/json' }));
+    a.download = 'missing-lines.json'; a.click();
+    $('voice-status').textContent = lines.length + ' lines saved. On the Mac: python3 tools/voicegen.py --lines missing-lines.json';
+  });
+  fillVoice();
+  Voice.filesReady().then(() => { if (Voice.credits.length) { $('credits').textContent = '音声 · Voices: ' + Voice.credits.join('、'); $('credits').hidden = false; } });
+
   $('clock-speed').value = String(clockRate);
   $('clock-speed').addEventListener('change', () => { clockRate = +$('clock-speed').value; try { localStorage.setItem('unhandyman.clockRate', String(clockRate)); } catch (_) {} });
   $('explore').addEventListener('change', () => { SV().explore = $('explore').checked; Save.save(); });

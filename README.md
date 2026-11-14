@@ -76,6 +76,39 @@ Click **AI** on the TV screen.
 - **Ollama (default):** install Ollama on the computer that opens the TV page and pull a model with good Japanese. Ollama has to allow the game's web address, so start it with `OLLAMA_ORIGINS` set, for example `OLLAMA_ORIGINS=https://jayboyjay.github.io,http://localhost:8000`. Then click "Find Ollama models".
 - **Claude, OpenAI or Gemini:** paste your own API key. It stays in that browser only and is never part of the repo.
 
+## Voices (VOICEVOX)
+
+Lines are spoken with, in order: a ready-made voice file in `assets/voice/`, the VOICEVOX engine running live on your Mac, or the browser's own voice.
+
+**1. Run the VOICEVOX engine on the Mac.** Install the VOICEVOX app from voicevox.hiroshiba.jp (it includes the engine), or download just the engine for macOS from github.com/VOICEVOX/voicevox_engine/releases. With the app open, the engine listens on `http://localhost:50021`.
+
+**2. Make voice files for the game's fixed lines** (in the repo folder on the Mac):
+```
+python3 tools/voicegen.py --speakers   # list voices and their ids
+python3 tools/voicegen.py              # make the files (m4a via afconvert)
+git add assets/voice && git commit -m "Voice files" && git push
+```
+Which voice each character uses is set in `tools/voices.json`. Re-run after changing it, or after adding lines; existing files are kept.
+
+**3. Lines that change** (job requests with numbers, AI replies) can't be made ahead of time. Either:
+- play the game for a while, then 設定 → Voices → **Save missing lines**, and run `python3 tools/voicegen.py --lines missing-lines.json`, or
+- let the TV ask VOICEVOX live: give the engine an https address with Caddy (add this to the Caddyfile on the Mac, then `caddy reload`), open that address once on the TV to accept the certificate, and put it in 設定 → Voices.
+```
+https://192.168.5.158:50443 {
+  tls internal
+  header Access-Control-Allow-Origin "*"
+  @preflight method OPTIONS
+  respond @preflight 204
+  reverse_proxy localhost:50021 {
+    header_up Host localhost:50021
+    header_up -Origin
+    header_up Content-Type application/json
+  }
+}
+```
+
+**Credit:** VOICEVOX voices must be credited as `VOICEVOX:<character name>` wherever the game is shared, and each character has its own terms of use (see the VOICEVOX site).
+
 ## Known gaps
 
 - Voices use the browser's Japanese text-to-speech; VOICEVOX recordings come later.
