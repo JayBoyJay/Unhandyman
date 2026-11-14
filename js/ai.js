@@ -19,8 +19,21 @@
     try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch (_) {}
   }
 
-  async function postJSON(url, body, headers) {
-    const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify(body) });
+  // plain: send as text/plain so the browser makes a "simple" request with no CORS preflight.
+  // Ollama reads the body as JSON whatever the header says, and this avoids preflights failing
+  // through proxies (Caddy) or other machines on the network.
+  async function postJSON(url, body, headers, plain) {
+    const ctl = window.AbortController ? new AbortController() : null;
+    const timer = ctl && setTimeout(() => ctl.abort(), 60000);   // first reply can be slow while the model loads
+    let r;
+    try {
+      r = await fetch(url, {
+        method: 'POST', body: JSON.stringify(body), signal: ctl ? ctl.signal : undefined,
+        headers: plain ? { ...headers } : { 'content-type': 'application/json', ...headers }
+      });
+    } catch (e) {
+      throw new Error(e.name === 'AbortError' ? 'No reply after 60 s (is the model still loading?)' : "Couldn't connect to " + new URL(url).host + ' (' + e.message + ')');
+    } finally { timer && clearTimeout(timer); }
     if (!r.ok) throw new Error('HTTP ' + r.status + ': ' + (await r.text()).slice(0, 200));
     return r.json();
   }
@@ -33,7 +46,7 @@
       const d = await postJSON(cfg.ollamaUrl.replace(/\/$/, '') + '/api/chat', {
         model, stream: false, messages: [{ role: 'system', content: system }, ...messages],
         options: { temperature: 0.6, num_predict: 80 }
-      });
+      }, {}, true);
       return d.message && d.message.content;
     }
     if (cfg.provider === 'claude') {
